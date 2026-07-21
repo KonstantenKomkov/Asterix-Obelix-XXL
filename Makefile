@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory run run-profile run-release format analyze test policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect run run-profile run-release format analyze test policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -22,6 +22,10 @@ get: ## Установить Flutter-зависимости
 inventory: ## Построить локальный JSON-манифест оригинальных файлов (GAME_DIR=... OUTPUT=...)
 	@test -n "$(GAME_DIR)" || (echo 'Укажите GAME_DIR=/путь/к/AsterixXXL' >&2; exit 2)
 	$(DART) run bin/inventory.dart "$(GAME_DIR)" $(if $(OUTPUT),--output "$(OUTPUT)",)
+
+importer-inspect: ## Проверить файл каркасом импортёра (INPUT=...)
+	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/файлу' >&2; exit 2)
+	$(DART) run bin/importer.dart inspect "$(INPUT)"
 
 run: ## Запустить приложение на macOS в debug
 	$(FLUTTER) run -d macos
