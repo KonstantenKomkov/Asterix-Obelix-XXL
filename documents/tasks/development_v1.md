@@ -35,6 +35,9 @@
 | 48 | Профилировать CPU, GPU, память, размер приложения и startup time; закрыть утверждённые бюджеты | M6 | После п. 44–47 |
 | 49 | Настроить подпись, Hardened Runtime, notarization и упаковку `.dmg`/`.pkg` | M6 | После п. 1 и готовности release candidate |
 | 50 | Проверить установку и прохождение на чистой системе без Flutter SDK, Xcode, Wine и Windows executable | M6 | После п. 49 |
+| 51 | Подключить реальную skeletal animation Астерикса: сопоставить clips состояниям `idle/run/jump/fall/attack/hurt/death`, вычислять и передавать полную bone palette, убрать T-pose | M5 fidelity | После текущей загрузки skin; персонаж анимирован во всех gameplay-состояниях без повреждения геометрии |
+| 52 | Завершить fidelity материалов и геометрии Gaul: проверить все material slots, alpha/cutout, addressing, texture lookup и оставшиеся нетекстурированные либо неверно преобразованные mesh | M5 fidelity | После level-texture pipeline; стартовая сцена визуально сверена с эталоном без placeholder-геометрии и ошибочных материалов |
+| 53 | Добавить визуальный regression запуска Gaul для камеры, spawn, окружения и персонажа | M5 quality | После п. 51–52; эталонный кадр и автоматическая проверка ловят T-pose, неверный spawn и потерянные texture bindings |
 
 ---
 
@@ -94,7 +97,7 @@
 - [x] П. 41 — presentation MVP
 - [x] П. 42 — приёмка M4
 - [ ] П. 43 — решение о продолжении
-- [ ] П. 44–50 — полный контент, качество и release candidate
+- [ ] П. 44–53 — полный контент, fidelity, качество и release candidate
 
 ---
 

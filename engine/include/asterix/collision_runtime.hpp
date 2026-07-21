@@ -53,9 +53,9 @@ struct CapsuleState {
 
 struct GroundHit { float height; Vec3 normal; int object_id; Vec3 velocity; };
 
-// Imported sectors can list ceilings and tiny decorative polygons before the
-// traversable terrain. Pick a low, non-degenerate walkable surface independent
-// of file order so the camera does not start above or inside overhead geometry.
+// Sector-local gameplay coordinates start around the origin. Pick the nearest
+// non-degenerate walkable surface so low river beds and remote scenery do not
+// place the player underneath the actual start area.
 inline std::optional<Vec3> safeSpawnPoint(const std::vector<Triangle>& triangles,
                                           float capsule_bottom_offset = .9f,
                                           float maximum_slope_degrees = 50) {
@@ -63,7 +63,7 @@ inline std::optional<Vec3> safeSpawnPoint(const std::vector<Triangle>& triangles
                                     3.14159265358979323846f / 180.0f);
   const Triangle* best = nullptr;
   float best_projected_area = 0;
-  float best_height = std::numeric_limits<float>::infinity();
+  float best_distance_squared = std::numeric_limits<float>::infinity();
   for (const Triangle& triangle : triangles) {
     const Vec3 surface = cross(triangle.b - triangle.a, triangle.c - triangle.a);
     const float surface_length = length(surface);
@@ -71,12 +71,14 @@ inline std::optional<Vec3> safeSpawnPoint(const std::vector<Triangle>& triangles
       continue;
     const float projected_area = std::abs(surface.y) * .5f;
     if (projected_area < .05f) continue;
-    const float height = (triangle.a.y + triangle.b.y + triangle.c.y) / 3;
-    if (height < best_height - .01f ||
-        (std::abs(height - best_height) <= .01f &&
+    const float x = (triangle.a.x + triangle.b.x + triangle.c.x) / 3;
+    const float z = (triangle.a.z + triangle.b.z + triangle.c.z) / 3;
+    const float distance_squared = x * x + z * z;
+    if (distance_squared < best_distance_squared - .01f ||
+        (std::abs(distance_squared - best_distance_squared) <= .01f &&
          projected_area > best_projected_area)) {
       best = &triangle;
-      best_height = height;
+      best_distance_squared = distance_squared;
       best_projected_area = projected_area;
     }
   }

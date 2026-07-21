@@ -351,6 +351,80 @@ final class SliceAssetPipeline {
       }
     }
 
+    final levelTextureDirectory = Directory('${proof.path}/textures');
+    final outputs = root['outputs'];
+    final hasLevelTextures =
+        root['schemaVersion'] == 2 &&
+        outputs is Map &&
+        outputs['textures'] is String;
+    if (hasLevelTextures && await levelTextureDirectory.exists()) {
+      final manifestPath = '${levelTextureDirectory.path}/manifest.json';
+      final textureManifest = await _jsonFile(File(manifestPath));
+      final textures = _objectList(
+        textureManifest,
+        'textures',
+        path: manifestPath,
+      );
+      final textureFiles = await _filesWithSuffix(
+        levelTextureDirectory,
+        '.png',
+      );
+      if (textures.length != textureFiles.length) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidReference,
+          'Level texture manifest and PNG file counts differ.',
+          path: levelTextureDirectory.path,
+          details: {
+            'manifestCount': textures.length,
+            'fileCount': textureFiles.length,
+          },
+        );
+      }
+      for (var index = 0; index < textures.length; index++) {
+        final summary = textures[index];
+        final name = summary['name'];
+        if (name is! String || name.isEmpty) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidSchema,
+            'Level texture name is missing.',
+            path: manifestPath,
+            details: {'texture': index},
+          );
+        }
+        final pngBytes = await _readRequiredBytes(textureFiles[index]);
+        final decoded = img.decodePng(pngBytes);
+        if (decoded == null ||
+            summary['width'] != decoded.width ||
+            summary['height'] != decoded.height) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidImage,
+            'Level texture is invalid or has unexpected dimensions.',
+            path: textureFiles[index].path,
+          );
+        }
+        payloads.add(
+          AssetPayloadInput(
+            kind: 'texture',
+            sourcePath: _levelSource,
+            sourceKey: 'texture:$index:$name',
+            bytes: await cache.transform(
+              kind: 'metal-texture',
+              input: pngBytes,
+              transform: (_) => encodeMetalTexture(decoded),
+              value: pngBytes,
+            ),
+            metadata: {
+              'name': name,
+              'width': decoded.width,
+              'height': decoded.height,
+              'pixelFormat': 'rgba8Unorm',
+              'mipCount': _mipCount(decoded.width, decoded.height),
+            },
+          ),
+        );
+      }
+    }
+
     final animationDir = Directory('${proof.path}/animations');
     final animationManifest = await _jsonFile(
       File('${animationDir.path}/manifest.json'),

@@ -376,18 +376,19 @@
   XCTAssertEqualWithAccuracy(state.velocity.y,0,.001f);
 }
 
-- (void)testSafeSpawnUsesLowestTraversableSurfaceRegardlessOfFileOrder {
+- (void)testSafeSpawnUsesWalkableSurfaceNearestSectorOrigin {
   using namespace asterix::collision;
   const std::vector<Triangle> triangles = {
       {{0,5,0},{0,5,1},{1,5,0},1},
       {{-4,2,-4},{4,2,-4},{-4,2,4},2},
+      {{-.5f,3,-.5f},{.5f,3,-.5f},{-.5f,3,.5f},4},
       {{10,-10,-10},{10,10,-10},{10,-10,10},3},
   };
   const auto spawn=safeSpawnPoint(triangles);
   XCTAssertTrue(spawn.has_value());
-  XCTAssertEqualWithAccuracy(spawn->x,-4.0f/3.0f,.001f);
-  XCTAssertEqualWithAccuracy(spawn->y,2.9f,.001f);
-  XCTAssertEqualWithAccuracy(spawn->z,-4.0f/3.0f,.001f);
+  XCTAssertEqualWithAccuracy(spawn->x,-1.0f/6.0f,.001f);
+  XCTAssertEqualWithAccuracy(spawn->y,3.9f,.001f);
+  XCTAssertEqualWithAccuracy(spawn->z,-1.0f/6.0f,.001f);
 }
 
 - (void)testFixedTimestepMatchesAtThirtySixtyAndOneTwentyHertz {

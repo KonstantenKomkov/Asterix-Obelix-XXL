@@ -11,12 +11,15 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'probe-protected-level';
     final extractsAnimations =
         arguments.isNotEmpty && arguments.first == 'extract-animations';
+    final extractsLevelTextures =
+        arguments.isNotEmpty && arguments.first == 'extract-level-textures';
     final extractsCollision =
         arguments.isNotEmpty && arguments.first == 'extract-collision';
     final extractsLevelSpatial =
         arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
     final decodesRws = arguments.isNotEmpty && arguments.first == 'decode-rws';
-    final expectedLength = extractsAnimations || extractsLevelSpatial
+    final expectedLength =
+        extractsAnimations || extractsLevelSpatial || extractsLevelTextures
         ? 4
         : extractsTextures ||
               probesProtectedLevel ||
@@ -32,6 +35,7 @@ Future<void> main(List<String> arguments) async {
           'extract-geometry-summary',
           'extract-geometry',
           'extract-textures',
+          'extract-level-textures',
           'probe-protected-level',
           'extract-animations',
           'extract-collision',
@@ -67,6 +71,30 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (extractsLevelTextures) {
+      final match = RegExp(
+        r'^LVL(\d{2})\.KWN$',
+        caseSensitive: false,
+      ).firstMatch(file.uri.pathSegments.last);
+      if (match == null) {
+        throw ImportException(
+          code: ImportErrorCode.invalidArguments,
+          message: 'Protected level file must be named LVLnn.KWN.',
+          path: path,
+        );
+      }
+      final modulePath = arguments[2];
+      final scan = scanProtectedXxl1Level(
+        bytes,
+        await File(modulePath).readAsBytes(),
+        levelNumber: int.parse(match.group(1)!),
+        levelPath: path,
+        gameModulePath: modulePath,
+      );
+      final textures = extractXxl1LevelTextures(bytes, scan, path: path);
+      await _writeTextures(textures, Directory(arguments[3]));
+      return;
+    }
     if (arguments.first == 'inspect-rws') {
       stdout.writeln(
         const JsonEncoder.withIndent(
@@ -288,25 +316,7 @@ Future<void> main(List<String> arguments) async {
     }
     if (extractsTextures) {
       final textures = extractXxl1SectorTextures(bytes, path: path);
-      final output = Directory(arguments[2]);
-      await output.create(recursive: true);
-      for (var index = 0; index < textures.length; index++) {
-        final texture = textures[index];
-        final safeName = texture.name.replaceAll(
-          RegExp(r'[^a-zA-Z0-9._-]'),
-          '_',
-        );
-        await File(
-          '${output.path}/${index.toString().padLeft(3, '0')}_$safeName.png',
-        ).writeAsBytes(encodeRgbaPng(texture), flush: true);
-      }
-      await File('${output.path}/manifest.json').writeAsString(
-        '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'textures': textures.map((texture) => texture.summary()).toList()})}\n',
-        flush: true,
-      );
-      stdout.writeln(
-        'Extracted ${textures.length} textures into ${output.path}',
-      );
+      await _writeTextures(textures, Directory(arguments[2]));
       return;
     }
     if (arguments.first == 'extract-geometry') {
@@ -382,6 +392,25 @@ Future<void> main(List<String> arguments) async {
     stderr.writeln(jsonEncode(structured.toJson()));
     exitCode = 74;
   }
+}
+
+Future<void> _writeTextures(
+  List<DecodedTexture> textures,
+  Directory output,
+) async {
+  await output.create(recursive: true);
+  for (var index = 0; index < textures.length; index++) {
+    final texture = textures[index];
+    final safeName = texture.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+    await File(
+      '${output.path}/${index.toString().padLeft(3, '0')}_$safeName.png',
+    ).writeAsBytes(encodeRgbaPng(texture), flush: true);
+  }
+  await File('${output.path}/manifest.json').writeAsString(
+    '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'textures': textures.map((texture) => texture.summary()).toList()})}\n',
+    flush: true,
+  );
+  stdout.writeln('Extracted ${textures.length} textures into ${output.path}');
 }
 
 String _collisionOverlaySvg(

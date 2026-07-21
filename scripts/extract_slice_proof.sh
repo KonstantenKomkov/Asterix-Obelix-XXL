@@ -41,6 +41,7 @@ for suffix in 00 01 02 03; do
   rm -f "$sector_output/collision.overlay.svg"
   fvm dart run bin/importer.dart extract-textures "$sector" "$sector_output/textures"
 done
+fvm dart run bin/importer.dart extract-level-textures "$level" "$module" "$output/textures"
 fvm dart run bin/importer.dart extract-animations "$level" "$module" "$output/animations"
 fvm dart run bin/importer.dart decode-rws "$audio" "$output/audio.wav"
 
@@ -56,6 +57,7 @@ printf '%s\n' \
   '  ],' \
   '  "sourceFiles": ["LVL001/STR01_00.KWN", "LVL001/STR01_01.KWN", "LVL001/STR01_02.KWN", "LVL001/STR01_03.KWN", "LVL001/LVL01.KWN", "GameModule.elb", "LVL001/WINAS/WINAS8.rws"],' \
   '  "outputs": {' \
+  '    "textures": "textures/manifest.json",' \
   '    "animations": "animations/manifest.json",' \
   '    "audio": "audio.wav"' \
   '  }' \

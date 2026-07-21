@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'binary_reader.dart';
 import 'import_error.dart';
 import 'kwn_structure.dart';
+import 'protected_level.dart';
 
 final class DecodedTexture {
   const DecodedTexture({
@@ -56,6 +57,29 @@ List<DecodedTexture> extractXxl1SectorTextures(
     throw ImportException(
       code: ImportErrorCode.invalidValue,
       message: 'Expected exactly one sector texture dictionary.',
+      path: path,
+      details: {'actual': dictionaries.length},
+    );
+  }
+  final object = dictionaries.single;
+  return parseXxl1TextureDictionaryPayload(
+    Uint8List.sublistView(bytes, object.payloadOffset, object.endOffset),
+    path: '$path#9:2:${object.objectId}',
+  );
+}
+
+List<DecodedTexture> extractXxl1LevelTextures(
+  Uint8List bytes,
+  Xxl1LevelScan scan, {
+  required String path,
+}) {
+  final dictionaries = scan.objects
+      .where((object) => object.category == 9 && object.classId == 2)
+      .toList();
+  if (dictionaries.length != 1) {
+    throw ImportException(
+      code: ImportErrorCode.invalidValue,
+      message: 'Expected exactly one level texture dictionary.',
       path: path,
       details: {'actual': dictionaries.length},
     );

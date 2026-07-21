@@ -40,6 +40,7 @@ typedef struct {
 typedef struct {
   NSUInteger vertexStart;
   NSUInteger vertexCount;
+  __unsafe_unretained id<MTLTexture> texture;
 } AsterixMeshRange;
 
 static void AsterixWriteMarker(AsterixVertex* vertices,
@@ -124,14 +125,19 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   id<MTLBuffer> _sceneVertices;
   id<MTLBuffer> _collisionVertices;
   id<MTLTexture> _sceneTexture;
+  NSArray<id<MTLTexture>>* _sceneTextures;
   NSUInteger _sceneVertexCount;
   NSUInteger _sceneMeshCount;
   NSUInteger _collisionTriangleCount;
   NSUInteger _visibleMeshCount;
   NSUInteger _drawBatchCount;
   NSUInteger _playerMarkerVertexStart;
+  NSUInteger _playerMeshVertexStart;
+  NSUInteger _playerMeshVertexCount;
+  id<MTLTexture> _playerTexture;
+  std::vector<vector_float3> _playerMeshPositions;
   NSUInteger _enemyMarkerVertexStart;
-  std::vector<AsterixMeshRange> _sceneMeshRanges;
+  std::vector<std::vector<AsterixMeshRange>> _sceneMeshRanges;
   std::unique_ptr<asterix::scene::Runtime> _sceneRuntime;
   NSString* _sceneError;
   vector_float3 _sceneCenter;
@@ -508,7 +514,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   NSMutableData* collisionVertexData = [NSMutableData data];
   std::vector<asterix::collision::Triangle> collisionTriangles;
   std::vector<asterix::collision::Triangle> startCollisionTriangles;
-  std::vector<AsterixMeshRange> meshRanges;
+  std::vector<std::vector<AsterixMeshRange>> meshRanges;
+  NSDictionary* playerSkin = nil;
   std::vector<asterix::scene::Node> runtimeNodes;
   NSUInteger meshCount = 0;
   vector_float3 minimum = {INFINITY, INFINITY, INFINITY};
@@ -518,6 +525,18 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unordered_map<std::string, std::string> payloadSections;
   std::unordered_map<std::string, vector_float3> sectionMinimums;
   std::unordered_map<std::string, vector_float3> sectionMaximums;
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"skin"] ||
+        [resource[@"metadata"][@"objectId"] integerValue] != 4) continue;
+    uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset<=payloadLength&&length<=payloadLength-offset) {
+      NSData* data=[package subdataWithRange:NSMakeRange(
+          (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+      playerSkin=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    }
+    break;
+  }
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"collision"]) continue;
     const BOOL startSection=[resource[@"metadata"][@"section"] hasSuffix:@"STR01_00.KWN"];
@@ -617,6 +636,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       }
     }
     NSUInteger before = vertexData.length;
+    std::vector<AsterixMeshRange> materialRanges;
     vector_float3 meshMinimum = {INFINITY, INFINITY, INFINITY};
     vector_float3 meshMaximum = {-INFINITY, -INFINITY, -INFINITY};
     for (NSArray* triangle in triangles) {
@@ -650,6 +670,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         }
       }
       NSDictionary* material = materialIndex < materials.count ? materials[materialIndex] : nil;
+      NSString* textureName=material[@"texture"];
+      id<MTLTexture> materialTexture=
+          [textureName isKindOfClass:NSString.class]?textures[textureName]:nil;
+      const NSUInteger triangleStart=vertexData.length/sizeof(AsterixVertex);
       if ([material[@"ambient"] isKindOfClass:NSNumber.class]) ambient = [material[@"ambient"] floatValue];
       if ([material[@"diffuse"] isKindOfClass:NSNumber.class]) diffuse = [material[@"diffuse"] floatValue];
       for (NSUInteger corner = 0; corner < 3; ++corner) {
@@ -675,11 +699,17 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                                 (uint32_t)[mesh[@"objectId"] unsignedIntValue]};
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
       }
+      const NSUInteger triangleCount=vertexData.length/sizeof(AsterixVertex)-triangleStart;
+      if(triangleCount>0) {
+        if(!materialRanges.empty()&&materialRanges.back().texture==materialTexture&&
+           materialRanges.back().vertexStart+materialRanges.back().vertexCount==triangleStart)
+          materialRanges.back().vertexCount+=triangleCount;
+        else materialRanges.push_back({triangleStart,triangleCount,materialTexture});
+      }
     }
     if (vertexData.length > before) {
-      const NSUInteger start = before / sizeof(AsterixVertex);
       const NSUInteger count = (vertexData.length - before) / sizeof(AsterixVertex);
-      meshRanges.push_back({start, count});
+      meshRanges.push_back(std::move(materialRanges));
       asterix::scene::Node node;
       node.id = [resourceId UTF8String] ?: "";
       const auto section=payloadSections.find(node.id);
@@ -721,6 +751,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::camera::Runtime> cameraRuntime;
   std::unique_ptr<asterix::combat::Runtime> combatRuntime;
   NSUInteger playerMarkerVertexStart=NSNotFound,enemyMarkerVertexStart=NSNotFound;
+  NSUInteger playerMeshVertexStart=NSNotFound,playerMeshVertexCount=0;
+  id<MTLTexture> playerTexture=nil;
+  std::vector<vector_float3> playerMeshPositions;
   if (!collisionTriangles.empty()) {
     const auto spawn=asterix::collision::safeSpawnPoint(
         startCollisionTriangles.empty()?collisionTriangles:startCollisionTriangles);
@@ -769,9 +802,41 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     objectFighter.position=body.position+asterix::collision::Vec3{2,0,0};
     objectFighter.health=2; combatRuntime->addFighter(objectFighter);
     AsterixVertex marker[6];
-    playerMarkerVertexStart=vertexData.length/sizeof(AsterixVertex);
-    AsterixWriteMarker(marker,body.position,(vector_float3){1.0f,.72f,.08f},900001);
-    [vertexData appendBytes:marker length:sizeof(marker)];
+    NSArray* skinPositions=playerSkin[@"vertices"];
+    NSArray* skinNormals=playerSkin[@"normals"];
+    NSArray* skinUvSets=playerSkin[@"uvSets"];
+    NSArray* skinUvs=skinUvSets.count>0?skinUvSets[0]:nil;
+    NSArray* skinMaterials=playerSkin[@"materials"];
+    NSArray* skinTriangles=playerSkin[@"triangles"];
+    if(skinPositions.count>0&&skinTriangles.count>0) {
+      playerMeshVertexStart=vertexData.length/sizeof(AsterixVertex);
+      NSString* textureName=skinMaterials.count>0?skinMaterials[0][@"texture"]:nil;
+      playerTexture=[textureName isKindOfClass:NSString.class]?textures[textureName]:nil;
+      for(NSArray* triangle in skinTriangles) for(NSUInteger corner=0;corner<3;++corner) {
+        NSUInteger index=[triangle[corner] unsignedIntegerValue];
+        if(index>=skinPositions.count)continue;
+        NSArray* p=skinPositions[index];
+        vector_float3 local={[p[0] floatValue],[p[1] floatValue],[p[2] floatValue]};
+        vector_float3 normal={0,1,0};
+        if(index<skinNormals.count) {
+          NSArray* n=skinNormals[index];
+          normal={(float)[n[0] doubleValue],(float)[n[1] doubleValue],(float)[n[2] doubleValue]};
+        }
+        vector_float2 uv={0,0};
+        if(index<skinUvs.count) {
+          NSArray* value=skinUvs[index]; uv={(float)[value[0] doubleValue],(float)[value[1] doubleValue]};
+        }
+        AsterixVertex vertex={local+(vector_float3){body.position.x,body.position.y,body.position.z},
+            {1,1,1},normal,uv,1,1,1,{0,0,0,0},{1,0,0,0},900001};
+        [vertexData appendBytes:&vertex length:sizeof(vertex)];
+        playerMeshPositions.push_back(local);
+      }
+      playerMeshVertexCount=playerMeshPositions.size();
+    } else {
+      playerMarkerVertexStart=vertexData.length/sizeof(AsterixVertex);
+      AsterixWriteMarker(marker,body.position,(vector_float3){1.0f,.72f,.08f},900001);
+      [vertexData appendBytes:marker length:sizeof(marker)];
+    }
     enemyMarkerVertexStart=vertexData.length/sizeof(AsterixVertex);
     AsterixWriteMarker(marker,enemyBody.position,(vector_float3){.85f,.08f,.06f},900002);
     [vertexData appendBytes:marker length:sizeof(marker)];
@@ -797,11 +862,16 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _collisionVertices = collisionBuffer;
     _collisionTriangleCount = collisionVertexData.length / sizeof(AsterixVertex) / 3;
     _sceneTexture = selectedTexture;
+    _sceneTextures = textures.allValues;
     _sceneVertexCount = vertexData.length / sizeof(AsterixVertex);
     _sceneMeshCount = meshCount;
     _visibleMeshCount = meshCount;
     _drawBatchCount = meshCount > 0 ? 1 : 0;
     _playerMarkerVertexStart=playerMarkerVertexStart;
+    _playerMeshVertexStart=playerMeshVertexStart;
+    _playerMeshVertexCount=playerMeshVertexCount;
+    _playerTexture=playerTexture;
+    _playerMeshPositions=std::move(playerMeshPositions);
     _enemyMarkerVertexStart=enemyMarkerVertexStart;
     _sceneMeshRanges = std::move(meshRanges);
     _sceneRuntime = std::move(runtime);
@@ -902,6 +972,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _collisionVertices = nil;
     _collisionTriangleCount = 0;
     _sceneTexture = nil;
+    _sceneTextures = nil;
     _sceneVertexCount = 0;
     _sceneMeshCount = 0;
     _visibleMeshCount = 0;
@@ -1119,6 +1190,12 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           AsterixWriteMarker((AsterixVertex*)_sceneVertices.contents+_playerMarkerVertexStart,
                              _playerRuntime->snapshot().body.position,
                              (vector_float3){1.0f,.72f,.08f},900001);
+        if(_sceneVertices&&_playerRuntime&&_playerMeshVertexStart!=NSNotFound) {
+          const auto position=_playerRuntime->snapshot().body.position;
+          AsterixVertex* vertices=(AsterixVertex*)_sceneVertices.contents+_playerMeshVertexStart;
+          for(NSUInteger index=0;index<_playerMeshVertexCount;++index)
+            vertices[index].position=_playerMeshPositions[index]+(vector_float3){position.x,position.y,position.z};
+        }
         if(_sceneVertices&&_enemyRuntime&&_enemyMarkerVertexStart!=NSNotFound)
           AsterixWriteMarker((AsterixVertex*)_sceneVertices.contents+_enemyMarkerVertexStart,
                              _enemyRuntime->snapshot().body.position,
@@ -1145,10 +1222,6 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       const float fieldOfView = hasGameplayCamera ? cameraSnapshot.field_of_view_degrees : 70.0f;
       const matrix_float4x4 viewProjection = simd_mul(AsterixPerspective(fieldOfView * 3.14159265358979323846f / 180.0f,
                                                                          aspect, 0.1f, 1000.0f), rotation);
-      // A package contains many material textures. Applying the first texture
-      // to every mesh makes most imported geometry effectively black; until
-      // batches carry their material binding, preserve the imported vertex
-      // colours so the gameplay scene remains readable.
       AsterixUniforms uniforms = {viewProjection,
                                   0u,
                                   sceneRadius * 1.2f, sceneRadius * 3.2f,
@@ -1173,7 +1246,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         // proof scene. Keep the viewport empty until the menu supplies ASTPAK.
       } else {
         std::vector<asterix::scene::DrawBatch> batches;
-        std::vector<AsterixMeshRange> meshRanges;
+        std::vector<std::vector<AsterixMeshRange>> meshRanges;
         @synchronized(self) {
           if (_sceneRuntime) {
             auto renderFrustum = AsterixFrustum(viewProjection);
@@ -1200,11 +1273,32 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         }
         for (const auto& batch : batches) for (const auto& item : batch.items) {
           if (item.node_index >= meshRanges.size()) continue;
-          const AsterixMeshRange range = meshRanges[item.node_index];
-          [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:range.vertexStart
-                      vertexCount:MIN((NSUInteger)item.vertex_count, range.vertexCount)];
+          for(const AsterixMeshRange& range:meshRanges[item.node_index]) {
+            AsterixUniforms materialUniforms=uniforms;
+            materialUniforms.textured=range.texture!=nil?1u:0u;
+            [encoder setVertexBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
+            [encoder setFragmentBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
+            [encoder setFragmentTexture:range.texture atIndex:0];
+            [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:range.vertexStart
+                        vertexCount:range.vertexCount];
+          }
         }
         [encoder setDepthStencilState:nil];
+        [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+        [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+        if(_playerMeshVertexStart!=NSNotFound) {
+          [encoder setDepthStencilState:_depthState];
+          AsterixUniforms playerUniforms=uniforms;
+          playerUniforms.textured=_playerTexture!=nil?1u:0u;
+          [encoder setVertexBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
+          [encoder setFragmentBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
+          [encoder setFragmentTexture:_playerTexture atIndex:0];
+          [encoder drawPrimitives:MTLPrimitiveTypeTriangle
+                      vertexStart:_playerMeshVertexStart vertexCount:_playerMeshVertexCount];
+          [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+          [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+          [encoder setDepthStencilState:nil];
+        }
         if(_playerMarkerVertexStart!=NSNotFound)
           [encoder drawPrimitives:MTLPrimitiveTypeTriangle
                       vertexStart:_playerMarkerVertexStart vertexCount:6];
