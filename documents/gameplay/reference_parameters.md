@@ -49,7 +49,7 @@
 | Минимальный наблюдаемый интервал повторной атаки | 0.65 с | ±0.10 с | B | Последовательные одиночные атаки C3 |
 | Default damage enemy component | 1 data unit | шкала HUD и экземпляр Gaul отдельно | B | Значение по умолчанию `CKEnemyCpnt.damage` в схеме XXL1 |
 | Default health enemy component | 3 data units | экземпляр Gaul отдельно | B | Значение по умолчанию `CKEnemyCpnt.health` в схеме XXL1 |
-| Default enemy attack cooldown | 2.0 с | конкретный экземпляр Gaul нужно связать в задаче 6 | B | Значение по умолчанию `CKEnemyCpnt.attackCooldown` |
+| Default `CKEnemyCpnt.attackCooldown` | 2.0 data units | это не подтверждённый cooldown | B | Историческое имя C++-поля; metadata XXL-Editor определяет семантику как `Position accuracy` |
 | Реакция Астерикса на урон | 0.45 с | 0.30–0.60 с | C | Видимая hit reaction в C1 |
 | Окно без повторной видимой реакции после удара | 0.25–0.60 с | верхняя граница не отделена от enemy cooldown | C | Минимальный интервал между различимыми hit reactions в групповом бою C1 |
 
@@ -65,7 +65,8 @@
 `d606cfc`: [`CKCamera.h`](https://github.com/AdrienTD/XXL-Editor/blob/d606cfccf8faa31287aa1326fa9d10c292c06157/CoreClasses/CKCamera.h)
 и [`CKCamera.cpp`](https://github.com/AdrienTD/XXL-Editor/blob/d606cfccf8faa31287aa1326fa9d10c292c06157/CoreClasses/CKCamera.cpp).
 Значения enemy component сверены со схемой
-[`CKComponent.h`](https://github.com/AdrienTD/XXL-Editor/blob/d606cfccf8faa31287aa1326fa9d10c292c06157/CoreClasses/CKComponent.h).
+[`CKComponent.h`](https://github.com/AdrienTD/XXL-Editor/blob/d606cfccf8faa31287aa1326fa9d10c292c06157/CoreClasses/CKComponent.h)
+и её [`Properties_XXL1.json`](https://github.com/AdrienTD/XXL-Editor/blob/d606cfccf8faa31287aa1326fa9d10c292c06157/resources/Properties_XXL1.json).
 
 ## Ограничения применения
 
@@ -77,7 +78,7 @@
   их семантика не подтверждена и поэтому не используется как готовая настройка.
 - Default damage `1` не означает одну графическую секцию HUD до связи
   `CKEnemyCpnt` с конкретным легионером и моделью здоровья игрока.
-- Диапазон неуязвимости нельзя отделить от анимации реакции и enemy cooldown в
+- Диапазон неуязвимости нельзя отделить от анимации реакции и частоты атак в
   групповом бою. Для реализации следует начать с 0.4 с и оставить параметр
   настраиваемым до gameplay regression test.
 
