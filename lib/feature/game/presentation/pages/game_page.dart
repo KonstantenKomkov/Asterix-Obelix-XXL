@@ -211,12 +211,17 @@ class _Hud extends StatelessWidget {
                     final collision =
                         (values['collisionTriangleCount'] as num?)?.toInt() ??
                         0;
+                    final playerState =
+                        values['playerState'] as String? ?? 'unavailable';
+                    final playerHealth =
+                        (values['playerHealth'] as num?)?.toInt() ?? 0;
                     return Text(
                       'FPS ${fps.toStringAsFixed(1)}  CPU ${cpu.toStringAsFixed(2)} ms\n'
                       'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB\n'
                       '${meshes > 0
                           ? 'Scene: $visible/$meshes meshes, $batches batches, $sections sections\n'
-                                'Collision: $collision triangles'
+                                'Collision: $collision triangles\n'
+                                'Player: $playerState, HP $playerHealth'
                           : sceneError.isEmpty
                           ? 'Scene: proof'
                           : 'Scene error: $sceneError'}',

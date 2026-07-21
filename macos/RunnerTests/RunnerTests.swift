@@ -91,4 +91,12 @@ class RunnerTests: XCTestCase {
     view.debugOptions = 0
     XCTAssertEqual(view.debugOptions, 0)
   }
+
+  @MainActor
+  func testViewportAcceptsBoundedGameplayInput() {
+    let view = MetalViewportView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+    view.setInput(["moveLeft": 1, "moveRight": 0, "jump": 1, "attack": 0])
+    XCTAssertEqual(view.statistics["playerState"] as? String, "unavailable")
+    XCTAssertEqual(view.statistics["playerHealth"] as? Int, 0)
+  }
 }

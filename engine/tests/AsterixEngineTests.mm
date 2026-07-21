@@ -5,6 +5,7 @@
 #include "asterix/collision_runtime.hpp"
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
+#include "asterix/player_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -12,6 +13,60 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testPlayerTransitionsIdleRunJumpFallAndLand {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world, capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+  player::Input input; input.move_x=1;
+  for(int tick=0;tick<30;++tick) player.update(1.0f/60.0f,input);
+  XCTAssertEqual(player.snapshot().state,player::State::run);
+  XCTAssertGreaterThan(player.snapshot().body.position.x,.5f);
+  input.jump=true; player.update(1.0f/60.0f,input);
+  XCTAssertEqual(player.snapshot().state,player::State::jump);
+  input.jump=false;
+  bool sawFall=false;
+  for(int tick=0;tick<120;++tick) {
+    player.update(1.0f/60.0f,input);
+    sawFall |= player.snapshot().state==player::State::fall;
+    if(sawFall&&player.snapshot().body.grounded)break;
+  }
+  XCTAssertTrue(sawFall);
+  XCTAssertEqual(player.snapshot().state,player::State::run);
+}
+
+- (void)testPlayerAttackHurtInvulnerabilityAndDeathTransitions {
+  using namespace asterix;
+  collision::World world({{{-5,0,-5},{5,0,-5},{-5,0,5},1},
+                          {{5,0,-5},{5,0,5},{-5,0,5},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true;
+  player::Runtime player(controller,body);
+  player::Input input; input.attack=true;
+  player.update(1.0f/60.0f,input);
+  XCTAssertEqual(player.snapshot().state,player::State::attack);
+  input.attack=false;
+  for(int tick=0;tick<40;++tick)player.update(1.0f/60.0f,input);
+  XCTAssertEqual(player.snapshot().state,player::State::idle);
+  XCTAssertTrue(player.applyDamage(1));
+  XCTAssertEqual(player.snapshot().state,player::State::hurt);
+  XCTAssertFalse(player.applyDamage(1));
+  for(int tick=0;tick<30;++tick)player.update(1.0f/60.0f,input);
+  XCTAssertTrue(player.applyDamage(2));
+  XCTAssertEqual(player.snapshot().health,0);
+  XCTAssertEqual(player.snapshot().state,player::State::death);
+  for(int tick=0;tick<60;++tick)player.update(1.0f/60.0f,{1,0,true,true});
+  XCTAssertEqual(player.snapshot().state,player::State::death);
+}
 
 - (void)testCapsuleTraversesFloorSlopeAndStepWithoutCrossingWall {
   using namespace asterix::collision;

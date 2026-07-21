@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 33 — State machine Астерикса
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен authoritative C++ `player::Runtime`, обновляемый только fixed simulation
+tick. Он реализует `idle`, `run`, `jump`, `fall`, `attack`, `hurt` и терминальный
+`death`, использует action snapshot задачи 32 и существующий capsule controller.
+Grounded/vertical velocity определяют воздушные переходы и landing, диагональное
+движение нормализуется, скорость плавно разгоняется и тормозит.
+
+Attack и jump запускаются по фронту кнопки. Damage API учитывает health,
+настраиваемые hurt/invulnerability windows и блокирует повторный урон; нулевое
+health фиксирует death и запрещает дальнейшие переходы. Имена состояний являются
+ключами animation clip; hitbox, combo windows и enemy damage source оставлены
+за задачей 35.
+
+Metal runtime строит collision world из ASTPAK, создаёт player runtime, принимает
+пакетный input и публикует state/health/position в HUD snapshot. До импорта
+подтверждённого spawn используется первый walkable collision triangle; замена на
+checkpoint/spawn закреплена за задачей 37.
+
+Unit-тесты покрывают idle → run → jump → fall → landing, one-shot attack,
+hurt, invulnerability и death lock. Прошли `make check`, native XCTest, Runner
+XCTest, diff review и resource policy. Контракт и параметры описаны в
+[документе state machine](../architecture/asterix_state_machine.md).
+
 ## П. 32 — Единый ввод, remapping и переподключение
 
 **Выполнено:** 21 июля 2026.

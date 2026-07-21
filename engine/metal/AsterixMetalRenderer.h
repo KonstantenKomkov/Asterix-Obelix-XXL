@@ -25,6 +25,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSUInteger residentSectionCount;
 @property(nonatomic, readonly) NSUInteger collisionTriangleCount;
 @property(nonatomic, readonly) uint32_t debugOptions;
+@property(nonatomic, readonly) NSString* playerState;
+@property(nonatomic, readonly) NSInteger playerHealth;
+@property(nonatomic, readonly) vector_float3 playerPosition;
 @property(nonatomic, readonly, nullable) NSString* sceneError;
 
 - (instancetype)initWithView:(MTKView*)view NS_DESIGNATED_INITIALIZER;
@@ -34,6 +37,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)loadAssetPackageAtURL:(NSURL*)url;
 - (void)reportSceneError:(NSString*)message;
 - (void)setDebugOptions:(uint32_t)options;
+- (void)setInputMoveX:(float)moveX
+                moveZ:(float)moveZ
+                 jump:(BOOL)jump
+                attack:(BOOL)attack;
 - (void)suspend;
 - (void)resume;
 - (void)stop;

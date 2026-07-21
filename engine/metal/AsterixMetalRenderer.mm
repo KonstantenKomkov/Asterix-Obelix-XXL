@@ -8,6 +8,7 @@
 #include <vector>
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
+#include "asterix/player_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -106,6 +107,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   float _currentAnimationPhase;
   CFTimeInterval _lastSimulationTime;
   uint32_t _debugOptions;
+  std::unique_ptr<asterix::collision::World> _collisionWorld;
+  std::unique_ptr<asterix::collision::CapsuleController> _capsuleController;
+  std::unique_ptr<asterix::player::Runtime> _playerRuntime;
+  asterix::player::Input _playerInput;
 }
 
 - (instancetype)initWithView:(MTKView*)view {
@@ -212,6 +217,18 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
 - (NSUInteger)visibleMeshCount { @synchronized(self) { return _visibleMeshCount; } }
 - (NSUInteger)drawBatchCount { @synchronized(self) { return _drawBatchCount; } }
 - (NSUInteger)collisionTriangleCount { @synchronized(self) { return _collisionTriangleCount; } }
+- (NSString*)playerState { @synchronized(self) {
+  if (!_playerRuntime) return @"unavailable";
+  NSString* name=[NSString stringWithUTF8String:
+      asterix::player::stateName(_playerRuntime->snapshot().state)];
+  return name ?: @"unavailable";
+} }
+- (NSInteger)playerHealth { @synchronized(self) { return _playerRuntime ? _playerRuntime->snapshot().health : 0; } }
+- (vector_float3)playerPosition { @synchronized(self) {
+  if (!_playerRuntime) return (vector_float3){0,0,0};
+  const auto p=_playerRuntime->snapshot().body.position;
+  return (vector_float3){p.x,p.y,p.z};
+} }
 - (uint32_t)debugOptions { @synchronized(self) { return _debugOptions; } }
 - (void)setDebugOptions:(uint32_t)options { @synchronized(self) { _debugOptions = options & 31u; } }
 - (NSUInteger)residentSectionCount {
@@ -284,6 +301,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   }
   NSMutableData* vertexData = [NSMutableData data];
   NSMutableData* collisionVertexData = [NSMutableData data];
+  std::vector<asterix::collision::Triangle> collisionTriangles;
   std::vector<AsterixMeshRange> meshRanges;
   std::vector<asterix::scene::Node> runtimeNodes;
   NSUInteger meshCount = 0;
@@ -309,16 +327,27 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
         model.columns[0].w = model.columns[1].w = model.columns[2].w = 0;
         model.columns[3].w = 1;
       }
-      for (NSArray* triangle in mesh[@"triangles"]) for (NSNumber* item in triangle) {
-        const NSUInteger index = item.unsignedIntegerValue;
-        if (index >= positions.count || [positions[index] count] < 3) continue;
-        NSArray* p = positions[index];
-        vector_float4 world = simd_mul(model, (vector_float4){[p[0] floatValue],
-                                                              [p[1] floatValue],
-                                                              [p[2] floatValue], 1});
-        AsterixVertex vertex = {{world.x, world.y, world.z},
-          {1,.08f,.12f},{0,1,0},{0,0},1,1,0,{0,0,0,0},{1,0,0,0},objectId};
-        [collisionVertexData appendBytes:&vertex length:sizeof(vertex)];
+      for (NSArray* triangle in mesh[@"triangles"]) {
+        if (triangle.count < 3) continue;
+        vector_float3 points[3];
+        BOOL valid = YES;
+        for (NSUInteger corner=0;corner<3;++corner) {
+          const NSUInteger index = [triangle[corner] unsignedIntegerValue];
+          if (index >= positions.count || [positions[index] count] < 3) { valid=NO; break; }
+          NSArray* p = positions[index];
+          vector_float4 world = simd_mul(model,(vector_float4){[p[0] floatValue],[p[1] floatValue],[p[2] floatValue],1});
+          points[corner]=world.xyz;
+        }
+        if (!valid) continue;
+        collisionTriangles.push_back({{points[0].x,points[0].y,points[0].z},
+                                      {points[1].x,points[1].y,points[1].z},
+                                      {points[2].x,points[2].y,points[2].z},
+                                      (int)objectId});
+        for (vector_float3 point : points) {
+          AsterixVertex vertex = {point,{1,.08f,.12f},{0,1,0},{0,0},1,1,0,
+                                  {0,0,0,0},{1,0,0,0},objectId};
+          [collisionVertexData appendBytes:&vertex length:sizeof(vertex)];
+        }
       }
     }
   }
@@ -451,6 +480,25 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   id<MTLBuffer> collisionBuffer = collisionVertexData.length == 0 ? nil :
       [device newBufferWithBytes:collisionVertexData.bytes length:collisionVertexData.length options:MTLResourceStorageModeShared];
   auto runtime = std::make_unique<asterix::scene::Runtime>();
+  std::unique_ptr<asterix::collision::World> collisionWorld;
+  std::unique_ptr<asterix::collision::CapsuleController> capsuleController;
+  std::unique_ptr<asterix::player::Runtime> playerRuntime;
+  if (!collisionTriangles.empty()) {
+    auto spawn = std::find_if(collisionTriangles.begin(),collisionTriangles.end(),[](const auto& triangle) {
+      const auto normal=asterix::collision::normalized(
+          asterix::collision::cross(triangle.b-triangle.a,triangle.c-triangle.a));
+      return std::abs(normal.y)>=std::cos(50.0f*3.14159265358979323846f/180.0f);
+    });
+    const auto spawnTriangle=spawn==collisionTriangles.end()?collisionTriangles.front():*spawn;
+    collisionWorld=std::make_unique<asterix::collision::World>(std::move(collisionTriangles));
+    capsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
+    asterix::collision::CapsuleState body;
+    body.position={(spawnTriangle.a.x+spawnTriangle.b.x+spawnTriangle.c.x)/3,
+                   (spawnTriangle.a.y+spawnTriangle.b.y+spawnTriangle.c.y)/3+.9f,
+                   (spawnTriangle.a.z+spawnTriangle.b.z+spawnTriangle.c.z)/3};
+    body.checkpoint=body.position;
+    playerRuntime=std::make_unique<asterix::player::Runtime>(*capsuleController,body);
+  }
   runtime->addSection({"gaul-stage-1",
                        {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
                        true, true, 0});
@@ -467,6 +515,9 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _drawBatchCount = meshCount > 0 ? 1 : 0;
     _sceneMeshRanges = std::move(meshRanges);
     _sceneRuntime = std::move(runtime);
+    _collisionWorld = std::move(collisionWorld);
+    _capsuleController = std::move(capsuleController);
+    _playerRuntime = std::move(playerRuntime);
     _sceneCenter = (minimum + maximum) * 0.5f;
     _sceneRadius = MAX(1.0f, simd_length(maximum - minimum) * 0.5f);
     _sceneError = nil;
@@ -480,6 +531,15 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
       _drawableSize = drawableSize;
       _depthTexture = nil;
     }
+  }
+}
+
+- (void)setInputMoveX:(float)moveX moveZ:(float)moveZ jump:(BOOL)jump attack:(BOOL)attack {
+  @synchronized(self) {
+    _playerInput.move_x=std::clamp(moveX,-1.0f,1.0f);
+    _playerInput.move_z=std::clamp(moveZ,-1.0f,1.0f);
+    _playerInput.jump=jump;
+    _playerInput.attack=attack;
   }
 }
 
@@ -535,6 +595,9 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _drawBatchCount = 0;
     _sceneMeshRanges.clear();
     _sceneRuntime.reset();
+    _playerRuntime.reset();
+    _capsuleController.reset();
+    _collisionWorld.reset();
     _depthTexture = nil;
     _view = nil;
   }
@@ -589,10 +652,13 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     if (_pipeline != nil && _vertices != nil) {
       const double elapsed = MAX(0.0, cpuStart - _lastSimulationTime);
       _lastSimulationTime = cpuStart;
-      _simulationClock.advance(elapsed, [&](double step) {
-        _previousAnimationPhase = _currentAnimationPhase;
-        _currentAnimationPhase += (float)step;
-      });
+      @synchronized(self) {
+        _simulationClock.advance(elapsed, [&](double step) {
+          _previousAnimationPhase = _currentAnimationPhase;
+          _currentAnimationPhase += (float)step;
+          if (_playerRuntime) _playerRuntime->update((float)step,_playerInput);
+        });
+      }
       const float seconds = asterix::simulation::interpolate(
           _previousAnimationPhase, _currentAnimationPhase,
           _simulationClock.interpolationAlpha());

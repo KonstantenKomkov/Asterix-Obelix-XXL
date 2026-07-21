@@ -39,6 +39,7 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
         return
       }
       self?.latestInput = values.mapValues(\.doubleValue)
+      self?.viewport?.setInput(values)
       result(nil)
     }
     inputMethodChannel = input
@@ -105,12 +106,22 @@ final class MetalViewportView: MTKView {
       "collisionTriangleCount": renderer.collisionTriangleCount,
       "debugOptions": renderer.debugOptions,
       "sceneError": renderer.sceneError ?? "",
+      "playerState": renderer.playerState,
+      "playerHealth": renderer.playerHealth,
+      "playerPosition": [renderer.playerPosition.x, renderer.playerPosition.y, renderer.playerPosition.z],
     ]
   }
 
   var debugOptions: UInt32 {
     get { renderer?.debugOptions ?? 0 }
     set { renderer?.setDebugOptions(newValue) }
+  }
+
+  func setInput(_ values: [String: NSNumber]) {
+    let x = (values["moveRight"]?.floatValue ?? 0) - (values["moveLeft"]?.floatValue ?? 0)
+    let z = (values["moveForward"]?.floatValue ?? 0) - (values["moveBackward"]?.floatValue ?? 0)
+    renderer?.setInputMoveX(x, moveZ: z, jump: (values["jump"]?.doubleValue ?? 0) > 0.5,
+                           attack: (values["attack"]?.doubleValue ?? 0) > 0.5)
   }
 
   func loadAssetPackage(at url: URL) {
