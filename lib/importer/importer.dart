@@ -5,6 +5,7 @@ export 'import_error.dart';
 export 'kwn_structure.dart';
 export 'protected_level.dart';
 export 'renderware_geometry.dart';
+export 'rws.dart';
 export 'scene_nodes.dart';
 export 'synthetic_container.dart';
 export 'texture_dictionary.dart';

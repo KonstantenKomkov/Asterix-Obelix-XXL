@@ -18,7 +18,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 15 | **Исследовать `.RWS`:** контейнер, кодек, sample rate, каналы, loop points и назначение дорожек | Этап 1 / M1 | P0 | L | После п. 8–9; спецификация в `documents/formats/rws.md`, один звук декодируется |
 | 16 | **Собрать importer proof:** одной командой извлечь из среза модель, текстуру, анимацию и звук в открытые промежуточные форматы | Этап 1 / M1 | P0 | L | После п. 11–15; без hex-редактора и ручной правки результата |
 | 17 | **Зафиксировать архитектуру workspace:** границы Flutter/Dart, C API, C++ runtime, Metal, macOS bridge, importer и тестов | Этап 2 / M2 | P1 | M | После п. 16; ADR описывает владение данными, потоки и lifecycle |
 | 18 | **Подготовить структуру нативного ядра:** `engine/include`, `engine/src`, `engine/metal`, `engine/macos`, сборка из Xcode и тестовый target | Этап 2 / M2 | P1 | L | После п. 17; чистая сборка Flutter собирает нативный модуль на Intel и Apple Silicon |
@@ -97,7 +96,8 @@
 - [x] П. 5 — эталонные параметры и погрешности
 - [x] П. 6 — каталог контента Gaul/LVL001
 - [x] П. 7 — карта файлов и контрольные состояния
-- [ ] П. 8–16 — M1: исследование форматов и importer proof
+- [x] П. 8–15 — исследование форматов
+- [ ] П. 16 — M1: importer proof
 - [ ] П. 17–22 — M2: native core, Metal view и FFI proof
 - [ ] П. 23–31 — asset pipeline и базовый 3D-движок
 - [ ] П. 32–39 — игровые системы vertical slice
@@ -106,7 +106,9 @@
 
 ---
 
-**Последнее обновление:** 21 июля 2026 — п. 7 выполнен: `documents/gameplay/slice_file_state_map.md` связывает menu/Gaul events с KWN/RWS, sector transitions и checkpoint classes; before/after saves зафиксированы hashes и byte-diff metadata вне Git, runtime-only состояния отделены от persistent save.
+**Последнее обновление:** 21 июля 2026 — п. 15 выполнен: все 631 RWS классифицированы как Xbox IMA ADPCM; добавлены parser, tree inspection и декодирование первого segment в PCM WAV, формат и назначение потоков описаны в `documents/formats/rws.md`.
+
+**Предыдущее обновление:** 21 июля 2026 — п. 7 выполнен: `documents/gameplay/slice_file_state_map.md` связывает menu/Gaul events с KWN/RWS, sector transitions и checkpoint classes; before/after saves зафиксированы hashes и byte-diff metadata вне Git, runtime-only состояния отделены от persistent save.
 
 **Предыдущее обновление:** 21 июля 2026 — п. 6 выполнен: прямым чтением inventory, `LVL01.KWN`, sectors и class metadata составлен `documents/gameplay/content_catalog.md` для levels/sectors, персонажей, противников, интерактивов, RWS, cinematics и checkpoint; неподтверждённая семантика помечена явно.
 

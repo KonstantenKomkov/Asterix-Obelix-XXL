@@ -15,9 +15,13 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'extract-collision';
     final extractsLevelSpatial =
         arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
+    final decodesRws = arguments.isNotEmpty && arguments.first == 'decode-rws';
     final expectedLength = extractsAnimations || extractsLevelSpatial
         ? 4
-        : extractsTextures || probesProtectedLevel || extractsCollision
+        : extractsTextures ||
+              probesProtectedLevel ||
+              extractsCollision ||
+              decodesRws
         ? 3
         : 2;
     if (arguments.length != expectedLength ||
@@ -32,6 +36,9 @@ Future<void> main(List<String> arguments) async {
           'extract-animations',
           'extract-collision',
           'extract-level-spatial',
+          'inspect-rws',
+          'inspect-rws-tree',
+          'decode-rws',
         }.contains(arguments.first)) {
       throw const ImportException(
         code: ImportErrorCode.invalidArguments,
@@ -39,6 +46,12 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final path = arguments[1];
+    if (arguments.first == 'inspect-rws-tree') {
+      stdout.writeln(
+        const JsonEncoder.withIndent(' ').convert(await _inspectRwsTree(path)),
+      );
+      return;
+    }
     if (arguments.first == 'probe-kwn-tree') {
       stdout.writeln(
         const JsonEncoder.withIndent(' ').convert(await _probeTree(path)),
@@ -54,6 +67,24 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (arguments.first == 'inspect-rws') {
+      stdout.writeln(
+        const JsonEncoder.withIndent(
+          ' ',
+        ).convert(parseRws(bytes, path: path).toJson()),
+      );
+      return;
+    }
+    if (decodesRws) {
+      final output = File(arguments[2]);
+      await output.parent.create(recursive: true);
+      await output.writeAsBytes(
+        parseRws(bytes, path: path).decodeFirstSegmentToWav(),
+        flush: true,
+      );
+      stdout.writeln('Decoded first RWS segment into ${output.path}');
+      return;
+    }
     if (extractsLevelSpatial) {
       final match = RegExp(
         r'^LVL(\d{2})\.KWN$',
@@ -463,5 +494,72 @@ Future<Map<String, Object>> _probeTree(String path) async {
       families.entries.toList()
         ..sort((left, right) => left.key.compareTo(right.key)),
     ),
+  };
+}
+
+Future<Map<String, Object>> _inspectRwsTree(String path) async {
+  final directory = Directory(path);
+  if (!await directory.exists()) {
+    throw ImportException(
+      code: ImportErrorCode.fileNotFound,
+      message: 'Input directory does not exist.',
+      path: path,
+    );
+  }
+  final files = await directory
+      .list(recursive: true, followLinks: false)
+      .where(
+        (entity) =>
+            entity is File && entity.path.toLowerCase().endsWith('.rws'),
+      )
+      .cast<File>()
+      .toList();
+  files.sort((left, right) => left.path.compareTo(right.path));
+  final configurations = <String, int>{};
+  final segmentCounts = <String, int>{};
+  final codecUuids = <String>{};
+  final maxSegmentFiles = <String>[];
+  var speechFiles = 0;
+  var filesWithMarkers = 0;
+  var maxSegments = 0;
+  for (final file in files) {
+    final stream = parseRws(await file.readAsBytes(), path: file.path);
+    final key =
+        '${stream.sampleRate}Hz/${stream.channels}ch/${stream.bitsPerSample}bit';
+    configurations.update(key, (count) => count + 1, ifAbsent: () => 1);
+    segmentCounts.update(
+      stream.segments.length.toString(),
+      (count) => count + 1,
+      ifAbsent: () => 1,
+    );
+    if (file.path.split(Platform.pathSeparator).contains('SPEECH')) {
+      speechFiles++;
+    }
+    if (stream.segments.any((segment) => segment.markerCount > 0)) {
+      filesWithMarkers++;
+    }
+    if (stream.segments.length > maxSegments) {
+      maxSegments = stream.segments.length;
+      maxSegmentFiles
+        ..clear()
+        ..add(file.path.substring(directory.path.length + 1));
+    } else if (stream.segments.length == maxSegments) {
+      maxSegmentFiles.add(file.path.substring(directory.path.length + 1));
+    }
+    codecUuids.add(stream.codecUuid);
+  }
+  final sortedConfigurations = configurations.entries.toList()
+    ..sort((left, right) => left.key.compareTo(right.key));
+  return {
+    'format': 'rws-tree-inspection',
+    'fileCount': files.length,
+    'speechFileCount': speechFiles,
+    'nonSpeechFileCount': files.length - speechFiles,
+    'configurations': Map.fromEntries(sortedConfigurations),
+    'segmentCounts': segmentCounts,
+    'codecUuids': codecUuids.toList()..sort(),
+    'maxSegments': maxSegments,
+    'maxSegmentFiles': maxSegmentFiles,
+    'filesWithMarkers': filesWithMarkers,
   };
 }
