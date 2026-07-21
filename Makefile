@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect run run-profile run-release format analyze test native-test policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -48,10 +48,16 @@ test: ## Запустить тесты
 native-test: ## Собрать нативное ядро и запустить его XCTest без Flutter host
 	xcodebuild test -workspace macos/Runner.xcworkspace -scheme AsterixEngine -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
 
+ffi-generate: ## Перегенерировать Dart bindings из публичного C header
+	$(DART) run ffigen --config ffigen.yaml
+
+native-ffi-build: ## Собрать тестовую dylib из того же C++ runtime для Dart integration-теста
+	./scripts/build_native_ffi_test.sh
+
 policy-check: ## Проверить отсутствие оригинальных игровых данных
 	./scripts/check_resource_policy.sh
 
-check: policy-check format analyze test ## Выполнить все проверки
+check: policy-check native-ffi-build format analyze test ## Выполнить все проверки
 
 build: ## Собрать release-приложение для macOS
 	$(FLUTTER) build macos --release
