@@ -2,6 +2,7 @@
 
 #include "asterix/engine.h"
 #include "asterix/animation_runtime.hpp"
+#include "asterix/collision_runtime.hpp"
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
 #include <chrono>
@@ -11,6 +12,55 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testCapsuleTraversesFloorSlopeAndStepWithoutCrossingWall {
+  using namespace asterix::collision;
+  std::vector<Triangle> triangles = {
+      {{-5,0,-3},{2,0,-3},{-5,0,3},1}, {{2,0,-3},{2,0,3},{-5,0,3},1},
+      {{2,0,-3},{5,.6f,-3},{2,0,3},2}, {{5,.6f,-3},{5,.6f,3},{2,0,3},2},
+      {{5,.85f,-3},{8,.85f,-3},{5,.85f,3},3}, {{8,.85f,-3},{8,.85f,3},{5,.85f,3},3},
+      {{8,-1,-3},{8,3,-3},{8,-1,3},4}, {{8,3,-3},{8,3,3},{8,-1,3},4},
+  };
+  World world(std::move(triangles));
+  CapsuleConfig config;
+  config.step_height=.3f;
+  CapsuleController controller(world,config);
+  CapsuleState state;
+  state.position={0,config.half_height+config.radius,0};
+  state.checkpoint=state.position;
+  state.grounded=true;
+  state.ground_object_id=1;
+  for(int tick=0;tick<360;++tick)
+    state=controller.move(state,{3,0,0},1.0f/60.0f);
+  XCTAssertTrue(state.grounded);
+  XCTAssertGreaterThan(state.position.x,5.0f);
+  XCTAssertLessThanOrEqual(state.position.x,8.0f-config.radius+0.02f);
+  XCTAssertEqualWithAccuracy(state.position.y,.85f+config.half_height+config.radius,.02f);
+}
+
+- (void)testCapsuleFollowsDynamicGroundAndRecoversFromFall {
+  using namespace asterix::collision;
+  World world({{{-2,0,-2},{2,0,-2},{-2,0,2},9,true,{1,0,0}},
+               {{2,0,-2},{2,0,2},{-2,0,2},9,true,{1,0,0}}});
+  CapsuleConfig config;
+  config.kill_y=-2;
+  CapsuleController controller(world,config);
+  CapsuleState state;
+  state.position={0,config.half_height+config.radius,0};
+  state.checkpoint={4,config.half_height+config.radius,0};
+  state.grounded=true;
+  state.ground_object_id=9;
+  state=controller.move(state,{0,0,0},.1f);
+  XCTAssertEqualWithAccuracy(state.position.x,.1f,.001f);
+  for(int tick=0;tick<9;++tick) state=controller.move(state,{0,0,0},.1f);
+  XCTAssertTrue(state.grounded);
+  XCTAssertEqualWithAccuracy(state.position.x,1,.001f);
+  state.position.y=-3;
+  state=controller.move(state,{0,0,0},1.0f/60.0f);
+  XCTAssertTrue(state.recovered_from_fall);
+  XCTAssertEqualWithAccuracy(state.position.x,4,.001f);
+  XCTAssertEqualWithAccuracy(state.velocity.y,0,.001f);
+}
 
 - (void)testFixedTimestepMatchesAtThirtySixtyAndOneTwentyHertz {
   using asterix::simulation::FixedTimestep;

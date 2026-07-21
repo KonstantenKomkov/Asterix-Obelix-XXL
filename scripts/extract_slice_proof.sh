@@ -30,6 +30,8 @@ fi
 mkdir -p "$output"
 cd "$repo_root"
 fvm dart run bin/importer.dart extract-geometry "$sector" > "$output/scene.json"
+fvm dart run bin/importer.dart extract-collision "$sector" "$output/collision.json"
+rm -f "$output/collision.overlay.svg"
 fvm dart run bin/importer.dart extract-textures "$sector" "$output/textures"
 fvm dart run bin/importer.dart extract-animations "$level" "$module" "$output/animations"
 fvm dart run bin/importer.dart decode-rws "$audio" "$output/audio.wav"
@@ -41,6 +43,7 @@ printf '%s\n' \
   '  "sourceFiles": ["LVL001/STR01_00.KWN", "LVL001/LVL01.KWN", "GameModule.elb", "LVL001/WINAS/WINAS8.rws"],' \
   '  "outputs": {' \
   '    "scene": "scene.json",' \
+  '    "collision": "collision.json",' \
   '    "textures": "textures/manifest.json",' \
   '    "animations": "animations/manifest.json",' \
   '    "audio": "audio.wav"' \

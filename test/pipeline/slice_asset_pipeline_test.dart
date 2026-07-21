@@ -50,6 +50,7 @@ void main() {
           'texture',
           'animation',
           'skin',
+          'collision',
           'audio',
           'scene-manifest',
         }),
@@ -84,7 +85,7 @@ void main() {
         proof,
         cacheDirectory: cache,
       );
-      expect(first.rebuiltInputs, hasLength(5));
+      expect(first.rebuiltInputs, hasLength(6));
       expect(first.cachedInputs, isEmpty);
 
       final second = await pipeline.buildIncremental(
@@ -92,7 +93,7 @@ void main() {
         cacheDirectory: cache,
       );
       expect(second.rebuiltInputs, isEmpty);
-      expect(second.cachedInputs, hasLength(5));
+      expect(second.cachedInputs, hasLength(6));
       expect(second.bytes, orderedEquals(first.bytes));
 
       final cachedPayload = await cache
@@ -106,7 +107,7 @@ void main() {
         cacheDirectory: cache,
       );
       expect(repaired.rebuiltInputs, hasLength(1));
-      expect(repaired.cachedInputs, hasLength(4));
+      expect(repaired.cachedInputs, hasLength(5));
       expect(repaired.bytes, orderedEquals(first.bytes));
 
       final animation = File('${proof.path}/animations/0000.animation.json');
@@ -119,7 +120,7 @@ void main() {
         cacheDirectory: cache,
       );
       expect(third.rebuiltInputs, hasLength(1));
-      expect(third.cachedInputs, hasLength(4));
+      expect(third.cachedInputs, hasLength(5));
       expect(third.bytes, isNot(orderedEquals(first.bytes)));
     },
   );
@@ -195,6 +196,24 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
           },
         },
       ],
+    },
+    '${root.path}/collision.json': {
+      'schemaVersion': 1,
+      'meshes': [
+        {
+          'objectId': 1,
+          'kind': 'ground',
+          'vertices': [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0],
+          ],
+          'triangles': [
+            [0, 1, 2],
+          ],
+        },
+      ],
+      'spatialRegions': <Object>[],
     },
     '${root.path}/textures/manifest.json': {
       'schemaVersion': 1,

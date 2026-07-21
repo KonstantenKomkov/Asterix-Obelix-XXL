@@ -87,6 +87,72 @@ final class SliceAssetPipeline {
     final objects = <RuntimeObjectInput>[];
     final meshPayloadIds = <int, String>{};
 
+    final collisionFile = File('${proof.path}/collision.json');
+    final collision = await _jsonFile(collisionFile);
+    final collisionMeshes = _objectList(
+      collision,
+      'meshes',
+      path: collisionFile.path,
+    );
+    if (collision['schemaVersion'] != 1) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        'Unsupported collision schema.',
+        path: collisionFile.path,
+      );
+    }
+    for (var index = 0; index < collisionMeshes.length; index++) {
+      final mesh = collisionMeshes[index];
+      final vertices = _list(mesh, 'vertices', collisionFile.path, index);
+      final triangles = _list(mesh, 'triangles', collisionFile.path, index);
+      for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
+        final vertex = vertices[vertexIndex];
+        if (vertex is! List ||
+            vertex.length != 3 ||
+            vertex.any((value) => value is! num || !value.isFinite)) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidRange,
+            'Collision vertex must contain three finite numbers.',
+            path: collisionFile.path,
+            details: {'mesh': index, 'vertex': vertexIndex},
+          );
+        }
+      }
+      for (
+        var triangleIndex = 0;
+        triangleIndex < triangles.length;
+        triangleIndex++
+      ) {
+        final triangle = triangles[triangleIndex];
+        if (triangle is! List ||
+            triangle.length != 3 ||
+            triangle.any(
+              (value) => value is! int || value < 0 || value >= vertices.length,
+            )) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidRange,
+            'Collision triangle index is outside its vertex range.',
+            path: collisionFile.path,
+            details: {'mesh': index, 'triangle': triangleIndex},
+          );
+        }
+      }
+    }
+    payloads.add(
+      AssetPayloadInput(
+        kind: 'collision',
+        sourcePath: _sectorSource,
+        sourceKey: 'world-collision',
+        bytes: await cache.transform(
+          kind: 'collision-json',
+          input: encodeCanonicalJson(collision),
+          transform: encodeCanonicalJson,
+          value: collision,
+        ),
+        metadata: {'meshCount': collisionMeshes.length},
+      ),
+    );
+
     for (final mesh in meshes) {
       final objectId = _integer(mesh, 'objectId');
       final payload = AssetPayloadInput(

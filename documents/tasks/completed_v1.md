@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 30 — Коллизии мира и движение капсулы
+
+**Выполнено:** 21 июля 2026.
+
+Importer proof теперь извлекает `CGround`, `CDynamicGround` и `CWall` в
+`collision.json`, а asset pipeline валидирует finite vertices и triangle ranges
+и упаковывает данные в typed collision payload ASTPAK. Диагностический SVG не
+попадает в пакет или Git.
+
+Добавлен независимый C++20 capsule controller для fixed timestep: gravity и
+ground probe, ограничение slope, подъём на ступени, итеративное разрешение стен,
+subdivision быстрого перемещения против tunnelling, dynamic-ground movement и
+rider carry по stable object ID. Падение ниже настраиваемого `kill_y`
+восстанавливает checkpoint и сбрасывает velocity.
+
+Синтетический маршрут проходит пол, склон и ступень, не проваливается и
+останавливается у стены. Отдельный regression проверяет десять обновлений
+движущейся платформы и fall recovery. Прошли `make check`, native XCTest, macOS
+debug build, shell syntax/diff review и resource policy. Реализация и границы
+проверки описаны в
+[документе collision runtime](../architecture/world_collision_capsule.md).
+
 ## П. 29 — Фиксированный simulation timestep
 
 **Выполнено:** 21 июля 2026.
