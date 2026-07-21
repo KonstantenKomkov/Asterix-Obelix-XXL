@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -52,8 +54,18 @@ class _GamePageState extends State<GamePage> {
 class _EngineViewport extends StatelessWidget {
   const _EngineViewport();
 
+  static const viewType = 'asterix/metal-viewport';
+
   @override
   Widget build(BuildContext context) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
+      return AppKitView(
+        key: const Key('metal-viewport'),
+        viewType: viewType,
+        hitTestBehavior: PlatformViewHitTestBehavior.transparent,
+      );
+    }
+
     return ColoredBox(
       color: const Color(0xFF16283A),
       child: Center(

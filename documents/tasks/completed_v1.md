@@ -286,3 +286,25 @@ plugin frameworks.
 Flutter release-сборку и universal static library с архитектурами `x86_64` и
 `arm64`. Полный `make check` и resource policy также прошли; оригинальные или
 производные игровые ресурсы не добавлялись.
+
+## П. 19 — MTKView в Flutter-окне и Retina-resize
+
+**Выполнено:** 21 июля 2026.
+
+В `engine/macos` добавлены factory и subclass нативного `MTKView`. Factory
+регистрируется через macOS Flutter registrar как `asterix/metal-viewport`, а
+игровой экран создаёт соответствующий `AppKitView` вместо прежней заглушки.
+Flutter HUD и pause overlay остаются верхними слоями `Stack`; для платформ без
+AppKit сохранён безопасный Flutter fallback.
+
+`MetalViewportView` пересчитывает `drawableSize` при изменении frame, появлении
+в окне и смене backing properties. Размер переводится из logical points в
+физические пиксели через актуальный `backingScaleFactor`, включая округление
+дробных размеров вверх; автоматический resize MetalKit отключён, чтобы правило
+было явным и тестируемым.
+
+Runner XCTest проверяет создание именно Metal view, pixel format, 2× Retina и
+дробный resize. Widget-тест подтверждает выбор `AppKitView` на macOS и наличие
+Flutter HUD над viewport. Прошли Runner/native XCTest, полный `make check`,
+resource policy и Flutter macOS release build. Оригинальные игровые ресурсы не
+добавлялись.
