@@ -135,6 +135,9 @@ final class SliceAssetPipeline {
           metadata: {
             'classId': _integer(node, 'classId'),
             'transform': _matrix(node, 'transform', '${proof.path}/scene.json'),
+            'section': _sectorSource,
+            for (final key in const ['parent', 'next', 'child'])
+              '${key}Id': nodeObjectIds[_referenceObjectId(node[key])],
           },
         ),
       );

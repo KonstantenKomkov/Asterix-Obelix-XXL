@@ -148,12 +148,18 @@ class _Hud extends StatelessWidget {
                         (values['allocatedBytes'] as num?)?.toInt() ?? 0;
                     final meshes =
                         (values['sceneMeshCount'] as num?)?.toInt() ?? 0;
+                    final visible =
+                        (values['visibleMeshCount'] as num?)?.toInt() ?? 0;
+                    final batches =
+                        (values['drawBatchCount'] as num?)?.toInt() ?? 0;
+                    final sections =
+                        (values['residentSectionCount'] as num?)?.toInt() ?? 0;
                     final sceneError = values['sceneError'] as String? ?? '';
                     return Text(
                       'FPS ${fps.toStringAsFixed(1)}  CPU ${cpu.toStringAsFixed(2)} ms\n'
                       'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB\n'
                       '${meshes > 0
-                          ? 'Scene: $meshes meshes'
+                          ? 'Scene: $visible/$meshes meshes, $batches batches, $sections sections'
                           : sceneError.isEmpty
                           ? 'Scene: proof'
                           : 'Scene error: $sceneError'}',

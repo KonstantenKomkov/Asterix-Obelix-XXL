@@ -20,6 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) uint64_t allocatedMemoryBytes;
 @property(nonatomic, readonly) uint64_t frameCount;
 @property(nonatomic, readonly) NSUInteger sceneMeshCount;
+@property(nonatomic, readonly) NSUInteger visibleMeshCount;
+@property(nonatomic, readonly) NSUInteger drawBatchCount;
+@property(nonatomic, readonly) NSUInteger residentSectionCount;
 @property(nonatomic, readonly, nullable) NSString* sceneError;
 
 - (instancetype)initWithView:(MTKView*)view NS_DESIGNATED_INITIALIZER;

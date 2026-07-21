@@ -33,6 +33,10 @@ void main() {
         (sceneNode['metadata']! as Map<String, Object?>)['transform'],
         hasLength(16),
       );
+      expect(
+        (sceneNode['metadata']! as Map<String, Object?>)['section'],
+        'LVL001/STR01_00.KWN',
+      );
       final transform =
           (sceneNode['metadata']! as Map<String, Object?>)['transform']!
               as List<Object?>;

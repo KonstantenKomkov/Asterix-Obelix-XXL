@@ -3,6 +3,10 @@
 #import <QuartzCore/QuartzCore.h>
 #import <simd/simd.h>
 #include <string.h>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+#include "asterix/scene_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -14,6 +18,30 @@ typedef struct {
   matrix_float4x4 transform;
   uint32_t textured;
 } AsterixUniforms;
+
+typedef struct {
+  NSUInteger vertexStart;
+  NSUInteger vertexCount;
+} AsterixMeshRange;
+
+static asterix::scene::Frustum AsterixFrustum(matrix_float4x4 matrix) {
+  asterix::scene::Frustum result;
+  const vector_float4 rows[] = {
+      {matrix.columns[0].x, matrix.columns[1].x, matrix.columns[2].x, matrix.columns[3].x},
+      {matrix.columns[0].y, matrix.columns[1].y, matrix.columns[2].y, matrix.columns[3].y},
+      {matrix.columns[0].z, matrix.columns[1].z, matrix.columns[2].z, matrix.columns[3].z},
+      {matrix.columns[0].w, matrix.columns[1].w, matrix.columns[2].w, matrix.columns[3].w},
+  };
+  const vector_float4 planes[] = {rows[3] + rows[0], rows[3] - rows[0],
+                                   rows[3] + rows[1], rows[3] - rows[1],
+                                   rows[2], rows[3] - rows[2]};
+  for (NSUInteger i = 0; i < 6; ++i) {
+    const float length = simd_length(planes[i].xyz);
+    result.planes[i] = {planes[i].x / length, planes[i].y / length,
+                        planes[i].z / length, planes[i].w / length};
+  }
+  return result;
+}
 
 static uint32_t AsterixReadU32(const uint8_t* p) {
   return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 |
@@ -43,6 +71,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   id<MTLTexture> _sceneTexture;
   NSUInteger _sceneVertexCount;
   NSUInteger _sceneMeshCount;
+  NSUInteger _visibleMeshCount;
+  NSUInteger _drawBatchCount;
+  std::vector<AsterixMeshRange> _sceneMeshRanges;
+  std::unique_ptr<asterix::scene::Runtime> _sceneRuntime;
   NSString* _sceneError;
   vector_float3 _sceneCenter;
   float _sceneRadius;
@@ -142,6 +174,16 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
 - (uint64_t)allocatedMemoryBytes { return _view.device.currentAllocatedSize; }
 - (uint64_t)frameCount { @synchronized(self) { return _frameCount; } }
 - (NSUInteger)sceneMeshCount { @synchronized(self) { return _sceneMeshCount; } }
+- (NSUInteger)visibleMeshCount { @synchronized(self) { return _visibleMeshCount; } }
+- (NSUInteger)drawBatchCount { @synchronized(self) { return _drawBatchCount; } }
+- (NSUInteger)residentSectionCount {
+  @synchronized(self) {
+    if (!_sceneRuntime) return 0;
+    NSUInteger count = 0;
+    for (const auto& section : _sceneRuntime->sections()) if (section.resident) ++count;
+    return count;
+  }
+}
 - (NSString*)sceneError { @synchronized(self) { return _sceneError; } }
 - (void)reportSceneError:(NSString*)message { @synchronized(self) { _sceneError = [message copy]; } }
 
@@ -176,6 +218,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     if (identifier) resources[identifier] = item;
   }
   NSMutableDictionary<NSString*, id<MTLTexture>>* textures = [NSMutableDictionary dictionary];
+  id<MTLTexture> selectedTexture = nil;
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"texture"]) continue;
     NSString* name = resource[@"metadata"][@"name"];
@@ -200,19 +243,40 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     textures[name] = texture;
   }
   NSMutableData* vertexData = [NSMutableData data];
+  std::vector<AsterixMeshRange> meshRanges;
+  std::vector<asterix::scene::Node> runtimeNodes;
   NSUInteger meshCount = 0;
   vector_float3 minimum = {INFINITY, INFINITY, INFINITY};
   vector_float3 maximum = {-INFINITY, -INFINITY, -INFINITY};
-  NSMutableDictionary<NSString*, NSArray*>* transforms = [NSMutableDictionary dictionary];
+  asterix::scene::Runtime transformGraph;
+  std::unordered_map<std::string, std::string> payloadNodes;
   for (NSDictionary* object in manifest[@"objects"]) {
     if (![object[@"kind"] isEqual:@"scene-node"]) continue;
+    NSString* objectId = object[@"id"];
+    if (![objectId isKindOfClass:NSString.class]) continue;
+    asterix::scene::Node node;
+    node.id = objectId.UTF8String;
+    NSString* parentId = object[@"metadata"][@"parentId"];
+    if ([parentId isKindOfClass:NSString.class]) node.parent_id = parentId.UTF8String;
+    NSArray* transform = object[@"metadata"][@"transform"];
+    if (transform.count == 16) for (NSUInteger i = 0; i < 16; ++i)
+      node.local.value[i] = [transform[i] floatValue];
+    else node.local = asterix::scene::Matrix4::identity();
+    transformGraph.addNode(std::move(node));
     NSArray* payloadIds = object[@"payloadIds"];
     if (payloadIds.count == 0) continue;
     NSString* payloadId = payloadIds.firstObject;
     if (![payloadId isKindOfClass:NSString.class]) continue;
-    NSArray* transform = object[@"metadata"][@"transform"];
-    if (transform.count == 16) transforms[payloadId] = transform;
+    payloadNodes[payloadId.UTF8String] = objectId.UTF8String;
   }
+  try {
+    transformGraph.resolveHierarchy();
+  } catch (const std::exception&) {
+    [self reportSceneError:@"Scene graph contains a missing parent or cycle"];
+    return NO;
+  }
+  std::unordered_map<std::string, asterix::scene::Matrix4> worldTransforms;
+  for (const auto& node : transformGraph.nodes()) worldTransforms[node.id] = node.world;
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"mesh"]) continue;
     uint64_t offset = [resource[@"offset"] unsignedLongLongValue];
@@ -226,13 +290,18 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     NSArray* uvSets = mesh[@"uvSets"];
     NSArray* uvs = uvSets.count > 0 ? uvSets[0] : nil;
     NSString* resourceId = resource[@"id"];
-    NSArray* transformValues = [resourceId isKindOfClass:NSString.class]
-        ? transforms[resourceId]
-        : nil;
     matrix_float4x4 model = matrix_identity_float4x4;
-    if (transformValues.count == 16) for (NSUInteger i = 0; i < 16; ++i)
-      model.columns[i / 4][i % 4] = [transformValues[i] floatValue];
+    if ([resourceId isKindOfClass:NSString.class]) {
+      const auto payloadNode = payloadNodes.find(resourceId.UTF8String);
+      if (payloadNode != payloadNodes.end()) {
+        const auto world = worldTransforms.find(payloadNode->second);
+        if (world != worldTransforms.end()) for (NSUInteger i = 0; i < 16; ++i)
+          model.columns[i / 4][i % 4] = world->second.value[i];
+      }
+    }
     NSUInteger before = vertexData.length;
+    vector_float3 meshMinimum = {INFINITY, INFINITY, INFINITY};
+    vector_float3 meshMaximum = {-INFINITY, -INFINITY, -INFINITY};
     for (NSArray* triangle in triangles) {
       if (triangle.count < 4) continue;
       NSUInteger materialIndex = [triangle[3] unsignedIntegerValue];
@@ -256,6 +325,8 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
         vector_float4 world = simd_mul(model, (vector_float4){[p[0] floatValue], [p[1] floatValue], [p[2] floatValue], 1});
         minimum = simd_min(minimum, world.xyz);
         maximum = simd_max(maximum, world.xyz);
+        meshMinimum = simd_min(meshMinimum, world.xyz);
+        meshMaximum = simd_max(meshMaximum, world.xyz);
         vector_float2 uv = {0, 0};
         if (index < uvs.count && [uvs[index] count] >= 2)
           uv = (vector_float2){[uvs[index][0] floatValue], [uvs[index][1] floatValue]};
@@ -263,12 +334,25 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
       }
     }
-    if (vertexData.length > before) meshCount++;
-    if (_sceneTexture == nil) for (NSDictionary* material in materials) {
+    if (vertexData.length > before) {
+      const NSUInteger start = before / sizeof(AsterixVertex);
+      const NSUInteger count = (vertexData.length - before) / sizeof(AsterixVertex);
+      meshRanges.push_back({start, count});
+      asterix::scene::Node node;
+      node.id = [resourceId UTF8String] ?: "";
+      node.section_id = "gaul-stage-1";
+      node.resource_id = node.id;
+      node.world_bounds = {{meshMinimum.x, meshMinimum.y, meshMinimum.z},
+                           {meshMaximum.x, meshMaximum.y, meshMaximum.z}};
+      node.full_vertex_count = (uint32_t)count;
+      runtimeNodes.push_back(std::move(node));
+      meshCount++;
+    }
+    if (selectedTexture == nil) for (NSDictionary* material in materials) {
       NSString* textureName = material[@"texture"];
       if (![textureName isKindOfClass:NSString.class]) continue;
       id<MTLTexture> texture = textures[textureName];
-      if (texture != nil) { _sceneTexture = texture; break; }
+      if (texture != nil) { selectedTexture = texture; break; }
     }
   }
   id<MTLDevice> device = view.device;
@@ -277,10 +361,21 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     return NO;
   }
   id<MTLBuffer> buffer = [device newBufferWithBytes:vertexData.bytes length:vertexData.length options:MTLResourceStorageModeShared];
+  auto runtime = std::make_unique<asterix::scene::Runtime>();
+  runtime->addSection({"gaul-stage-1",
+                       {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
+                       true, true, 0});
+  for (auto& node : runtimeNodes) runtime->addNode(std::move(node));
+  runtime->resolveHierarchy();
   @synchronized(self) {
     _sceneVertices = buffer;
+    _sceneTexture = selectedTexture;
     _sceneVertexCount = vertexData.length / sizeof(AsterixVertex);
     _sceneMeshCount = meshCount;
+    _visibleMeshCount = meshCount;
+    _drawBatchCount = meshCount > 0 ? 1 : 0;
+    _sceneMeshRanges = std::move(meshRanges);
+    _sceneRuntime = std::move(runtime);
     _sceneCenter = (minimum + maximum) * 0.5f;
     _sceneRadius = MAX(1.0f, simd_length(maximum - minimum) * 0.5f);
     _sceneError = nil;
@@ -342,6 +437,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _sceneTexture = nil;
     _sceneVertexCount = 0;
     _sceneMeshCount = 0;
+    _visibleMeshCount = 0;
+    _drawBatchCount = 0;
+    _sceneMeshRanges.clear();
+    _sceneRuntime.reset();
     _depthTexture = nil;
     _view = nil;
   }
@@ -396,23 +495,65 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     if (_pipeline != nil && _vertices != nil) {
       const float seconds = (float)(cpuStart - _startTime);
       const float c = cosf(seconds * 0.7f), s = sinf(seconds * 0.7f);
-      BOOL hasScene = _sceneVertices != nil && _sceneVertexCount > 0;
+      id<MTLBuffer> sceneVertices = nil;
+      id<MTLTexture> sceneTexture = nil;
+      NSUInteger sceneVertexCount = 0;
+      vector_float3 sceneCenter = {0, 0, 0};
+      float sceneRadius = 1;
+      @synchronized(self) {
+        sceneVertices = _sceneVertices;
+        sceneTexture = _sceneTexture;
+        sceneVertexCount = _sceneVertexCount;
+        sceneCenter = _sceneCenter;
+        sceneRadius = _sceneRadius;
+      }
+      BOOL hasScene = sceneVertices != nil && sceneVertexCount > 0;
       matrix_float4x4 rotation = hasScene
           ? (matrix_float4x4){{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-                              {-_sceneCenter.x, -_sceneCenter.y, -_sceneCenter.z - _sceneRadius * 2.2f, 1}}}
+                              {-sceneCenter.x, -sceneCenter.y, -sceneCenter.z - sceneRadius * 2.2f, 1}}}
           : (matrix_float4x4){{{c, 0, -s, 0}, {0, 1, 0, 0}, {s, 0, c, 0}, {0, 0, -2.4f, 1}}};
       const float aspect = MAX(0.01f, view.drawableSize.width / view.drawableSize.height);
-      AsterixUniforms uniforms = {simd_mul(AsterixPerspective(70.0f * 3.14159265358979323846f / 180.0f,
-                                                              aspect, 0.1f, 1000.0f), rotation),
-                                  hasScene && _sceneTexture != nil ? 1u : 0u};
+      const matrix_float4x4 viewProjection = simd_mul(AsterixPerspective(70.0f * 3.14159265358979323846f / 180.0f,
+                                                                         aspect, 0.1f, 1000.0f), rotation);
+      AsterixUniforms uniforms = {viewProjection,
+                                  hasScene && sceneTexture != nil ? 1u : 0u};
       [encoder setRenderPipelineState:_pipeline];
       [encoder setDepthStencilState:_depthState];
-      [encoder setVertexBuffer:hasScene ? _sceneVertices : _vertices offset:0 atIndex:0];
+      [encoder setVertexBuffer:hasScene ? sceneVertices : _vertices offset:0 atIndex:0];
       [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
       [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-      if (_sceneTexture != nil) [encoder setFragmentTexture:_sceneTexture atIndex:0];
-      [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0
-                  vertexCount:hasScene ? _sceneVertexCount : 3];
+      if (sceneTexture != nil) [encoder setFragmentTexture:sceneTexture atIndex:0];
+      if (!hasScene) {
+        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+      } else {
+        std::vector<asterix::scene::DrawBatch> batches;
+        std::vector<AsterixMeshRange> meshRanges;
+        @synchronized(self) {
+          if (_sceneRuntime) {
+            auto renderFrustum = AsterixFrustum(viewProjection);
+            auto preloadFrustum = renderFrustum;
+            for (auto& plane : preloadFrustum.planes)
+              plane.distance += sceneRadius * 0.15f;
+            _sceneRuntime->updateStreaming(preloadFrustum, _frameCount);
+            for (std::size_t section : _sceneRuntime->pendingSections())
+              _sceneRuntime->markResident(section);
+            batches = _sceneRuntime->buildBatches(renderFrustum,
+                                                  {sceneCenter.x, sceneCenter.y,
+                                                   sceneCenter.z + sceneRadius * 2.2f},
+                                                  sceneRadius * 1.5f);
+          }
+          meshRanges = _sceneMeshRanges;
+          _drawBatchCount = batches.size();
+          _visibleMeshCount = 0;
+          for (const auto& batch : batches) _visibleMeshCount += batch.items.size();
+        }
+        for (const auto& batch : batches) for (const auto& item : batch.items) {
+          if (item.node_index >= meshRanges.size()) continue;
+          const AsterixMeshRange range = meshRanges[item.node_index];
+          [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:range.vertexStart
+                      vertexCount:MIN((NSUInteger)item.vertex_count, range.vertexCount)];
+        }
+      }
     }
     [encoder endEncoding];
     [commandBuffer presentDrawable:drawable];

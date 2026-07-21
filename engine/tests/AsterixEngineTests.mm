@@ -1,12 +1,107 @@
 #import <XCTest/XCTest.h>
 
 #include "asterix/engine.h"
+#include "asterix/scene_runtime.hpp"
+#include <chrono>
 #include <unistd.h>
 
 @interface AsterixEngineTests : XCTestCase
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testSceneGraphResolvesHierarchyAndRejectsCycles {
+  using namespace asterix::scene;
+  Runtime runtime;
+  Node root;
+  root.id = "root";
+  root.local = Matrix4::identity();
+  root.local.value[12] = 10;
+  runtime.addNode(root);
+  Node child;
+  child.id = "child";
+  child.parent_id = "root";
+  child.local = Matrix4::identity();
+  child.local.value[13] = 4;
+  runtime.addNode(child);
+  runtime.resolveHierarchy();
+  XCTAssertEqualWithAccuracy(runtime.nodes()[1].world.value[12], 10, 0.001);
+  XCTAssertEqualWithAccuracy(runtime.nodes()[1].world.value[13], 4, 0.001);
+
+  Runtime cyclic;
+  Node first; first.id = "first"; first.parent_id = "second";
+  Node second; second.id = "second"; second.parent_id = "first";
+  cyclic.addNode(first);
+  cyclic.addNode(second);
+  XCTAssertThrows(cyclic.resolveHierarchy());
+}
+
+- (void)testStreamingCullingBatchingAndLod {
+  using namespace asterix::scene;
+  const Frustum cube = {{{{1, 0, 0, 10}, {-1, 0, 0, 10},
+                            {0, 1, 0, 10}, {0, -1, 0, 10},
+                            {0, 0, 1, 10}, {0, 0, -1, 10}}}};
+  Runtime runtime;
+  runtime.addSection({"near", {{-5, -5, -5}, {5, 5, 5}}});
+  runtime.addSection({"far", {{100, 100, 100}, {110, 110, 110}}});
+  Node close;
+  close.id = "close"; close.section_id = "near";
+  close.world_bounds = {{-1, -1, -1}, {1, 1, 1}};
+  close.material = 7; close.full_vertex_count = 12;
+  runtime.addNode(close);
+  Node distant = close;
+  distant.id = "distant";
+  distant.world_bounds = {{7, -1, -1}, {9, 1, 1}};
+  runtime.addNode(distant);
+
+  runtime.updateStreaming(cube, 1);
+  XCTAssertEqual(runtime.pendingSections().size(), 1u);
+  runtime.markResident(runtime.pendingSections().front());
+  const auto batches = runtime.buildBatches(cube, {0, 0, 0}, 5);
+  XCTAssertEqual(batches.size(), 2u);
+  XCTAssertEqual(batches[0].items.front().lod, 0u);
+  XCTAssertEqual(batches[1].items.front().lod, 1u);
+  XCTAssertEqual(batches[1].items.front().vertex_count, 6u);
+
+  runtime.updateStreaming(cube, 200, 120);
+  XCTAssertTrue(runtime.sections()[0].resident);
+  Frustum elsewhere = cube;
+  for (auto& plane : elsewhere.planes) plane.distance = -1000;
+  runtime.updateStreaming(elsewhere, 322, 120);
+  XCTAssertFalse(runtime.sections()[0].resident);
+}
+
+- (void)testMovingFrustumKeepsSceneSelectionBelowFrameBudget {
+  using namespace asterix::scene;
+  Runtime runtime;
+  runtime.addSection({"section", {{-500, -20, -20}, {500, 20, 20}}, true, true, 0});
+  for (int index = 0; index < 381; ++index) {
+    Node node;
+    node.id = std::to_string(index);
+    node.section_id = "section";
+    const float x = static_cast<float>(index) * 2.5f - 475;
+    node.world_bounds = {{x, -1, -1}, {x + 2, 1, 1}};
+    node.material = static_cast<std::uint32_t>(index % 8);
+    node.full_vertex_count = 300;
+    runtime.addNode(std::move(node));
+  }
+  double worstMilliseconds = 0;
+  for (int frame = 0; frame < 600; ++frame) {
+    const float center = -450 + frame * 1.5f;
+    const Frustum moving = {{{{1, 0, 0, 50 - center}, {-1, 0, 0, 50 + center},
+                               {0, 1, 0, 20}, {0, -1, 0, 20},
+                               {0, 0, 1, 20}, {0, 0, -1, 20}}}};
+    const auto start = std::chrono::steady_clock::now();
+    runtime.updateStreaming(moving, frame);
+    const auto batches = runtime.buildBatches(moving, {center, 0, 0}, 35);
+    XCTAssertFalse(batches.empty());
+    const auto end = std::chrono::steady_clock::now();
+    worstMilliseconds = std::max(
+        worstMilliseconds,
+        std::chrono::duration<double, std::milli>(end - start).count());
+  }
+  XCTAssertLessThan(worstMilliseconds, 16.0);
+}
 
 - (void)testVersionedBatchTransportPublishesSnapshotAndEvents {
   XCTAssertEqual(asterix_engine_abi_version(), ASTERIX_ENGINE_ABI_VERSION);

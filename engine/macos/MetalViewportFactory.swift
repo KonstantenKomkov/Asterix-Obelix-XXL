@@ -73,12 +73,18 @@ final class MetalViewportView: MTKView {
       "frameCount": renderer.frameCount,
       "sceneReady": renderer.isSceneReady,
       "sceneMeshCount": renderer.sceneMeshCount,
+      "visibleMeshCount": renderer.visibleMeshCount,
+      "drawBatchCount": renderer.drawBatchCount,
+      "residentSectionCount": renderer.residentSectionCount,
       "sceneError": renderer.sceneError ?? "",
     ]
   }
 
   func loadAssetPackage(at url: URL) {
-    renderer?.loadAssetPackage(at: url)
+    // Package parsing and buffer preparation must never stall the UI/render loop.
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      self?.renderer?.loadAssetPackage(at: url)
+    }
   }
 
   func reportSceneConfigurationError(_ message: String) {
