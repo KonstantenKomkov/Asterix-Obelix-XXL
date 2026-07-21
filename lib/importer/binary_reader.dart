@@ -12,6 +12,19 @@ final class BinaryReader {
   final int length;
   int offset = 0;
 
+  void seek(int newOffset) {
+    if (newOffset < 0 || newOffset > length) {
+      throw ImportException(
+        code: ImportErrorCode.invalidValue,
+        message: 'Offset is outside the input.',
+        path: path,
+        offset: offset,
+        details: {'target': newOffset, 'length': length},
+      );
+    }
+    offset = newOffset;
+  }
+
   int readUint8() {
     _require(1);
     return _data.getUint8(offset++);
