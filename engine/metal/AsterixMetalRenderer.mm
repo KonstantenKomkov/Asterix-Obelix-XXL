@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include "asterix/scene_runtime.hpp"
+#include "asterix/simulation_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -96,6 +97,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   double _gpuFrameTimeMilliseconds;
   double _framesPerSecond;
   uint64_t _frameCount;
+  asterix::simulation::FixedTimestep _simulationClock;
+  float _previousAnimationPhase;
+  float _currentAnimationPhase;
+  CFTimeInterval _lastSimulationTime;
 }
 
 - (instancetype)initWithView:(MTKView*)view {
@@ -108,6 +113,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _drawableSize = view.drawableSize;
     _startTime = CACurrentMediaTime();
     _lastFrameTime = _startTime;
+    _lastSimulationTime = _startTime;
     [self buildSceneResources:view.device colorFormat:view.colorPixelFormat];
     view.delegate = self;
     view.paused = NO;
@@ -437,6 +443,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
       return;
     }
     _state = AsterixMetalRendererStateRunning;
+    _lastSimulationTime = CACurrentMediaTime();
     _view.paused = NO;
   }
 }
@@ -522,7 +529,15 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     id<MTLRenderCommandEncoder> encoder =
         [commandBuffer renderCommandEncoderWithDescriptor:descriptor];
     if (_pipeline != nil && _vertices != nil) {
-      const float seconds = (float)(cpuStart - _startTime);
+      const double elapsed = MAX(0.0, cpuStart - _lastSimulationTime);
+      _lastSimulationTime = cpuStart;
+      _simulationClock.advance(elapsed, [&](double step) {
+        _previousAnimationPhase = _currentAnimationPhase;
+        _currentAnimationPhase += (float)step;
+      });
+      const float seconds = asterix::simulation::interpolate(
+          _previousAnimationPhase, _currentAnimationPhase,
+          _simulationClock.interpolationAlpha());
       const float c = cosf(seconds * 0.7f), s = sinf(seconds * 0.7f);
       id<MTLBuffer> sceneVertices = nil;
       id<MTLTexture> sceneTexture = nil;

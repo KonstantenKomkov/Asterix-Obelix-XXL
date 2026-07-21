@@ -3,6 +3,7 @@
 #include "asterix/engine.h"
 #include "asterix/animation_runtime.hpp"
 #include "asterix/scene_runtime.hpp"
+#include "asterix/simulation_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -10,6 +11,52 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testFixedTimestepMatchesAtThirtySixtyAndOneTwentyHertz {
+  using asterix::simulation::FixedTimestep;
+  auto scenario = [](double renderRate) {
+    FixedTimestep clock;
+    double previous = 0, current = 0;
+    const int frames = static_cast<int>(renderRate * 10);
+    for (int frame = 0; frame < frames; ++frame) {
+      clock.advance(1.0 / renderRate, [&](double step) {
+        previous = current;
+        current += 7.5 * step;
+      });
+    }
+    const double rendered = asterix::simulation::interpolate(
+        previous, current, clock.interpolationAlpha());
+    return std::array<double, 3>{current, rendered,
+                                 static_cast<double>(clock.tick())};
+  };
+  const auto at30 = scenario(30);
+  const auto at60 = scenario(60);
+  const auto at120 = scenario(120);
+  XCTAssertEqual(at30[2], 600);
+  XCTAssertEqual(at30[2], at60[2]);
+  XCTAssertEqual(at60[2], at120[2]);
+  XCTAssertEqualWithAccuracy(at30[0], at120[0], 0.000001);
+  XCTAssertEqualWithAccuracy(at30[1], at120[1], 0.000001);
+}
+
+- (void)testFixedTimestepInterpolatesAndBoundsCatchUp {
+  using namespace asterix::simulation;
+  FixedTimestep clock(0.1, 3);
+  double previous = 0, current = 0;
+  clock.advance(0.25, [&](double step) {
+    previous = current;
+    current += step * 10;
+  });
+  XCTAssertEqual(clock.tick(), 2u);
+  XCTAssertEqualWithAccuracy(clock.interpolationAlpha(), .5, 0.000001);
+  XCTAssertEqualWithAccuracy(interpolate(previous, current,
+                                         clock.interpolationAlpha()),
+                             1.5, 0.000001);
+  clock.advance(1.0, [&](double) {});
+  XCTAssertEqual(clock.tick(), 5u);
+  XCTAssertGreaterThan(clock.droppedSeconds(), .6);
+  XCTAssertLessThan(clock.interpolationAlpha(), 1.0);
+}
 
 - (void)testAnimationPaletteSkinningAndFog {
   using namespace asterix::animation;

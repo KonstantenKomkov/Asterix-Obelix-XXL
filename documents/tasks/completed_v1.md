@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 29 — Фиксированный simulation timestep
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен независимый C++20 `FixedTimestep` с шагом `1/60 s`. Accumulator
+выполняет только целые simulation ticks, сохраняет остаток как interpolation
+alpha и отдельно учитывает отброшенное время. Catch-up ограничен восемью ticks
+на render frame, поэтому длительный stall не вызывает spiral of death;
+отрицательный и non-finite elapsed отклоняются.
+
+Metal proof больше не вычисляет animation state напрямую из wall clock. Fixed
+ticks публикуют предыдущую и текущую фазу, а GPU palette получает
+интерполированное render state. После resume monotonic timestamp начинается
+заново, поэтому время sleep/suspend не симулируется задним числом.
+
+Regression выполняет один десятисекундный сценарий при presentation 30, 60 и
+120 Hz: во всех вариантах получены ровно 600 ticks, одинаковое authoritative и
+интерполированное состояние. Отдельный тест покрывает half-step interpolation и
+ограниченный catch-up. Прошли `make check`, native XCTest, macOS debug build,
+diff review и resource policy. Контракт описан в
+[документе fixed timestep](../architecture/fixed_simulation_timestep.md).
+
 ## П. 28 — Скелетная анимация и материалы
 
 **Выполнено:** 21 июля 2026.
