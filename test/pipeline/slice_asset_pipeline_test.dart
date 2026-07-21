@@ -125,6 +125,58 @@ void main() {
     },
   );
 
+  test(
+    'packages sector-local IDs and collision from every slice sector',
+    () async {
+      final temporary = await Directory.systemTemp.createTemp('asset-sectors-');
+      addTearDown(() => temporary.delete(recursive: true));
+      final proof = Directory('${temporary.path}/proof');
+      await _writeProof(proof, reverseOrder: false);
+      for (final name in const ['STR01_00', 'STR01_01']) {
+        final sector = Directory('${proof.path}/sectors/$name');
+        await Directory('${sector.path}/textures').create(recursive: true);
+        for (final relative in const [
+          'scene.json',
+          'collision.json',
+          'textures/manifest.json',
+          'textures/000_stone.png',
+        ]) {
+          await File(
+            '${proof.path}/$relative',
+          ).copy('${sector.path}/$relative');
+        }
+      }
+      await File('${proof.path}/manifest.json').writeAsString(
+        jsonEncode({
+          'schemaVersion': 2,
+          'slice': 'gaul-stage-1',
+          'sectors': [
+            {'source': 'LVL001/STR01_00.KWN', 'directory': 'sectors/STR01_00'},
+            {'source': 'LVL001/STR01_01.KWN', 'directory': 'sectors/STR01_01'},
+          ],
+        }),
+      );
+
+      final package = AsterixAssetPackage.parse(
+        await const SliceAssetPipeline().buildFromProof(proof),
+      );
+      final resources = (package.manifest['resources']! as List)
+          .cast<Map<String, Object?>>();
+      expect(
+        resources.where((value) => value['kind'] == 'collision'),
+        hasLength(2),
+      );
+      expect(resources.where((value) => value['kind'] == 'mesh'), hasLength(2));
+      final nodes = (package.manifest['objects']! as List)
+          .cast<Map<String, Object?>>()
+          .where((value) => value['kind'] == 'scene-node');
+      expect(
+        nodes.map((value) => (value['metadata']! as Map)['section']).toSet(),
+        {'LVL001/STR01_00.KWN', 'LVL001/STR01_01.KWN'},
+      );
+    },
+  );
+
   test('reports a controlled range error for a damaged mesh', () async {
     final temporary = await Directory.systemTemp.createTemp('asset-invalid-');
     addTearDown(() => temporary.delete(recursive: true));

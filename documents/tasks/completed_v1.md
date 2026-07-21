@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 42 — Приёмка vertical slice
+
+**Выполнено:** 21 июля 2026.
+
+Asset pipeline расширен с одного `STR01_00` до всех непустых секторов Gaul
+Stage 1 (`STR01_00`–`STR01_03`). Manifest proof schema v2 сохраняет source и
+directory каждого сектора, поэтому sector-local object IDs не конфликтуют.
+Реальный локальный ASTPAK содержит 663 mesh, 131 texture, четыре collision
+payload с 9 423 triangles, 345 animations, 38 skins и WAV; пакет и исходные
+ресурсы остались вне Git.
+
+Metal runtime использует настоящие section IDs и bounds для streaming, выбирает
+старт только из collision `STR01_00`, показывает читаемые fallback materials и
+видимые player/enemy markers. Живой прогон подтвердил около 60 FPS, движение,
+бой, checkpoint 13 и schema-v2 autosave. Native regressions подтверждают
+death/restart, combat, checkpoint rollback и audio events; Flutter tests —
+save/load и presentation flow.
+
+Пройдены `make check` (48 Flutter tests), 25 AsterixEngine XCTest, 7 Runner
+XCTest, macOS debug build, diff review и resource policy. Результаты, hash
+локального пакета, сравнение с эталоном и ограничения fidelity зафиксированы в
+[отчёте приёмки](../gameplay/vertical_slice_acceptance.md). Character models,
+per-material texture batches и полная gameplay orchestration переданы в оценку
+п. 43 и content cycle п. 44.
+
 ## П. 41 — Presentation MVP
 
 **Выполнено:** 21 июля 2026.

@@ -68,223 +68,287 @@ final class SliceAssetPipeline {
   }) async {
     final cache = _PipelineCache(cacheDirectory);
     final root = await _jsonFile(File('${proof.path}/manifest.json'));
-    if (root['schemaVersion'] != 1 || root['slice'] is! String) {
+    if ((root['schemaVersion'] != 1 && root['schemaVersion'] != 2) ||
+        root['slice'] is! String) {
       throw AssetPipelineException(
         AssetPipelineErrorCode.invalidSchema,
         'Unsupported slice proof manifest.',
         path: '${proof.path}/manifest.json',
       );
     }
-    final scene = await _jsonFile(File('${proof.path}/scene.json'));
-    final meshes = _objectList(
-      scene,
-      'meshes',
-      path: '${proof.path}/scene.json',
-    );
-    final nodes = _objectList(scene, 'nodes', path: '${proof.path}/scene.json');
-    _validateScene(scene, meshes, nodes, '${proof.path}/scene.json');
     final payloads = <AssetPayloadInput>[];
     final objects = <RuntimeObjectInput>[];
-    final meshPayloadIds = <int, String>{};
-
-    final collisionFile = File('${proof.path}/collision.json');
-    final collision = await _jsonFile(collisionFile);
-    final collisionMeshes = _objectList(
-      collision,
-      'meshes',
-      path: collisionFile.path,
-    );
-    if (collision['schemaVersion'] != 1) {
+    final allNodeObjectIds = <String>[];
+    final rawSectors = root['sectors'];
+    final sectors = <Map<String, Object?>>[];
+    if (rawSectors is List) {
+      for (var index = 0; index < rawSectors.length; index++) {
+        final value = rawSectors[index];
+        if (value is! Map<String, Object?>) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidSchema,
+            'Sector entry must be an object.',
+            path: '${proof.path}/manifest.json',
+            details: {'sector': index},
+          );
+        }
+        sectors.add(value);
+      }
+    } else {
+      sectors.add({'source': _sectorSource, 'directory': '.'});
+    }
+    if (sectors.isEmpty) {
       throw AssetPipelineException(
         AssetPipelineErrorCode.invalidSchema,
-        'Unsupported collision schema.',
-        path: collisionFile.path,
+        'Slice proof contains no sectors.',
+        path: '${proof.path}/manifest.json',
       );
     }
-    for (var index = 0; index < collisionMeshes.length; index++) {
-      final mesh = collisionMeshes[index];
-      final vertices = _list(mesh, 'vertices', collisionFile.path, index);
-      final triangles = _list(mesh, 'triangles', collisionFile.path, index);
-      for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
-        final vertex = vertices[vertexIndex];
-        if (vertex is! List ||
-            vertex.length != 3 ||
-            vertex.any((value) => value is! num || !value.isFinite)) {
-          throw AssetPipelineException(
-            AssetPipelineErrorCode.invalidRange,
-            'Collision vertex must contain three finite numbers.',
-            path: collisionFile.path,
-            details: {'mesh': index, 'vertex': vertexIndex},
-          );
-        }
-      }
-      for (
-        var triangleIndex = 0;
-        triangleIndex < triangles.length;
-        triangleIndex++
-      ) {
-        final triangle = triangles[triangleIndex];
-        if (triangle is! List ||
-            triangle.length != 3 ||
-            triangle.any(
-              (value) => value is! int || value < 0 || value >= vertices.length,
-            )) {
-          throw AssetPipelineException(
-            AssetPipelineErrorCode.invalidRange,
-            'Collision triangle index is outside its vertex range.',
-            path: collisionFile.path,
-            details: {'mesh': index, 'triangle': triangleIndex},
-          );
-        }
-      }
-    }
-    payloads.add(
-      AssetPayloadInput(
-        kind: 'collision',
-        sourcePath: _sectorSource,
-        sourceKey: 'world-collision',
-        bytes: await cache.transform(
-          kind: 'collision-json',
-          input: encodeCanonicalJson(collision),
-          transform: encodeCanonicalJson,
-          value: collision,
-        ),
-        metadata: {'meshCount': collisionMeshes.length},
-      ),
-    );
-
-    for (final mesh in meshes) {
-      final objectId = _integer(mesh, 'objectId');
-      final payload = AssetPayloadInput(
-        kind: 'mesh',
-        sourcePath: _sectorSource,
-        sourceKey: 'geometry:$objectId',
-        bytes: await cache.transform(
-          kind: 'mesh-json',
-          input: encodeCanonicalJson(mesh),
-          transform: encodeCanonicalJson,
-          value: mesh,
-        ),
-        metadata: {'objectId': objectId},
-      );
-      payloads.add(payload);
-      meshPayloadIds[objectId] = payload.id;
-    }
-
-    final nodeObjectIds = <int, String>{};
-    for (final node in nodes) {
-      final objectId = _integer(node, 'objectId');
-      nodeObjectIds[objectId] = StableAssetId.fromSource(
-        kind: 'scene-node',
-        sourcePath: _sectorSource,
-        sourceKey: 'node:$objectId',
-      );
-    }
-    for (final node in nodes) {
-      final objectId = _integer(node, 'objectId');
-      final geometryId = _referenceObjectId(node['geometry']);
-      final dependencies = <String>[];
-      for (final key in const ['parent', 'next', 'child']) {
-        final referencedId = _referenceObjectId(node[key]);
-        final dependency = nodeObjectIds[referencedId];
-        if (dependency != null && dependency != nodeObjectIds[objectId]) {
-          dependencies.add(dependency);
-        }
-      }
-      objects.add(
-        RuntimeObjectInput(
-          kind: 'scene-node',
-          sourcePath: _sectorSource,
-          sourceKey: 'node:$objectId',
-          payloadIds: [if (meshPayloadIds[geometryId] case final id?) id],
-          dependencies: dependencies.toSet().toList(),
-          metadata: {
-            'classId': _integer(node, 'classId'),
-            'transform': _matrix(node, 'transform', '${proof.path}/scene.json'),
-            'section': _sectorSource,
-            for (final key in const ['parent', 'next', 'child'])
-              '${key}Id': nodeObjectIds[_referenceObjectId(node[key])],
-          },
-        ),
-      );
-    }
-
-    final textureManifest = await _jsonFile(
-      File('${proof.path}/textures/manifest.json'),
-    );
-    final textures = _objectList(
-      textureManifest,
-      'textures',
-      path: '${proof.path}/textures/manifest.json',
-    );
-    final textureFiles = await _filesWithSuffix(
-      Directory('${proof.path}/textures'),
-      '.png',
-    );
-    if (textures.length != textureFiles.length) {
-      throw AssetPipelineException(
-        AssetPipelineErrorCode.invalidReference,
-        'Texture manifest and PNG file count differ.',
-        path: '${proof.path}/textures',
-        details: {
-          'manifestCount': textures.length,
-          'fileCount': textureFiles.length,
-        },
-      );
-    }
-    for (var index = 0; index < textures.length; index++) {
-      final summary = textures[index];
-      final name = summary['name'];
-      if (name is! String || name.isEmpty) {
+    final sectorSources = <String>{};
+    final sectorDirectories = <String>{};
+    for (var sectorIndex = 0; sectorIndex < sectors.length; sectorIndex++) {
+      final sector = sectors[sectorIndex];
+      final sectorSource = sector['source'];
+      final sectorDirectory = sector['directory'];
+      if (sectorSource is! String ||
+          sectorSource.isEmpty ||
+          sectorDirectory is! String ||
+          sectorDirectory.isEmpty) {
         throw AssetPipelineException(
           AssetPipelineErrorCode.invalidSchema,
-          'Texture name is missing.',
-          path: '${proof.path}/textures/manifest.json',
-          details: {'texture': index},
+          'Sector source and directory must be non-empty strings.',
+          path: '${proof.path}/manifest.json',
+          details: {'sector': sectorIndex},
         );
       }
-      final pngBytes = await _readRequiredBytes(textureFiles[index]);
-      final decoded = img.decodePng(pngBytes);
-      if (decoded == null) {
+      if (!sectorSources.add(sectorSource) ||
+          !sectorDirectories.add(sectorDirectory)) {
         throw AssetPipelineException(
-          AssetPipelineErrorCode.invalidImage,
-          'Texture is not a valid PNG.',
-          path: textureFiles[index].path,
+          AssetPipelineErrorCode.duplicateId,
+          'Sector source and directory must be unique.',
+          path: '${proof.path}/manifest.json',
+          details: {'sector': sectorIndex},
         );
       }
-      final expectedWidth = summary['width'];
-      final expectedHeight = summary['height'];
-      if (expectedWidth != decoded.width || expectedHeight != decoded.height) {
+      final sectorRoot = sectorDirectory == '.'
+          ? proof.path
+          : '${proof.path}/$sectorDirectory';
+      final scenePath = '$sectorRoot/scene.json';
+      final scene = await _jsonFile(File(scenePath));
+      final meshes = _objectList(scene, 'meshes', path: scenePath);
+      final nodes = _objectList(scene, 'nodes', path: scenePath);
+      _validateScene(scene, meshes, nodes, scenePath);
+      final meshPayloadIds = <int, String>{};
+
+      final collisionFile = File('$sectorRoot/collision.json');
+      final collision = await _jsonFile(collisionFile);
+      final collisionMeshes = _objectList(
+        collision,
+        'meshes',
+        path: collisionFile.path,
+      );
+      if (collision['schemaVersion'] != 1) {
         throw AssetPipelineException(
-          AssetPipelineErrorCode.invalidRange,
-          'Texture dimensions do not match its manifest.',
-          path: textureFiles[index].path,
-          details: {
-            'expected': '$expectedWidth x $expectedHeight',
-            'actual': '${decoded.width} x ${decoded.height}',
-          },
+          AssetPipelineErrorCode.invalidSchema,
+          'Unsupported collision schema.',
+          path: collisionFile.path,
         );
+      }
+      for (var index = 0; index < collisionMeshes.length; index++) {
+        final mesh = collisionMeshes[index];
+        final vertices = _list(mesh, 'vertices', collisionFile.path, index);
+        final triangles = _list(mesh, 'triangles', collisionFile.path, index);
+        for (
+          var vertexIndex = 0;
+          vertexIndex < vertices.length;
+          vertexIndex++
+        ) {
+          final vertex = vertices[vertexIndex];
+          if (vertex is! List ||
+              vertex.length != 3 ||
+              vertex.any((value) => value is! num || !value.isFinite)) {
+            throw AssetPipelineException(
+              AssetPipelineErrorCode.invalidRange,
+              'Collision vertex must contain three finite numbers.',
+              path: collisionFile.path,
+              details: {'mesh': index, 'vertex': vertexIndex},
+            );
+          }
+        }
+        for (
+          var triangleIndex = 0;
+          triangleIndex < triangles.length;
+          triangleIndex++
+        ) {
+          final triangle = triangles[triangleIndex];
+          if (triangle is! List ||
+              triangle.length != 3 ||
+              triangle.any(
+                (value) =>
+                    value is! int || value < 0 || value >= vertices.length,
+              )) {
+            throw AssetPipelineException(
+              AssetPipelineErrorCode.invalidRange,
+              'Collision triangle index is outside its vertex range.',
+              path: collisionFile.path,
+              details: {'mesh': index, 'triangle': triangleIndex},
+            );
+          }
+        }
       }
       payloads.add(
         AssetPayloadInput(
-          kind: 'texture',
-          sourcePath: _sectorSource,
-          sourceKey: 'texture:$index:$name',
+          kind: 'collision',
+          sourcePath: sectorSource,
+          sourceKey: 'world-collision',
           bytes: await cache.transform(
-            kind: 'metal-texture',
-            input: pngBytes,
-            transform: (_) => encodeMetalTexture(decoded),
-            value: pngBytes,
+            kind: 'collision-json',
+            input: encodeCanonicalJson(collision),
+            transform: encodeCanonicalJson,
+            value: collision,
           ),
           metadata: {
-            'name': name,
-            'width': decoded.width,
-            'height': decoded.height,
-            'pixelFormat': 'rgba8Unorm',
-            'mipCount': _mipCount(decoded.width, decoded.height),
+            'meshCount': collisionMeshes.length,
+            'section': sectorSource,
           },
         ),
       );
+
+      for (final mesh in meshes) {
+        final objectId = _integer(mesh, 'objectId');
+        final payload = AssetPayloadInput(
+          kind: 'mesh',
+          sourcePath: sectorSource,
+          sourceKey: 'geometry:$objectId',
+          bytes: await cache.transform(
+            kind: 'mesh-json',
+            input: encodeCanonicalJson(mesh),
+            transform: encodeCanonicalJson,
+            value: mesh,
+          ),
+          metadata: {'objectId': objectId},
+        );
+        payloads.add(payload);
+        meshPayloadIds[objectId] = payload.id;
+      }
+
+      final nodeObjectIds = <int, String>{};
+      for (final node in nodes) {
+        final objectId = _integer(node, 'objectId');
+        nodeObjectIds[objectId] = StableAssetId.fromSource(
+          kind: 'scene-node',
+          sourcePath: sectorSource,
+          sourceKey: 'node:$objectId',
+        );
+      }
+      allNodeObjectIds.addAll(nodeObjectIds.values);
+      for (final node in nodes) {
+        final objectId = _integer(node, 'objectId');
+        final geometryId = _referenceObjectId(node['geometry']);
+        final dependencies = <String>[];
+        for (final key in const ['parent', 'next', 'child']) {
+          final referencedId = _referenceObjectId(node[key]);
+          final dependency = nodeObjectIds[referencedId];
+          if (dependency != null && dependency != nodeObjectIds[objectId]) {
+            dependencies.add(dependency);
+          }
+        }
+        objects.add(
+          RuntimeObjectInput(
+            kind: 'scene-node',
+            sourcePath: sectorSource,
+            sourceKey: 'node:$objectId',
+            payloadIds: [if (meshPayloadIds[geometryId] case final id?) id],
+            dependencies: dependencies.toSet().toList(),
+            metadata: {
+              'classId': _integer(node, 'classId'),
+              'transform': _matrix(node, 'transform', scenePath),
+              'section': sectorSource,
+              for (final key in const ['parent', 'next', 'child'])
+                '${key}Id': nodeObjectIds[_referenceObjectId(node[key])],
+            },
+          ),
+        );
+      }
+
+      final textureManifest = await _jsonFile(
+        File('$sectorRoot/textures/manifest.json'),
+      );
+      final textures = _objectList(
+        textureManifest,
+        'textures',
+        path: '$sectorRoot/textures/manifest.json',
+      );
+      final textureFiles = await _filesWithSuffix(
+        Directory('$sectorRoot/textures'),
+        '.png',
+      );
+      if (textures.length != textureFiles.length) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidReference,
+          'Texture manifest and PNG file count differ.',
+          path: '$sectorRoot/textures',
+          details: {
+            'manifestCount': textures.length,
+            'fileCount': textureFiles.length,
+          },
+        );
+      }
+      for (var index = 0; index < textures.length; index++) {
+        final summary = textures[index];
+        final name = summary['name'];
+        if (name is! String || name.isEmpty) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidSchema,
+            'Texture name is missing.',
+            path: '$sectorRoot/textures/manifest.json',
+            details: {'texture': index},
+          );
+        }
+        final pngBytes = await _readRequiredBytes(textureFiles[index]);
+        final decoded = img.decodePng(pngBytes);
+        if (decoded == null) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidImage,
+            'Texture is not a valid PNG.',
+            path: textureFiles[index].path,
+          );
+        }
+        final expectedWidth = summary['width'];
+        final expectedHeight = summary['height'];
+        if (expectedWidth != decoded.width ||
+            expectedHeight != decoded.height) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidRange,
+            'Texture dimensions do not match its manifest.',
+            path: textureFiles[index].path,
+            details: {
+              'expected': '$expectedWidth x $expectedHeight',
+              'actual': '${decoded.width} x ${decoded.height}',
+            },
+          );
+        }
+        payloads.add(
+          AssetPayloadInput(
+            kind: 'texture',
+            sourcePath: sectorSource,
+            sourceKey: 'texture:$index:$name',
+            bytes: await cache.transform(
+              kind: 'metal-texture',
+              input: pngBytes,
+              transform: (_) => encodeMetalTexture(decoded),
+              value: pngBytes,
+            ),
+            metadata: {
+              'name': name,
+              'width': decoded.width,
+              'height': decoded.height,
+              'pixelFormat': 'rgba8Unorm',
+              'mipCount': _mipCount(decoded.width, decoded.height),
+            },
+          ),
+        );
+      }
     }
 
     final animationDir = Directory('${proof.path}/animations');
@@ -398,7 +462,7 @@ final class SliceAssetPipeline {
       bytes: encodeCanonicalJson({
         'schemaVersion': 1,
         'slice': root['slice'],
-        'nodeObjectIds': nodeObjectIds.values.toList()..sort(),
+        'nodeObjectIds': allNodeObjectIds.toList()..sort(),
         'resources': payloads.map((value) => value.id).toList()..sort(),
       }),
     );
@@ -408,7 +472,7 @@ final class SliceAssetPipeline {
       sourcePath: _sectorSource,
       sourceKey: root['slice']! as String,
       payloadIds: [sceneManifest.id],
-      dependencies: nodeObjectIds.values.toList(),
+      dependencies: allNodeObjectIds,
     );
     objects.add(sceneObject);
     final bytes = const AsterixAssetPackageBuilder().build(

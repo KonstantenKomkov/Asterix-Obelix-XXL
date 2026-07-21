@@ -507,6 +507,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   NSMutableData* vertexData = [NSMutableData data];
   NSMutableData* collisionVertexData = [NSMutableData data];
   std::vector<asterix::collision::Triangle> collisionTriangles;
+  std::vector<asterix::collision::Triangle> startCollisionTriangles;
   std::vector<AsterixMeshRange> meshRanges;
   std::vector<asterix::scene::Node> runtimeNodes;
   NSUInteger meshCount = 0;
@@ -514,8 +515,12 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   vector_float3 maximum = {-INFINITY, -INFINITY, -INFINITY};
   asterix::scene::Runtime transformGraph;
   std::unordered_map<std::string, std::string> payloadNodes;
+  std::unordered_map<std::string, std::string> payloadSections;
+  std::unordered_map<std::string, vector_float3> sectionMinimums;
+  std::unordered_map<std::string, vector_float3> sectionMaximums;
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"collision"]) continue;
+    const BOOL startSection=[resource[@"metadata"][@"section"] hasSuffix:@"STR01_00.KWN"];
     uint64_t offset = [resource[@"offset"] unsignedLongLongValue];
     uint64_t length = [resource[@"length"] unsignedLongLongValue];
     if (offset > payloadLength || length > payloadLength - offset) continue;
@@ -544,10 +549,12 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           points[corner]=world.xyz;
         }
         if (!valid) continue;
-        collisionTriangles.push_back({{points[0].x,points[0].y,points[0].z},
-                                      {points[1].x,points[1].y,points[1].z},
-                                      {points[2].x,points[2].y,points[2].z},
-                                      (int)objectId});
+        asterix::collision::Triangle collisionTriangle={
+            {points[0].x,points[0].y,points[0].z},
+            {points[1].x,points[1].y,points[1].z},
+            {points[2].x,points[2].y,points[2].z},(int)objectId};
+        collisionTriangles.push_back(collisionTriangle);
+        if(startSection)startCollisionTriangles.push_back(collisionTriangle);
         for (vector_float3 point : points) {
           AsterixVertex vertex = {point,{1,.08f,.12f},{0,1,0},{0,0},1,1,0,
                                   {0,0,0,0},{1,0,0,0},objectId};
@@ -574,6 +581,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     NSString* payloadId = payloadIds.firstObject;
     if (![payloadId isKindOfClass:NSString.class]) continue;
     payloadNodes[payloadId.UTF8String] = objectId.UTF8String;
+    NSString* section=object[@"metadata"][@"section"];
+    if([section isKindOfClass:NSString.class])
+      payloadSections[payloadId.UTF8String]=section.UTF8String;
   }
   try {
     transformGraph.resolveHierarchy();
@@ -672,11 +682,20 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       meshRanges.push_back({start, count});
       asterix::scene::Node node;
       node.id = [resourceId UTF8String] ?: "";
-      node.section_id = "gaul-stage-1";
+      const auto section=payloadSections.find(node.id);
+      node.section_id=section==payloadSections.end()?"gaul-stage-1":section->second;
       node.resource_id = node.id;
       node.world_bounds = {{meshMinimum.x, meshMinimum.y, meshMinimum.z},
                            {meshMaximum.x, meshMaximum.y, meshMaximum.z}};
       node.full_vertex_count = (uint32_t)count;
+      const auto sectionMinimum=sectionMinimums.find(node.section_id);
+      if(sectionMinimum==sectionMinimums.end()) {
+        sectionMinimums[node.section_id]=meshMinimum;
+        sectionMaximums[node.section_id]=meshMaximum;
+      } else {
+        sectionMinimums[node.section_id]=simd_min(sectionMinimum->second,meshMinimum);
+        sectionMaximums[node.section_id]=simd_max(sectionMaximums[node.section_id],meshMaximum);
+      }
       runtimeNodes.push_back(std::move(node));
       meshCount++;
     }
@@ -703,7 +722,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::combat::Runtime> combatRuntime;
   NSUInteger playerMarkerVertexStart=NSNotFound,enemyMarkerVertexStart=NSNotFound;
   if (!collisionTriangles.empty()) {
-    const auto spawn=asterix::collision::safeSpawnPoint(collisionTriangles);
+    const auto spawn=asterix::collision::safeSpawnPoint(
+        startCollisionTriangles.empty()?collisionTriangles:startCollisionTriangles);
     collisionWorld=std::make_unique<asterix::collision::World>(std::move(collisionTriangles));
     capsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
     asterix::collision::CapsuleState body;
@@ -759,9 +779,17 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   id<MTLBuffer> buffer = [device newBufferWithBytes:vertexData.bytes length:vertexData.length options:MTLResourceStorageModeShared];
   id<MTLBuffer> collisionBuffer = collisionVertexData.length == 0 ? nil :
       [device newBufferWithBytes:collisionVertexData.bytes length:collisionVertexData.length options:MTLResourceStorageModeShared];
-  runtime->addSection({"gaul-stage-1",
-                       {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
-                       true, true, 0});
+  for(const auto& [sectionId,sectionMinimum]:sectionMinimums) {
+    const auto sectionMaximum=sectionMaximums[sectionId];
+    runtime->addSection({sectionId,
+                         {{sectionMinimum.x,sectionMinimum.y,sectionMinimum.z},
+                          {sectionMaximum.x,sectionMaximum.y,sectionMaximum.z}},
+                         true,true,0});
+  }
+  if(sectionMinimums.empty())
+    runtime->addSection({"gaul-stage-1",
+                         {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
+                         true, true, 0});
   for (auto& node : runtimeNodes) runtime->addNode(std::move(node));
   runtime->resolveHierarchy();
   @synchronized(self) {
