@@ -34,13 +34,16 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
     debugMethodChannel = channel
     let input = FlutterMethodChannel(name: Self.inputChannel, binaryMessenger: messenger)
     input.setMethodCallHandler { [weak self] call, result in
-      guard call.method == "setSnapshot", let values = call.arguments as? [String: NSNumber] else {
+      if call.method == "setSnapshot", let values = call.arguments as? [String: NSNumber] {
+        self?.latestInput = values.mapValues(\.doubleValue)
+        self?.viewport?.setInput(values)
+        result(nil)
+      } else if call.method == "setPaused", let paused = call.arguments as? Bool {
+        self?.viewport?.setGameplayPaused(paused)
+        result(nil)
+      } else {
         result(FlutterMethodNotImplemented)
-        return
       }
-      self?.latestInput = values.mapValues(\.doubleValue)
-      self?.viewport?.setInput(values)
-      result(nil)
     }
     inputMethodChannel = input
   }
@@ -108,6 +111,7 @@ final class MetalViewportView: MTKView {
       "sceneError": renderer.sceneError ?? "",
       "playerState": renderer.playerState,
       "playerHealth": renderer.playerHealth,
+      "playerMaximumHealth": renderer.playerMaximumHealth,
       "playerPosition": [renderer.playerPosition.x, renderer.playerPosition.y, renderer.playerPosition.z],
       "enemyState": renderer.enemyState,
       "enemyHealth": renderer.enemyHealth,
@@ -116,6 +120,7 @@ final class MetalViewportView: MTKView {
       "activeCheckpoint": renderer.activeCheckpoint,
       "leverActivated": renderer.leverActivated,
       "destructibleDestroyed": renderer.destructibleDestroyed,
+      "interactionHint": renderer.interactionHint,
       "cameraFov": renderer.cameraFieldOfView,
       "cameraCollisionLimited": renderer.cameraCollisionLimited,
       "combatActive": renderer.combatActive,
@@ -135,6 +140,10 @@ final class MetalViewportView: MTKView {
     renderer?.setInputMoveX(x, moveZ: z, jump: (values["jump"]?.doubleValue ?? 0) > 0.5,
                            attack: (values["attack"]?.doubleValue ?? 0) > 0.5,
                            interact: (values["interact"]?.doubleValue ?? 0) > 0.5)
+  }
+
+  func setGameplayPaused(_ paused: Bool) {
+    if paused { renderer?.suspend() } else { renderer?.resume() }
   }
 
   func loadAssetPackage(at url: URL) {

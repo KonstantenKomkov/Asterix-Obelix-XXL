@@ -27,6 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) uint32_t debugOptions;
 @property(nonatomic, readonly) NSString* playerState;
 @property(nonatomic, readonly) NSInteger playerHealth;
+@property(nonatomic, readonly) NSInteger playerMaximumHealth;
 @property(nonatomic, readonly) vector_float3 playerPosition;
 @property(nonatomic, readonly) NSString* enemyState;
 @property(nonatomic, readonly) NSInteger enemyHealth;
@@ -35,6 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSUInteger activeCheckpoint;
 @property(nonatomic, readonly) BOOL leverActivated;
 @property(nonatomic, readonly) BOOL destructibleDestroyed;
+@property(nonatomic, readonly) NSString* interactionHint;
 @property(nonatomic, readonly) float cameraFieldOfView;
 @property(nonatomic, readonly) BOOL cameraCollisionLimited;
 @property(nonatomic, readonly) BOOL combatActive;

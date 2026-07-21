@@ -18,6 +18,23 @@ void main() {
       () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform_views, null),
     );
+    final pauseCalls = <bool>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('asterix/game-input'), (
+          call,
+        ) async {
+          if (call.method == 'setPaused') {
+            pauseCalls.add(call.arguments as bool);
+          }
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('asterix/game-input'),
+            null,
+          ),
+    );
 
     try {
       await tester.pumpWidget(const MaterialApp(home: GamePage()));
@@ -42,6 +59,7 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pump();
       expect(find.text('ПАУЗА'), findsNothing);
+      expect(pauseCalls, containsAllInOrder(<bool>[true, false]));
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }

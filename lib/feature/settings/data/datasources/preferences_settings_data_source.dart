@@ -11,17 +11,22 @@ final class PreferencesSettingsDataSource {
 
   GameSettings read() {
     return GameSettings(
-      musicVolume: _preferences.getDouble('musicVolume') ?? 0.8,
-      effectsVolume: _preferences.getDouble('effectsVolume') ?? 0.8,
+      musicVolume: (_preferences.getDouble('musicVolume') ?? 0.8).clamp(0, 1),
+      effectsVolume: (_preferences.getDouble('effectsVolume') ?? 0.8).clamp(
+        0,
+        1,
+      ),
       fullscreen: _preferences.getBool('fullscreen') ?? false,
       subtitles: _preferences.getBool('subtitles') ?? true,
     );
   }
 
   Future<void> write(GameSettings settings) async {
+    final music = settings.musicVolume.clamp(0.0, 1.0);
+    final effects = settings.effectsVolume.clamp(0.0, 1.0);
     await Future.wait([
-      _preferences.setDouble('musicVolume', settings.musicVolume),
-      _preferences.setDouble('effectsVolume', settings.effectsVolume),
+      _preferences.setDouble('musicVolume', music),
+      _preferences.setDouble('effectsVolume', effects),
       _preferences.setBool('fullscreen', settings.fullscreen),
       _preferences.setBool('subtitles', settings.subtitles),
     ]);

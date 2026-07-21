@@ -18,6 +18,16 @@ enum class EventType : std::uint8_t {
   trigger_entered, lever_activated, object_damaged, object_destroyed,
   reward_collected, checkpoint_activated, checkpoint_restored
 };
+enum class Hint : std::uint8_t { none, activate_lever, collect_reward, respawn };
+inline const char* hintName(Hint hint) {
+  switch(hint) {
+    case Hint::none:return "";
+    case Hint::activate_lever:return "activate_lever";
+    case Hint::collect_reward:return "collect_reward";
+    case Hint::respawn:return "respawn";
+  }
+  return "";
+}
 struct Event { EventType type; std::uint32_t id; std::int32_t value = 0; };
 struct Trigger { std::uint32_t id; Vec3 center; Vec3 half_extent{1,1,1}; bool one_shot=true; bool fired=false; };
 struct Lever { std::uint32_t id; Vec3 position; float radius=1.2f; bool activated=false; };
@@ -46,6 +56,14 @@ class Runtime {
   const std::vector<Destructible>& destructibles() const { return destructibles_; }
   const std::vector<Reward>& rewards() const { return rewards_; }
   const std::vector<Checkpoint>& checkpoints() const { return checkpoints_; }
+  Hint hint(Vec3 player,bool player_dead) const {
+    if(player_dead&&snapshot_.active_checkpoint!=0)return Hint::respawn;
+    for(const auto& lever:levers_)
+      if(!lever.activated&&near(player,lever.position,lever.radius))return Hint::activate_lever;
+    for(const auto& reward:rewards_)
+      if(reward.available&&!reward.collected&&near(player,reward.position,.75f))return Hint::collect_reward;
+    return Hint::none;
+  }
 
   void update(Vec3 player, bool interact_edge) {
     for(auto& trigger:triggers_) {

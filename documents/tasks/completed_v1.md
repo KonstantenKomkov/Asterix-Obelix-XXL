@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 38 — HUD, пауза и игровые настройки
+
+**Выполнено:** 21 июля 2026.
+
+Gameplay HUD переведён со статических значений на пакетный native snapshot:
+показывает текущее/максимальное здоровье, progress bar, число наград и
+локализованную контекстную подсказку для рычага, награды или respawn. Snapshot
+поступает одним event stream с частотой 4 Hz, без frame-by-frame вызовов Flutter
+к gameplay-объектам; диагностические performance counters используют тот же пакет.
+
+Pause action теперь останавливает и возобновляет сам Metal renderer через
+method-channel, а не только рисует overlay. Resume сбрасывает simulation-time
+baseline и не создаёт catch-up ticks. Из pause menu доступны продолжение,
+настройки и выход в меню.
+
+Настройки музыки/эффектов сохраняются в `SharedPreferences`; чтение и запись
+защищены clamp 0–100%. Экран управления сохраняет переназначения клавиатуры и
+gamepad, включая `interact` на B/Circle. Применение уровней к mixer оставлено
+задаче 40, fullscreen — задаче 41. Контракт описан в
+[документе HUD/pause/settings](../architecture/hud_pause_settings.md).
+
+Widget test проверяет передачу pause/resume в native channel, unit test —
+persistence и валидацию громкости. Прошли 42 Flutter tests, analyze, 21 native
+XCTest, macOS debug build, diff review и resource policy. Ресурсы не добавлялись.
+
 ## П. 37 — Интерактивы вертикального среза
 
 **Выполнено:** 21 июля 2026.

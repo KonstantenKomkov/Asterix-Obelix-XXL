@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../input/data/input_bindings_store.dart';
 import '../../../input/domain/game_input.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
@@ -46,6 +47,9 @@ class _GamePageState extends State<GamePage> {
 
   @override
   void dispose() {
+    unawaited(
+      _inputChannel.invokeMethod<void>('setPaused', false).catchError((_) {}),
+    );
     _controllerSubscription?.cancel();
     _router.reset();
     super.dispose();
@@ -71,6 +75,9 @@ class _GamePageState extends State<GamePage> {
 
   void _setPaused(bool value) {
     if (mounted) setState(() => _paused = value);
+    unawaited(
+      _inputChannel.invokeMethod<void>('setPaused', value).catchError((_) {}),
+    );
   }
 
   @override
@@ -96,7 +103,13 @@ class _GamePageState extends State<GamePage> {
               ),
             ),
             const _DebugPanel(),
-            if (_paused) _PauseOverlay(onResume: () => _setPaused(false)),
+            if (_paused)
+              _PauseOverlay(
+                onResume: () => _setPaused(false),
+                onSettings: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
+                ),
+              ),
           ],
         ),
       ),
@@ -159,81 +172,90 @@ class _Hud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: Container(
-            width: 250,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppTheme.gold.withValues(alpha: 0.5)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'АСТЕРИКС',
-                  style: TextStyle(fontWeight: FontWeight.w900),
+    return StreamBuilder<dynamic>(
+      stream: _stats.receiveBroadcastStream(),
+      builder: (context, snapshot) {
+        final values = snapshot.data is Map
+            ? Map<Object?, Object?>.from(snapshot.data as Map)
+            : const <Object?, Object?>{};
+        final fps = (values['fps'] as num?)?.toDouble() ?? 0;
+        final cpu = (values['cpuMs'] as num?)?.toDouble() ?? 0;
+        final gpu = (values['gpuMs'] as num?)?.toDouble() ?? 0;
+        final bytes = (values['allocatedBytes'] as num?)?.toInt() ?? 0;
+        final meshes = (values['sceneMeshCount'] as num?)?.toInt() ?? 0;
+        final visible = (values['visibleMeshCount'] as num?)?.toInt() ?? 0;
+        final batches = (values['drawBatchCount'] as num?)?.toInt() ?? 0;
+        final sections = (values['residentSectionCount'] as num?)?.toInt() ?? 0;
+        final sceneError = values['sceneError'] as String? ?? '';
+        final collision =
+            (values['collisionTriangleCount'] as num?)?.toInt() ?? 0;
+        final playerState = values['playerState'] as String? ?? 'unavailable';
+        final playerHealth = (values['playerHealth'] as num?)?.toInt() ?? 0;
+        final playerMaximumHealth =
+            (values['playerMaximumHealth'] as num?)?.toInt() ?? 3;
+        final enemyState = values['enemyState'] as String? ?? 'unavailable';
+        final enemyHealth = (values['enemyHealth'] as num?)?.toInt() ?? 0;
+        final rewards = (values['rewardCount'] as num?)?.toInt() ?? 0;
+        final checkpoint = (values['activeCheckpoint'] as num?)?.toInt() ?? 0;
+        final lever = values['leverActivated'] == true;
+        final destroyed = values['destructibleDestroyed'] == true;
+        final cameraFov = (values['cameraFov'] as num?)?.toDouble() ?? 70;
+        final cameraLimited = values['cameraCollisionLimited'] == true;
+        final combatActive = values['combatActive'] == true;
+        final comboStage = (values['comboStage'] as num?)?.toInt() ?? 0;
+        final hitWindow = values['combatHitWindow'] == true;
+        final hint = values['interactionHint'] as String? ?? '';
+        final hintText = switch (hint) {
+          'activate_lever' => 'Активировать рычаг',
+          'collect_reward' => 'Подобрать награду',
+          'respawn' => 'Вернуться к checkpoint',
+          _ => '',
+        };
+        final healthValue = playerMaximumHealth <= 0
+            ? 0.0
+            : (playerHealth / playerMaximumHealth).clamp(0.0, 1.0);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                width: 270,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: AppTheme.gold.withValues(alpha: 0.5),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                const LinearProgressIndicator(value: 0.76, minHeight: 10),
-                const SizedBox(height: 8),
-                const Text(
-                  'Шлемы:  0 / 10',
-                  style: TextStyle(color: Colors.white70),
-                ),
-                const Divider(height: 20),
-                StreamBuilder<dynamic>(
-                  stream: _stats.receiveBroadcastStream(),
-                  builder: (context, snapshot) {
-                    final values = snapshot.data is Map
-                        ? Map<Object?, Object?>.from(snapshot.data as Map)
-                        : const <Object?, Object?>{};
-                    final fps = (values['fps'] as num?)?.toDouble() ?? 0;
-                    final cpu = (values['cpuMs'] as num?)?.toDouble() ?? 0;
-                    final gpu = (values['gpuMs'] as num?)?.toDouble() ?? 0;
-                    final bytes =
-                        (values['allocatedBytes'] as num?)?.toInt() ?? 0;
-                    final meshes =
-                        (values['sceneMeshCount'] as num?)?.toInt() ?? 0;
-                    final visible =
-                        (values['visibleMeshCount'] as num?)?.toInt() ?? 0;
-                    final batches =
-                        (values['drawBatchCount'] as num?)?.toInt() ?? 0;
-                    final sections =
-                        (values['residentSectionCount'] as num?)?.toInt() ?? 0;
-                    final sceneError = values['sceneError'] as String? ?? '';
-                    final collision =
-                        (values['collisionTriangleCount'] as num?)?.toInt() ??
-                        0;
-                    final playerState =
-                        values['playerState'] as String? ?? 'unavailable';
-                    final playerHealth =
-                        (values['playerHealth'] as num?)?.toInt() ?? 0;
-                    final enemyState =
-                        values['enemyState'] as String? ?? 'unavailable';
-                    final enemyHealth =
-                        (values['enemyHealth'] as num?)?.toInt() ?? 0;
-                    final rewards =
-                        (values['rewardCount'] as num?)?.toInt() ?? 0;
-                    final checkpoint =
-                        (values['activeCheckpoint'] as num?)?.toInt() ?? 0;
-                    final lever = values['leverActivated'] == true;
-                    final destroyed = values['destructibleDestroyed'] == true;
-                    final cameraFov =
-                        (values['cameraFov'] as num?)?.toDouble() ?? 70;
-                    final cameraLimited =
-                        values['cameraCollisionLimited'] == true;
-                    final combatActive = values['combatActive'] == true;
-                    final comboStage =
-                        (values['comboStage'] as num?)?.toInt() ?? 0;
-                    final hitWindow = values['combatHitWindow'] == true;
-                    return Text(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'АСТЕРИКС',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      key: const Key('player-health'),
+                      value: healthValue,
+                      minHeight: 10,
+                    ),
+                    const SizedBox(height: 6),
+                    Text('Здоровье: $playerHealth / $playerMaximumHealth'),
+                    Text('Награды: $rewards'),
+                    if (hintText.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'E / B · $hintText',
+                        key: const Key('interaction-hint'),
+                        style: const TextStyle(color: AppTheme.gold),
+                      ),
+                    ],
+                    const Divider(height: 20),
+                    Text(
                       'FPS ${fps.toStringAsFixed(1)}  CPU ${cpu.toStringAsFixed(2)} ms\n'
                       'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB\n'
                       '${meshes > 0
@@ -251,16 +273,17 @@ class _Hud extends StatelessWidget {
                       key: const Key('renderer-stats'),
                       style: const TextStyle(
                         color: Colors.white70,
+                        fontSize: 11,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -337,9 +360,10 @@ class _DebugPanelState extends State<_DebugPanel> {
 }
 
 class _PauseOverlay extends StatelessWidget {
-  const _PauseOverlay({required this.onResume});
+  const _PauseOverlay({required this.onResume, required this.onSettings});
 
   final VoidCallback onResume;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -352,6 +376,12 @@ class _PauseOverlay extends StatelessWidget {
             Text('ПАУЗА', style: Theme.of(context).textTheme.displayLarge),
             const SizedBox(height: 28),
             FilledButton(onPressed: onResume, child: const Text('ПРОДОЛЖИТЬ')),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              key: const Key('pause-settings'),
+              onPressed: onSettings,
+              child: const Text('НАСТРОЙКИ'),
+            ),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

@@ -248,6 +248,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   return name ?: @"unavailable";
 } }
 - (NSInteger)playerHealth { @synchronized(self) { return _playerRuntime ? _playerRuntime->snapshot().health : 0; } }
+- (NSInteger)playerMaximumHealth { @synchronized(self) {
+  return _playerRuntime ? _playerRuntime->config().maximum_health : 0;
+} }
 - (vector_float3)playerPosition { @synchronized(self) {
   if (!_playerRuntime) return (vector_float3){0,0,0};
   const auto p=_playerRuntime->snapshot().body.position;
@@ -280,6 +283,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
 - (BOOL)destructibleDestroyed { @synchronized(self) {
   return _interactiveRuntime&&!_interactiveRuntime->destructibles().empty()&&
       _interactiveRuntime->destructibles().front().destroyed;
+} }
+- (NSString*)interactionHint { @synchronized(self) {
+  if(!_interactiveRuntime||!_playerRuntime)return @"";
+  const auto hint=_interactiveRuntime->hint(_playerRuntime->snapshot().body.position,
+      _playerRuntime->snapshot().state==asterix::player::State::death);
+  NSString* name=[NSString stringWithUTF8String:asterix::interactive::hintName(hint)];
+  return name ?: @"";
 } }
 - (float)cameraFieldOfView { @synchronized(self) {
   return _cameraRuntime ? _cameraRuntime->snapshot().field_of_view_degrees : 70;

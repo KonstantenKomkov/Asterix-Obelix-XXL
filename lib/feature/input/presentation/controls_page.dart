@@ -19,6 +19,7 @@ class _ControlsPageState extends State<ControlsPage> {
     'leftY-': 'Left stick ↓',
     'buttonA': 'A / Cross',
     'buttonX': 'X / Square',
+    'buttonB': 'B / Circle',
     'menu': 'Menu / Options',
   };
   InputBindings _bindings = InputBindings();
