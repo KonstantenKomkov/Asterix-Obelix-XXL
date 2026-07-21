@@ -1,0 +1,49 @@
+SHELL := /bin/zsh
+
+FVM := fvm
+FLUTTER := $(FVM) flutter
+DART := $(FVM) dart
+
+.DEFAULT_GOAL := help
+
+.PHONY: help setup get run run-profile run-release format analyze test check build clean doctor
+
+help: ## Показать доступные команды
+	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+setup: ## Подключить закреплённый Flutter SDK и установить зависимости
+	$(FVM) install
+	$(FVM) use 3.35.7 --force
+	$(MAKE) get
+
+get: ## Установить Flutter-зависимости
+	$(FLUTTER) pub get
+
+run: ## Запустить приложение на macOS в debug
+	$(FLUTTER) run -d macos
+
+run-profile: ## Запустить приложение на macOS в profile
+	$(FLUTTER) run -d macos --profile
+
+run-release: ## Запустить приложение на macOS в release
+	$(FLUTTER) run -d macos --release
+
+format: ## Отформатировать Dart-код
+	$(DART) format lib test
+
+analyze: ## Запустить статический анализ
+	$(FLUTTER) analyze
+
+test: ## Запустить тесты
+	$(FLUTTER) test
+
+check: format analyze test ## Выполнить все проверки
+
+build: ## Собрать release-приложение для macOS
+	$(FLUTTER) build macos --release
+
+clean: ## Очистить результаты Flutter-сборки
+	$(FLUTTER) clean
+
+doctor: ## Проверить окружение Flutter
+	$(FLUTTER) doctor -v

@@ -1,0 +1,5 @@
+PRODUCT_NAME = asterix_xxl
+
+PRODUCT_BUNDLE_IDENTIFIER = dev.triada.asterixXxl
+
+PRODUCT_COPYRIGHT = Copyright © 2026 dev.triada. All rights reserved.
