@@ -2,15 +2,27 @@
 
 #import <QuartzCore/QuartzCore.h>
 #import <simd/simd.h>
+#include <string.h>
 
 typedef struct {
   vector_float3 position;
   vector_float3 color;
+  vector_float2 uv;
 } AsterixVertex;
 
 typedef struct {
   matrix_float4x4 transform;
+  uint32_t textured;
 } AsterixUniforms;
+
+static uint32_t AsterixReadU32(const uint8_t* p) {
+  return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 |
+         (uint32_t)p[3] << 24;
+}
+
+static uint64_t AsterixReadU64(const uint8_t* p) {
+  return (uint64_t)AsterixReadU32(p) | (uint64_t)AsterixReadU32(p + 4) << 32;
+}
 
 static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
                                            float nearZ, float farZ) {
@@ -27,6 +39,13 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   id<MTLRenderPipelineState> _pipeline;
   id<MTLDepthStencilState> _depthState;
   id<MTLBuffer> _vertices;
+  id<MTLBuffer> _sceneVertices;
+  id<MTLTexture> _sceneTexture;
+  NSUInteger _sceneVertexCount;
+  NSUInteger _sceneMeshCount;
+  NSString* _sceneError;
+  vector_float3 _sceneCenter;
+  float _sceneRadius;
   id<MTLTexture> _depthTexture;
   dispatch_group_t _inFlightCommands;
   AsterixMetalRendererState _state;
@@ -61,10 +80,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; }; struct U { float4x4 m; };\n"
-      "struct O { float4 p [[position]]; float3 c; };\n"
-      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]]) { O o; o.p=u.m*float4(v[i].p,1); o.c=v[i].c; return o; }\n"
-      "fragment float4 fs(O i [[stage_in]]) { return float4(i.c,1); }";
+      "struct V { float3 p; float3 c; float2 uv; }; struct U { float4x4 m; uint textured; };\n"
+      "struct O { float4 p [[position]]; float3 c; float2 uv; };\n"
+      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]]) { O o; o.p=u.m*float4(v[i].p,1); o.c=v[i].c; o.uv=v[i].uv; return o; }\n"
+      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]]) { constexpr sampler s(filter::linear, address::repeat); return u.textured != 0 ? t.sample(s,i.uv) : float4(i.c,1); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
   if (library == nil) return;
@@ -79,9 +98,9 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   depth.depthWriteEnabled = YES;
   _depthState = [device newDepthStencilStateWithDescriptor:depth];
   const AsterixVertex vertices[] = {
-      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}},
-      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}},
-      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}},
+      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0.5f, 0}},
+      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 1}},
+      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}, {1, 1}},
   };
   _vertices = [device newBufferWithBytes:vertices length:sizeof(vertices)
                                   options:MTLResourceStorageModeShared];
@@ -122,6 +141,152 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
 - (double)gpuFrameTimeMilliseconds { @synchronized(self) { return _gpuFrameTimeMilliseconds; } }
 - (uint64_t)allocatedMemoryBytes { return _view.device.currentAllocatedSize; }
 - (uint64_t)frameCount { @synchronized(self) { return _frameCount; } }
+- (NSUInteger)sceneMeshCount { @synchronized(self) { return _sceneMeshCount; } }
+- (NSString*)sceneError { @synchronized(self) { return _sceneError; } }
+- (void)reportSceneError:(NSString*)message { @synchronized(self) { _sceneError = [message copy]; } }
+
+- (BOOL)loadAssetPackageAtURL:(NSURL*)url {
+  MTKView* view = _view;
+  NSError* error = nil;
+  NSData* package = [NSData dataWithContentsOfURL:url options:NSDataReadingMappedIfSafe error:&error];
+  if (package.length < 48) {
+    @synchronized(self) { _sceneError = error.localizedDescription ?: @"ASTPAK header is truncated"; }
+    return NO;
+  }
+  const uint8_t* bytes = (const uint8_t*)package.bytes;
+  const uint8_t magic[] = {'A','S','T','P','A','K','\r','\n'};
+  uint64_t manifestLength = AsterixReadU64(bytes + 24);
+  uint64_t payloadOffset = AsterixReadU64(bytes + 32);
+  uint64_t payloadLength = AsterixReadU64(bytes + 40);
+  if (memcmp(bytes, magic, 8) != 0 || AsterixReadU32(bytes + 8) != 1 ||
+      manifestLength > package.length - 48 || payloadOffset > package.length ||
+      payloadLength > package.length - payloadOffset) {
+    @synchronized(self) { _sceneError = @"Invalid ASTPAK header or ranges"; }
+    return NO;
+  }
+  NSData* manifestData = [package subdataWithRange:NSMakeRange(48, (NSUInteger)manifestLength)];
+  NSDictionary* manifest = [NSJSONSerialization JSONObjectWithData:manifestData options:0 error:&error];
+  if (![manifest isKindOfClass:NSDictionary.class]) {
+    @synchronized(self) { _sceneError = error.localizedDescription ?: @"Invalid ASTPAK manifest"; }
+    return NO;
+  }
+  NSMutableDictionary<NSString*, NSDictionary*>* resources = [NSMutableDictionary dictionary];
+  for (NSDictionary* item in manifest[@"resources"]) if ([item isKindOfClass:NSDictionary.class]) {
+    NSString* identifier = item[@"id"];
+    if (identifier) resources[identifier] = item;
+  }
+  NSMutableDictionary<NSString*, id<MTLTexture>>* textures = [NSMutableDictionary dictionary];
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"texture"]) continue;
+    NSString* name = resource[@"metadata"][@"name"];
+    uint64_t offset = [resource[@"offset"] unsignedLongLongValue];
+    uint64_t length = [resource[@"length"] unsignedLongLongValue];
+    if (!name || offset > payloadLength || length > payloadLength - offset || length < 40) continue;
+    const uint8_t* textureBytes = bytes + payloadOffset + offset;
+    if (memcmp(textureBytes, "ASTMTEX\n", 8) != 0 || AsterixReadU32(textureBytes + 8) != 1) continue;
+    uint32_t levels = AsterixReadU32(textureBytes + 16), dataOffset = AsterixReadU32(textureBytes + 20);
+    uint32_t width = AsterixReadU32(textureBytes + 24), height = AsterixReadU32(textureBytes + 28);
+    if (levels == 0 || dataOffset > length || width == 0 || height == 0) continue;
+    MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:width height:height mipmapped:levels > 1];
+    id<MTLTexture> texture = [view.device newTextureWithDescriptor:descriptor];
+    for (uint32_t level = 0; level < levels; ++level) {
+      uint64_t entry = 24 + (uint64_t)level * 16;
+      if (entry + 16 > length) break;
+      uint32_t w = AsterixReadU32(textureBytes + entry), h = AsterixReadU32(textureBytes + entry + 4);
+      uint32_t relative = AsterixReadU32(textureBytes + entry + 8), size = AsterixReadU32(textureBytes + entry + 12);
+      if ((uint64_t)dataOffset + relative + size > length || size != w * h * 4) break;
+      [texture replaceRegion:MTLRegionMake2D(0, 0, w, h) mipmapLevel:level withBytes:textureBytes + dataOffset + relative bytesPerRow:w * 4];
+    }
+    textures[name] = texture;
+  }
+  NSMutableData* vertexData = [NSMutableData data];
+  NSUInteger meshCount = 0;
+  vector_float3 minimum = {INFINITY, INFINITY, INFINITY};
+  vector_float3 maximum = {-INFINITY, -INFINITY, -INFINITY};
+  NSMutableDictionary<NSString*, NSArray*>* transforms = [NSMutableDictionary dictionary];
+  for (NSDictionary* object in manifest[@"objects"]) {
+    if (![object[@"kind"] isEqual:@"scene-node"]) continue;
+    NSArray* payloadIds = object[@"payloadIds"];
+    if (payloadIds.count == 0) continue;
+    NSString* payloadId = payloadIds.firstObject;
+    if (![payloadId isKindOfClass:NSString.class]) continue;
+    NSArray* transform = object[@"metadata"][@"transform"];
+    if (transform.count == 16) transforms[payloadId] = transform;
+  }
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"mesh"]) continue;
+    uint64_t offset = [resource[@"offset"] unsignedLongLongValue];
+    uint64_t length = [resource[@"length"] unsignedLongLongValue];
+    if (offset > payloadLength || length > payloadLength - offset) continue;
+    NSData* meshData = [package subdataWithRange:NSMakeRange((NSUInteger)(payloadOffset + offset), (NSUInteger)length)];
+    NSDictionary* mesh = [NSJSONSerialization JSONObjectWithData:meshData options:0 error:nil];
+    NSArray* positions = mesh[@"vertices"];
+    NSArray* triangles = mesh[@"triangles"];
+    NSArray* materials = mesh[@"materials"];
+    NSArray* uvSets = mesh[@"uvSets"];
+    NSArray* uvs = uvSets.count > 0 ? uvSets[0] : nil;
+    NSString* resourceId = resource[@"id"];
+    NSArray* transformValues = [resourceId isKindOfClass:NSString.class]
+        ? transforms[resourceId]
+        : nil;
+    matrix_float4x4 model = matrix_identity_float4x4;
+    if (transformValues.count == 16) for (NSUInteger i = 0; i < 16; ++i)
+      model.columns[i / 4][i % 4] = [transformValues[i] floatValue];
+    NSUInteger before = vertexData.length;
+    for (NSArray* triangle in triangles) {
+      if (triangle.count < 4) continue;
+      NSUInteger materialIndex = [triangle[3] unsignedIntegerValue];
+      id color = materialIndex < materials.count ? materials[materialIndex][@"color"] : nil;
+      vector_float3 c = {0.72f, 0.72f, 0.68f};
+      if ([color isKindOfClass:NSArray.class] && [(NSArray*)color count] >= 3) {
+        NSArray* channels = color;
+        c = (vector_float3){[channels[0] floatValue] / 255.0f,
+                            [channels[1] floatValue] / 255.0f,
+                            [channels[2] floatValue] / 255.0f};
+      } else if ([color isKindOfClass:NSNumber.class]) {
+        uint32_t packed = [(NSNumber*)color unsignedIntValue];
+        c = (vector_float3){(packed & 0xff) / 255.0f,
+                            ((packed >> 8) & 0xff) / 255.0f,
+                            ((packed >> 16) & 0xff) / 255.0f};
+      }
+      for (NSUInteger corner = 0; corner < 3; ++corner) {
+        NSUInteger index = [triangle[corner] unsignedIntegerValue];
+        if (index >= positions.count || [positions[index] count] < 3) continue;
+        NSArray* p = positions[index];
+        vector_float4 world = simd_mul(model, (vector_float4){[p[0] floatValue], [p[1] floatValue], [p[2] floatValue], 1});
+        minimum = simd_min(minimum, world.xyz);
+        maximum = simd_max(maximum, world.xyz);
+        vector_float2 uv = {0, 0};
+        if (index < uvs.count && [uvs[index] count] >= 2)
+          uv = (vector_float2){[uvs[index][0] floatValue], [uvs[index][1] floatValue]};
+        AsterixVertex vertex = {{world.x, world.y, world.z}, c, uv};
+        [vertexData appendBytes:&vertex length:sizeof(vertex)];
+      }
+    }
+    if (vertexData.length > before) meshCount++;
+    if (_sceneTexture == nil) for (NSDictionary* material in materials) {
+      NSString* textureName = material[@"texture"];
+      if (![textureName isKindOfClass:NSString.class]) continue;
+      id<MTLTexture> texture = textures[textureName];
+      if (texture != nil) { _sceneTexture = texture; break; }
+    }
+  }
+  id<MTLDevice> device = view.device;
+  if (vertexData.length == 0 || device == nil) {
+    @synchronized(self) { _sceneError = @"ASTPAK contains no renderable scene meshes"; }
+    return NO;
+  }
+  id<MTLBuffer> buffer = [device newBufferWithBytes:vertexData.bytes length:vertexData.length options:MTLResourceStorageModeShared];
+  @synchronized(self) {
+    _sceneVertices = buffer;
+    _sceneVertexCount = vertexData.length / sizeof(AsterixVertex);
+    _sceneMeshCount = meshCount;
+    _sceneCenter = (minimum + maximum) * 0.5f;
+    _sceneRadius = MAX(1.0f, simd_length(maximum - minimum) * 0.5f);
+    _sceneError = nil;
+  }
+  return meshCount > 0;
+}
 
 - (void)resizeToDrawableSize:(CGSize)drawableSize {
   @synchronized(self) {
@@ -173,6 +338,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _pipeline = nil;
     _depthState = nil;
     _vertices = nil;
+    _sceneVertices = nil;
+    _sceneTexture = nil;
+    _sceneVertexCount = 0;
+    _sceneMeshCount = 0;
     _depthTexture = nil;
     _view = nil;
   }
@@ -227,16 +396,23 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     if (_pipeline != nil && _vertices != nil) {
       const float seconds = (float)(cpuStart - _startTime);
       const float c = cosf(seconds * 0.7f), s = sinf(seconds * 0.7f);
-      matrix_float4x4 rotation = (matrix_float4x4){{{c, 0, -s, 0}, {0, 1, 0, 0},
-          {s, 0, c, 0}, {0, 0, -2.4f, 1}}};
+      BOOL hasScene = _sceneVertices != nil && _sceneVertexCount > 0;
+      matrix_float4x4 rotation = hasScene
+          ? (matrix_float4x4){{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                              {-_sceneCenter.x, -_sceneCenter.y, -_sceneCenter.z - _sceneRadius * 2.2f, 1}}}
+          : (matrix_float4x4){{{c, 0, -s, 0}, {0, 1, 0, 0}, {s, 0, c, 0}, {0, 0, -2.4f, 1}}};
       const float aspect = MAX(0.01f, view.drawableSize.width / view.drawableSize.height);
       AsterixUniforms uniforms = {simd_mul(AsterixPerspective(70.0f * 3.14159265358979323846f / 180.0f,
-                                                              aspect, 0.1f, 100.0f), rotation)};
+                                                              aspect, 0.1f, 1000.0f), rotation),
+                                  hasScene && _sceneTexture != nil ? 1u : 0u};
       [encoder setRenderPipelineState:_pipeline];
       [encoder setDepthStencilState:_depthState];
-      [encoder setVertexBuffer:_vertices offset:0 atIndex:0];
+      [encoder setVertexBuffer:hasScene ? _sceneVertices : _vertices offset:0 atIndex:0];
       [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-      [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+      [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+      if (_sceneTexture != nil) [encoder setFragmentTexture:_sceneTexture atIndex:0];
+      [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0
+                  vertexCount:hasScene ? _sceneVertexCount : 3];
     }
     [encoder endEncoding];
     [commandBuffer presentDrawable:drawable];

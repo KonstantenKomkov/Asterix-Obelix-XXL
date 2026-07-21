@@ -35,7 +35,7 @@ run: ## Запустить приложение на macOS в debug
 	$(FLUTTER) run -d macos
 
 run-profile: ## Запустить приложение на macOS в profile
-	$(FLUTTER) run -d macos --profile
+	$(FLUTTER) run -d macos --profile $(if $(ASSET_PACKAGE),--dart-define=ASTERIX_ASSET_PACKAGE=$(ASSET_PACKAGE),)
 
 run-release: ## Запустить приложение на macOS в release
 	$(FLUTTER) run -d macos --release

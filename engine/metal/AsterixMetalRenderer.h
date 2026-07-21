@@ -19,11 +19,15 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) double gpuFrameTimeMilliseconds;
 @property(nonatomic, readonly) uint64_t allocatedMemoryBytes;
 @property(nonatomic, readonly) uint64_t frameCount;
+@property(nonatomic, readonly) NSUInteger sceneMeshCount;
+@property(nonatomic, readonly, nullable) NSString* sceneError;
 
 - (instancetype)initWithView:(MTKView*)view NS_DESIGNATED_INITIALIZER;
 - (instancetype)init NS_UNAVAILABLE;
 
 - (void)resizeToDrawableSize:(CGSize)drawableSize;
+- (BOOL)loadAssetPackageAtURL:(NSURL*)url;
+- (void)reportSceneError:(NSString*)message;
 - (void)suspend;
 - (void)resume;
 - (void)stop;

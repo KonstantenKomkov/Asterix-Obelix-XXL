@@ -26,6 +26,17 @@ void main() {
       expect(firstBytes, orderedEquals(secondBytes));
 
       final package = AsterixAssetPackage.parse(firstBytes);
+      final sceneNode = (package.manifest['objects']! as List<Object?>)
+          .cast<Map<String, Object?>>()
+          .singleWhere((object) => object['kind'] == 'scene-node');
+      expect(
+        (sceneNode['metadata']! as Map<String, Object?>)['transform'],
+        hasLength(16),
+      );
+      final transform =
+          (sceneNode['metadata']! as Map<String, Object?>)['transform']!
+              as List<Object?>;
+      expect(transform.sublist(12), [0.0, 0.0, 0.0, 1.0]);
       final resources = (package.manifest['resources']! as List<Object?>)
           .cast<Map<String, Object?>>();
       expect(

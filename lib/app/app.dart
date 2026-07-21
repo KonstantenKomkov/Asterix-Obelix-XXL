@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/di/injection.dart';
 import '../core/theme/app_theme.dart';
 import '../feature/main_menu/presentation/pages/home_page.dart';
+import '../feature/game/presentation/pages/game_page.dart';
 import '../feature/settings/presentation/bloc/settings_bloc.dart';
 
 class AsterixXxlApp extends StatelessWidget {
@@ -11,6 +12,7 @@ class AsterixXxlApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const assetPackage = String.fromEnvironment('ASTERIX_ASSET_PACKAGE');
     return BlocProvider(
       create: (_) =>
           getIt<SettingsBloc>()..add(const SettingsEvent.loadRequested()),
@@ -18,7 +20,7 @@ class AsterixXxlApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Asterix & Obelix XXL',
         theme: AppTheme.dark,
-        home: const HomePage(),
+        home: assetPackage.isEmpty ? const HomePage() : const GamePage(),
       ),
     );
   }

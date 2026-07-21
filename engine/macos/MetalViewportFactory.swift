@@ -19,11 +19,22 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
       .setStreamHandler(self)
   }
 
+  func createArgsCodec() -> (FlutterMessageCodec & NSObjectProtocol)? {
+    FlutterStandardMessageCodec.sharedInstance()
+  }
+
   func create(
     withViewIdentifier viewIdentifier: Int64,
     arguments args: Any?
   ) -> NSView {
     let view = MetalViewportView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+    let values = args as? NSDictionary
+    let path = values?["assetPackagePath"] as? String ?? ""
+    if !path.isEmpty {
+      view.loadAssetPackage(at: URL(fileURLWithPath: path))
+    } else {
+      view.reportSceneConfigurationError("ASTERIX_ASSET_PACKAGE is not configured")
+    }
     viewport = view
     return view
   }
@@ -61,7 +72,17 @@ final class MetalViewportView: MTKView {
       "allocatedBytes": renderer.allocatedMemoryBytes,
       "frameCount": renderer.frameCount,
       "sceneReady": renderer.isSceneReady,
+      "sceneMeshCount": renderer.sceneMeshCount,
+      "sceneError": renderer.sceneError ?? "",
     ]
+  }
+
+  func loadAssetPackage(at url: URL) {
+    renderer?.loadAssetPackage(at: url)
+  }
+
+  func reportSceneConfigurationError(_ message: String) {
+    renderer?.reportSceneError(message)
   }
 
   override init(frame frameRect: NSRect, device: MTLDevice? = MTLCreateSystemDefaultDevice()) {

@@ -457,3 +457,33 @@ cache miss при изменении одной анимации и восста
 entry с побайтно прежним ASTPAK. Прошли полный `make check`, static analysis,
 resource policy и весь Flutter test suite; оригинальные или производные игровые
 ресурсы не добавлялись.
+
+## П. 26 — Импортированная статическая сцена в Metal
+
+**Выполнено:** 21 июля 2026.
+
+Metal renderer загружает локальный ASTPAK 1.0, проверяет header/ranges и manifest,
+создаёт Metal vertex buffer для всех mesh resources, применяет нормализованные
+scene-node transforms и загружает уровни ASTMTEX в `rgba8Unorm` textures.
+Существующие perspective camera, Retina aspect ratio и `Depth32Float` attachment
+используются для полной импортированной сцены; камера автоматически кадрирует её
+bounding volume.
+
+Путь передаётся через `ASTERIX_ASSET_PACKAGE`; platform-view factory объявляет
+StandardMessageCodec и сообщает в Flutter HUD число mesh либо контролируемую
+ошибку. Profile-запуск с package автоматически открывает viewport, обычный
+запуск сохраняет главное меню и безопасную proof-сцену.
+
+На локальном пакете Gaul `STR01_00` отображены все 381 mesh. Силуэт, ориентация
+и размещение сопоставлены с reference capture задачи 4 и visual/collision
+overlay задачи 14. При viewport 800×600 logical / 1600×1200 physical получены
+стабильные 60.0 FPS, CPU 0.07–0.10 ms, GPU 0.18 ms и 64.9 MiB Metal allocation.
+Подробности и команда запуска зафиксированы в
+[отчёте](../architecture/metal_static_scene.md). Расширенные material batches,
+lighting, transparency, fog и effects оставлены задаче 28.
+
+Review исправил отсутствующий creation-args codec, sandbox diagnostics, crash на
+packed RenderWare color, legacy homogeneous slots affine matrix, недетерминированный
+выбор ресурсов и загрузку только трёх mesh, имевших прямые scene-node references.
+Прошли Flutter tests/analyze, native XCTest, macOS debug/profile build и resource
+policy. ASTPAK, screenshots и исходные/производные игровые ресурсы остались вне Git.

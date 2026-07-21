@@ -55,6 +55,9 @@ class _EngineViewport extends StatelessWidget {
   const _EngineViewport();
 
   static const viewType = 'asterix/metal-viewport';
+  static const assetPackagePath = String.fromEnvironment(
+    'ASTERIX_ASSET_PACKAGE',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +66,8 @@ class _EngineViewport extends StatelessWidget {
         key: const Key('metal-viewport'),
         viewType: viewType,
         hitTestBehavior: PlatformViewHitTestBehavior.transparent,
+        creationParams: const {'assetPackagePath': assetPackagePath},
+        creationParamsCodec: const StandardMessageCodec(),
       );
     }
 
@@ -141,9 +146,17 @@ class _Hud extends StatelessWidget {
                     final gpu = (values['gpuMs'] as num?)?.toDouble() ?? 0;
                     final bytes =
                         (values['allocatedBytes'] as num?)?.toInt() ?? 0;
+                    final meshes =
+                        (values['sceneMeshCount'] as num?)?.toInt() ?? 0;
+                    final sceneError = values['sceneError'] as String? ?? '';
                     return Text(
                       'FPS ${fps.toStringAsFixed(1)}  CPU ${cpu.toStringAsFixed(2)} ms\n'
-                      'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB',
+                      'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB\n'
+                      '${meshes > 0
+                          ? 'Scene: $meshes meshes'
+                          : sceneError.isEmpty
+                          ? 'Scene: proof'
+                          : 'Scene error: $sceneError'}',
                       key: const Key('renderer-stats'),
                       style: const TextStyle(
                         color: Colors.white70,

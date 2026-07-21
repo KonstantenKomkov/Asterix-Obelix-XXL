@@ -132,7 +132,10 @@ final class SliceAssetPipeline {
           sourceKey: 'node:$objectId',
           payloadIds: [if (meshPayloadIds[geometryId] case final id?) id],
           dependencies: dependencies.toSet().toList(),
-          metadata: {'classId': _integer(node, 'classId')},
+          metadata: {
+            'classId': _integer(node, 'classId'),
+            'transform': _matrix(node, 'transform', '${proof.path}/scene.json'),
+          },
         ),
       );
     }
@@ -346,6 +349,34 @@ final class SliceAssetPipeline {
       cachedInputs: List.unmodifiable(cache.hits),
     );
   }
+}
+
+List<double> _matrix(Map<String, Object?> map, String key, String path) {
+  final value = map[key];
+  if (value is! List || value.length != 16 || value.any((v) => v is! num)) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidSchema,
+      'Scene-node transform must contain 16 numbers.',
+      path: path,
+      details: {'field': key},
+    );
+  }
+  final matrix = value.cast<num>().map((v) => v.toDouble()).toList();
+  if (matrix.any((v) => !v.isFinite)) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidRange,
+      'Scene-node transform must contain finite numbers.',
+      path: path,
+      details: {'field': key},
+    );
+  }
+  // XXL scene nodes serialize an affine 4x3 matrix interleaved with legacy
+  // words in the homogeneous lane. Runtime assets normalize those slots.
+  matrix[3] = 0;
+  matrix[7] = 0;
+  matrix[11] = 0;
+  matrix[15] = 1;
+  return matrix;
 }
 
 final class _PipelineCache {
