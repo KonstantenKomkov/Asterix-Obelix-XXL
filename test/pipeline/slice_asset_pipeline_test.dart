@@ -54,6 +54,93 @@ void main() {
       expect(header.getUint32(44, Endian.little), 1);
     },
   );
+
+  test(
+    'reuses unchanged cached transforms and rebuilds only changed input',
+    () async {
+      final temporary = await Directory.systemTemp.createTemp('asset-cache-');
+      addTearDown(() => temporary.delete(recursive: true));
+      final proof = Directory('${temporary.path}/proof');
+      final cache = Directory('${temporary.path}/cache');
+      await _writeProof(proof, reverseOrder: false);
+
+      final pipeline = const SliceAssetPipeline();
+      final first = await pipeline.buildIncremental(
+        proof,
+        cacheDirectory: cache,
+      );
+      expect(first.rebuiltInputs, hasLength(5));
+      expect(first.cachedInputs, isEmpty);
+
+      final second = await pipeline.buildIncremental(
+        proof,
+        cacheDirectory: cache,
+      );
+      expect(second.rebuiltInputs, isEmpty);
+      expect(second.cachedInputs, hasLength(5));
+      expect(second.bytes, orderedEquals(first.bytes));
+
+      final cachedPayload = await cache
+          .list()
+          .where((entry) => entry is File && entry.path.endsWith('.bin'))
+          .cast<File>()
+          .first;
+      await cachedPayload.writeAsBytes([0], flush: true);
+      final repaired = await pipeline.buildIncremental(
+        proof,
+        cacheDirectory: cache,
+      );
+      expect(repaired.rebuiltInputs, hasLength(1));
+      expect(repaired.cachedInputs, hasLength(4));
+      expect(repaired.bytes, orderedEquals(first.bytes));
+
+      final animation = File('${proof.path}/animations/0000.animation.json');
+      final decoded =
+          jsonDecode(await animation.readAsString()) as Map<String, Object?>;
+      decoded['duration'] = 2.0;
+      await animation.writeAsString(jsonEncode(decoded));
+      final third = await pipeline.buildIncremental(
+        proof,
+        cacheDirectory: cache,
+      );
+      expect(third.rebuiltInputs, hasLength(1));
+      expect(third.cachedInputs, hasLength(4));
+      expect(third.bytes, isNot(orderedEquals(first.bytes)));
+    },
+  );
+
+  test('reports a controlled range error for a damaged mesh', () async {
+    final temporary = await Directory.systemTemp.createTemp('asset-invalid-');
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    final sceneFile = File('${proof.path}/scene.json');
+    final scene =
+        jsonDecode(await sceneFile.readAsString()) as Map<String, Object?>;
+    final mesh = ((scene['meshes']! as List).single as Map<String, Object?>);
+    mesh
+      ..['vertices'] = [
+        [0.0, 0.0, 0.0],
+      ]
+      ..['materials'] = [<String, Object?>{}]
+      ..['triangles'] = [
+        [0, 1, 0, 0],
+      ];
+    await sceneFile.writeAsString(jsonEncode(scene));
+
+    await expectLater(
+      const SliceAssetPipeline().buildFromProof(proof),
+      throwsA(
+        isA<AssetPipelineException>()
+            .having(
+              (error) => error.code,
+              'code',
+              AssetPipelineErrorCode.invalidRange,
+            )
+            .having((error) => error.path, 'path', sceneFile.path),
+      ),
+    );
+  });
 }
 
 Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
@@ -70,7 +157,13 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
       'schemaVersion': 1,
       'format': 'asterix-sector-scene',
       'meshes': [
-        {'objectId': 7, 'frames': <Object>[]},
+        {
+          'objectId': 7,
+          'frames': <Object>[],
+          'vertices': <Object>[],
+          'triangles': <Object>[],
+          'materials': <Object>[],
+        },
       ],
       'nodes': [
         {
@@ -79,7 +172,12 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
           'transform': List<double>.filled(16, 0),
           'parent': {'raw': 4294967295, 'null': true},
           'next': {'raw': 4294967295, 'null': true},
-          'geometry': {'raw': 0, 'category': 10, 'classId': 2, 'objectId': 7},
+          'geometry': {
+            'raw': 917642,
+            'category': 10,
+            'classId': 2,
+            'objectId': 7,
+          },
         },
       ],
     },
@@ -91,8 +189,12 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
     },
     '${root.path}/animations/manifest.json': {
       'schemaVersion': 1,
-      'animations': <Object>[],
-      'skins': <Object>[],
+      'animations': [
+        {'duration': 1.0},
+      ],
+      'skins': [
+        {'objectId': 7},
+      ],
     },
     '${root.path}/animations/0000.animation.json': {
       'schemaVersion': 1,

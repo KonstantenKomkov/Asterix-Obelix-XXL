@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:image/image.dart' as img;
 
 import '../runtime/asset_package.dart';
@@ -9,18 +10,79 @@ import '../runtime/asset_package.dart';
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
+const _pipelineCacheVersion = 'slice-assets-v1';
+
+enum AssetPipelineErrorCode {
+  missingInput,
+  invalidJson,
+  invalidSchema,
+  duplicateId,
+  invalidReference,
+  invalidRange,
+  invalidImage,
+}
+
+final class AssetPipelineException implements Exception {
+  const AssetPipelineException(
+    this.code,
+    this.message, {
+    required this.path,
+    this.details = const {},
+  });
+
+  final AssetPipelineErrorCode code;
+  final String message;
+  final String path;
+  final Map<String, Object?> details;
+
+  @override
+  String toString() => jsonEncode({
+    'error': code.name,
+    'message': message,
+    'path': path,
+    if (details.isNotEmpty) 'details': details,
+  });
+}
+
+final class AssetPipelineBuildResult {
+  const AssetPipelineBuildResult({
+    required this.bytes,
+    required this.rebuiltInputs,
+    required this.cachedInputs,
+  });
+
+  final Uint8List bytes;
+  final List<String> rebuiltInputs;
+  final List<String> cachedInputs;
+}
 
 final class SliceAssetPipeline {
   const SliceAssetPipeline();
 
-  Future<Uint8List> buildFromProof(Directory proof) async {
+  Future<Uint8List> buildFromProof(Directory proof) async =>
+      (await buildIncremental(proof)).bytes;
+
+  Future<AssetPipelineBuildResult> buildIncremental(
+    Directory proof, {
+    Directory? cacheDirectory,
+  }) async {
+    final cache = _PipelineCache(cacheDirectory);
     final root = await _jsonFile(File('${proof.path}/manifest.json'));
     if (root['schemaVersion'] != 1 || root['slice'] is! String) {
-      throw FormatException('Unsupported slice proof manifest.');
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        'Unsupported slice proof manifest.',
+        path: '${proof.path}/manifest.json',
+      );
     }
     final scene = await _jsonFile(File('${proof.path}/scene.json'));
-    final meshes = _objectList(scene, 'meshes');
-    final nodes = _objectList(scene, 'nodes');
+    final meshes = _objectList(
+      scene,
+      'meshes',
+      path: '${proof.path}/scene.json',
+    );
+    final nodes = _objectList(scene, 'nodes', path: '${proof.path}/scene.json');
+    _validateScene(scene, meshes, nodes, '${proof.path}/scene.json');
     final payloads = <AssetPayloadInput>[];
     final objects = <RuntimeObjectInput>[];
     final meshPayloadIds = <int, String>{};
@@ -31,7 +93,12 @@ final class SliceAssetPipeline {
         kind: 'mesh',
         sourcePath: _sectorSource,
         sourceKey: 'geometry:$objectId',
-        bytes: encodeCanonicalJson(mesh),
+        bytes: await cache.transform(
+          kind: 'mesh-json',
+          input: encodeCanonicalJson(mesh),
+          transform: encodeCanonicalJson,
+          value: mesh,
+        ),
         metadata: {'objectId': objectId},
       );
       payloads.add(payload);
@@ -73,30 +140,70 @@ final class SliceAssetPipeline {
     final textureManifest = await _jsonFile(
       File('${proof.path}/textures/manifest.json'),
     );
-    final textures = _objectList(textureManifest, 'textures');
+    final textures = _objectList(
+      textureManifest,
+      'textures',
+      path: '${proof.path}/textures/manifest.json',
+    );
     final textureFiles = await _filesWithSuffix(
       Directory('${proof.path}/textures'),
       '.png',
     );
     if (textures.length != textureFiles.length) {
-      throw FormatException('Texture manifest and PNG count differ.');
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidReference,
+        'Texture manifest and PNG file count differ.',
+        path: '${proof.path}/textures',
+        details: {
+          'manifestCount': textures.length,
+          'fileCount': textureFiles.length,
+        },
+      );
     }
     for (var index = 0; index < textures.length; index++) {
       final summary = textures[index];
       final name = summary['name'];
       if (name is! String || name.isEmpty) {
-        throw FormatException('Texture name is missing.');
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidSchema,
+          'Texture name is missing.',
+          path: '${proof.path}/textures/manifest.json',
+          details: {'texture': index},
+        );
       }
-      final decoded = img.decodePng(await textureFiles[index].readAsBytes());
+      final pngBytes = await _readRequiredBytes(textureFiles[index]);
+      final decoded = img.decodePng(pngBytes);
       if (decoded == null) {
-        throw FormatException('Invalid PNG: ${textureFiles[index].path}');
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidImage,
+          'Texture is not a valid PNG.',
+          path: textureFiles[index].path,
+        );
+      }
+      final expectedWidth = summary['width'];
+      final expectedHeight = summary['height'];
+      if (expectedWidth != decoded.width || expectedHeight != decoded.height) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidRange,
+          'Texture dimensions do not match its manifest.',
+          path: textureFiles[index].path,
+          details: {
+            'expected': '$expectedWidth x $expectedHeight',
+            'actual': '${decoded.width} x ${decoded.height}',
+          },
+        );
       }
       payloads.add(
         AssetPayloadInput(
           kind: 'texture',
           sourcePath: _sectorSource,
           sourceKey: 'texture:$index:$name',
-          bytes: encodeMetalTexture(decoded),
+          bytes: await cache.transform(
+            kind: 'metal-texture',
+            input: pngBytes,
+            transform: (_) => encodeMetalTexture(decoded),
+            value: pngBytes,
+          ),
           metadata: {
             'name': name,
             'width': decoded.width,
@@ -109,25 +216,60 @@ final class SliceAssetPipeline {
     }
 
     final animationDir = Directory('${proof.path}/animations');
-    for (final file in await _filesWithSuffix(
+    final animationManifest = await _jsonFile(
+      File('${animationDir.path}/manifest.json'),
+    );
+    final expectedAnimations = _objectList(
+      animationManifest,
+      'animations',
+      path: '${animationDir.path}/manifest.json',
+    );
+    final expectedSkins = _objectList(
+      animationManifest,
+      'skins',
+      path: '${animationDir.path}/manifest.json',
+    );
+    final animationFiles = await _filesWithSuffix(
       animationDir,
       '.animation.json',
-    )) {
+    );
+    final skinFiles = await _filesWithPrefixSuffix(
+      animationDir,
+      'skin_',
+      '.json',
+    );
+    if (animationFiles.length != expectedAnimations.length ||
+        skinFiles.length != expectedSkins.length) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidReference,
+        'Animation manifest and payload file counts differ.',
+        path: animationDir.path,
+        details: {
+          'expectedAnimations': expectedAnimations.length,
+          'animationFiles': animationFiles.length,
+          'expectedSkins': expectedSkins.length,
+          'skinFiles': skinFiles.length,
+        },
+      );
+    }
+    for (final file in animationFiles) {
       final name = file.uri.pathSegments.last;
+      final data = await _jsonFile(file);
       payloads.add(
         AssetPayloadInput(
           kind: 'animation',
           sourcePath: _levelSource,
           sourceKey: name,
-          bytes: encodeCanonicalJson(await _jsonFile(file)),
+          bytes: await cache.transform(
+            kind: 'animation-json',
+            input: encodeCanonicalJson(data),
+            transform: encodeCanonicalJson,
+            value: data,
+          ),
         ),
       );
     }
-    for (final file in await _filesWithPrefixSuffix(
-      animationDir,
-      'skin_',
-      '.json',
-    )) {
+    for (final file in skinFiles) {
       final data = await _jsonFile(file);
       final objectId = _integer(data, 'objectId');
       payloads.add(
@@ -135,18 +277,40 @@ final class SliceAssetPipeline {
           kind: 'skin',
           sourcePath: _levelSource,
           sourceKey: 'skin:$objectId',
-          bytes: encodeCanonicalJson(data),
+          bytes: await cache.transform(
+            kind: 'skin-json',
+            input: encodeCanonicalJson(data),
+            transform: encodeCanonicalJson,
+            value: data,
+          ),
           metadata: {'objectId': objectId},
         ),
       );
     }
 
+    final audioBytes = await _readRequiredBytes(
+      File('${proof.path}/audio.wav'),
+    );
+    if (audioBytes.length < 12 ||
+        ascii.decode(audioBytes.sublist(0, 4), allowInvalid: true) != 'RIFF' ||
+        ascii.decode(audioBytes.sublist(8, 12), allowInvalid: true) != 'WAVE') {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        'Audio payload is not a RIFF/WAVE file.',
+        path: '${proof.path}/audio.wav',
+      );
+    }
     payloads.add(
       AssetPayloadInput(
         kind: 'audio',
         sourcePath: _audioSource,
         sourceKey: 'segment:0',
-        bytes: await File('${proof.path}/audio.wav').readAsBytes(),
+        bytes: await cache.transform(
+          kind: 'audio-copy',
+          input: audioBytes,
+          transform: (value) => Uint8List.fromList(value as Uint8List),
+          value: audioBytes,
+        ),
         metadata: {'container': 'wav'},
       ),
     );
@@ -170,13 +334,250 @@ final class SliceAssetPipeline {
       dependencies: nodeObjectIds.values.toList(),
     );
     objects.add(sceneObject);
-    return const AsterixAssetPackageBuilder().build(
+    final bytes = const AsterixAssetPackageBuilder().build(
       bundleId: 'asterix.${root['slice']}',
       objects: objects,
       payloads: payloads,
       entryObjectId: sceneObject.id,
     );
+    return AssetPipelineBuildResult(
+      bytes: bytes,
+      rebuiltInputs: List.unmodifiable(cache.misses),
+      cachedInputs: List.unmodifiable(cache.hits),
+    );
   }
+}
+
+final class _PipelineCache {
+  _PipelineCache(this.directory);
+
+  final Directory? directory;
+  final List<String> hits = [];
+  final List<String> misses = [];
+
+  Future<Uint8List> transform({
+    required String kind,
+    required Uint8List input,
+    required Uint8List Function(Object value) transform,
+    required Object value,
+  }) async {
+    final digest = sha256.convert([
+      ...utf8.encode('$_pipelineCacheVersion\u0000$kind\u0000'),
+      ...input,
+    ]).toString();
+    final key = '$kind:$digest';
+    final root = directory;
+    if (root != null) {
+      final file = File('${root.path}/$digest.bin');
+      final metadataFile = File('${root.path}/$digest.json');
+      if (await file.exists() && await metadataFile.exists()) {
+        final bytes = await file.readAsBytes();
+        try {
+          final metadata = jsonDecode(await metadataFile.readAsString());
+          if (metadata is Map<String, Object?> &&
+              metadata['version'] == _pipelineCacheVersion &&
+              metadata['length'] == bytes.length &&
+              metadata['sha256'] == sha256.convert(bytes).toString()) {
+            hits.add(key);
+            return bytes;
+          }
+        } on FormatException {
+          // An incomplete or damaged entry is rebuilt below.
+        }
+      }
+      final output = transform(value);
+      await root.create(recursive: true);
+      final temporary = File('${file.path}.tmp.$pid');
+      final temporaryMetadata = File('${metadataFile.path}.tmp.$pid');
+      await temporary.writeAsBytes(output, flush: true);
+      await temporaryMetadata.writeAsString(
+        jsonEncode({
+          'version': _pipelineCacheVersion,
+          'length': output.length,
+          'sha256': sha256.convert(output).toString(),
+        }),
+        flush: true,
+      );
+      try {
+        await temporary.rename(file.path);
+        await temporaryMetadata.rename(metadataFile.path);
+      } on FileSystemException {
+        if (!await file.exists() || !await metadataFile.exists()) rethrow;
+        if (await temporary.exists()) await temporary.delete();
+        if (await temporaryMetadata.exists()) await temporaryMetadata.delete();
+      }
+      misses.add(key);
+      return output;
+    }
+    misses.add(key);
+    return transform(value);
+  }
+}
+
+void _validateScene(
+  Map<String, Object?> scene,
+  List<Map<String, Object?>> meshes,
+  List<Map<String, Object?>> nodes,
+  String path,
+) {
+  if (scene['schemaVersion'] != 1 ||
+      scene['format'] != 'asterix-sector-scene') {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidSchema,
+      'Unsupported scene schema.',
+      path: path,
+    );
+  }
+  final meshIds = <int>{};
+  for (var meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
+    final mesh = meshes[meshIndex];
+    final objectId = _integer(mesh, 'objectId', path: path);
+    if (!meshIds.add(objectId)) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.duplicateId,
+        'Mesh object ID is duplicated.',
+        path: path,
+        details: {'mesh': meshIndex, 'objectId': objectId},
+      );
+    }
+    final vertices = _list(mesh, 'vertices', path, meshIndex);
+    final triangles = _list(mesh, 'triangles', path, meshIndex);
+    final materials = _list(mesh, 'materials', path, meshIndex);
+    for (
+      var triangleIndex = 0;
+      triangleIndex < triangles.length;
+      triangleIndex++
+    ) {
+      final triangle = triangles[triangleIndex];
+      if (triangle is! List ||
+          triangle.length != 4 ||
+          triangle.any((value) => value is! int)) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidRange,
+          'Triangle must contain three vertex indices and one material index.',
+          path: path,
+          details: {'mesh': meshIndex, 'triangle': triangleIndex},
+        );
+      }
+      final values = triangle.cast<int>();
+      if (values
+              .take(3)
+              .any((value) => value < 0 || value >= vertices.length) ||
+          values[3] < 0 ||
+          values[3] >= materials.length) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidRange,
+          'Triangle index is outside its vertex or material range.',
+          path: path,
+          details: {
+            'mesh': meshIndex,
+            'triangle': triangleIndex,
+            'indices': values,
+            'vertexCount': vertices.length,
+            'materialCount': materials.length,
+          },
+        );
+      }
+    }
+  }
+  final nodeIds = <int>{};
+  for (final node in nodes) {
+    final objectId = _integer(node, 'objectId', path: path);
+    if (!nodeIds.add(objectId)) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.duplicateId,
+        'Scene node object ID is duplicated.',
+        path: path,
+        details: {'objectId': objectId},
+      );
+    }
+  }
+  for (final node in nodes) {
+    final objectId = _integer(node, 'objectId', path: path);
+    _validateReferenceShape(node['geometry'], path, objectId, 'geometry');
+    for (final field in const ['parent', 'next', 'child']) {
+      _validateReferenceShape(node[field], path, objectId, field);
+    }
+  }
+}
+
+void _validateReferenceShape(
+  Object? value,
+  String path,
+  int objectId,
+  String field,
+) {
+  if (value == null) return;
+  if (value is! Map<String, Object?> || value['raw'] is! int) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidReference,
+      'Scene node reference is malformed.',
+      path: path,
+      details: {'objectId': objectId, 'field': field},
+    );
+  }
+  final raw = value['raw']! as int;
+  if (raw < 0 || raw > 0xffffffff) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidRange,
+      'Scene node reference is outside the uint32 range.',
+      path: path,
+      details: {'objectId': objectId, 'field': field, 'raw': raw},
+    );
+  }
+  if (value['null'] == true) {
+    if (raw != 0xffffffff) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidReference,
+        'Null scene node reference has an invalid encoding.',
+        path: path,
+        details: {'objectId': objectId, 'field': field, 'raw': raw},
+      );
+    }
+    return;
+  }
+  final category = value['category'];
+  final classId = value['classId'];
+  final target = value['objectId'];
+  if (category is! int || classId is! int || target is! int) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidReference,
+      'Scene node reference is missing decoded fields.',
+      path: path,
+      details: {'objectId': objectId, 'field': field},
+    );
+  }
+  final encoded = category | (classId << 6) | (target << 17);
+  if (category < 0 ||
+      category > 0x3f ||
+      classId < 0 ||
+      classId > 0x7ff ||
+      target < 0 ||
+      target > 0x7fff ||
+      encoded != raw) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidReference,
+      'Decoded scene node reference does not match its raw value.',
+      path: path,
+      details: {'objectId': objectId, 'field': field, 'raw': raw},
+    );
+  }
+}
+
+List<Object?> _list(
+  Map<String, Object?> map,
+  String key,
+  String path,
+  int mesh,
+) {
+  final value = map[key];
+  if (value is List<Object?>) return value;
+  throw AssetPipelineException(
+    AssetPipelineErrorCode.invalidSchema,
+    'Expected an array.',
+    path: path,
+    details: {'mesh': mesh, 'field': key},
+  );
 }
 
 Uint8List encodeMetalTexture(img.Image image) {
@@ -265,28 +666,87 @@ int _mipCount(int width, int height) {
 }
 
 Future<Map<String, Object?>> _jsonFile(File file) async {
-  final decoded = jsonDecode(await file.readAsString());
+  String source;
+  try {
+    source = await file.readAsString();
+  } on FileSystemException {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.missingInput,
+      'Required pipeline input cannot be read.',
+      path: file.path,
+    );
+  }
+  Object? decoded;
+  try {
+    decoded = jsonDecode(source);
+  } on FormatException catch (error) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidJson,
+      'Pipeline input is not valid JSON.',
+      path: file.path,
+      details: {'offset': error.offset},
+    );
+  }
   if (decoded is! Map<String, Object?>) {
-    throw FormatException('Expected JSON object: ${file.path}');
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidSchema,
+      'Expected a JSON object.',
+      path: file.path,
+    );
   }
   return decoded;
 }
 
-List<Map<String, Object?>> _objectList(Map<String, Object?> map, String key) {
+List<Map<String, Object?>> _objectList(
+  Map<String, Object?> map,
+  String key, {
+  required String path,
+}) {
   final value = map[key];
-  if (value is! List) throw FormatException('Expected JSON array: $key');
+  if (value is! List) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidSchema,
+      'Expected a JSON array.',
+      path: path,
+      details: {'field': key},
+    );
+  }
   return value.map((item) {
     if (item is! Map<String, Object?>) {
-      throw FormatException('Expected JSON object in $key.');
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        'Expected a JSON object in array.',
+        path: path,
+        details: {'field': key},
+      );
     }
     return item;
   }).toList();
 }
 
-int _integer(Map<String, Object?> map, String key) {
+int _integer(Map<String, Object?> map, String key, {String? path}) {
   final value = map[key];
-  if (value is! int) throw FormatException('Expected integer: $key');
+  if (value is! int) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidSchema,
+      'Expected an integer field.',
+      path: path ?? '<pipeline-input>',
+      details: {'field': key},
+    );
+  }
   return value;
+}
+
+Future<Uint8List> _readRequiredBytes(File file) async {
+  try {
+    return await file.readAsBytes();
+  } on FileSystemException {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.missingInput,
+      'Required pipeline input cannot be read.',
+      path: file.path,
+    );
+  }
 }
 
 int? _referenceObjectId(Object? value) {
@@ -295,11 +755,20 @@ int? _referenceObjectId(Object? value) {
 }
 
 Future<List<File>> _filesWithSuffix(Directory directory, String suffix) async {
-  final files = await directory
-      .list()
-      .where((entry) => entry is File && entry.path.endsWith(suffix))
-      .cast<File>()
-      .toList();
+  List<File> files;
+  try {
+    files = await directory
+        .list()
+        .where((entry) => entry is File && entry.path.endsWith(suffix))
+        .cast<File>()
+        .toList();
+  } on FileSystemException {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.missingInput,
+      'Required pipeline directory cannot be read.',
+      path: directory.path,
+    );
+  }
   files.sort((a, b) => a.path.compareTo(b.path));
   return files;
 }
