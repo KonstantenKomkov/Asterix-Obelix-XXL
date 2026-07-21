@@ -1,5 +1,7 @@
 #import <XCTest/XCTest.h>
 
+#include "asterix/audio_runtime.hpp"
+
 #include "asterix/engine.h"
 #include "asterix/animation_runtime.hpp"
 #include "asterix/collision_runtime.hpp"
@@ -592,6 +594,39 @@
   XCTAssertEqual(asterix_engine_enqueue(handle, &batch),
                  ASTERIX_STATUS_QUEUE_FULL);
   asterix_engine_destroy(handle);
+}
+
+- (void)testAudioRoutingVolumesAndBeds {
+  asterix::audio::Runtime audio(2);
+  audio.setVolumes(2, -.5f);
+  audio.startBeds();
+  audio.startBeds();
+  const auto events = audio.drainEvents();
+  XCTAssertEqual(events.size(), 2u);
+  XCTAssertEqual(events[0].bus, asterix::audio::Bus::music);
+  XCTAssertTrue(events[0].looping);
+  XCTAssertFalse(events[0].spatial);
+  XCTAssertEqual(events[1].bus, asterix::audio::Bus::ambience);
+  XCTAssertTrue(events[1].spatial);
+  XCTAssertEqualWithAccuracy(audio.snapshot().music_volume, 1, .001);
+  XCTAssertEqualWithAccuracy(audio.snapshot().effects_volume, 0, .001);
+}
+
+- (void)testAudioChannelPrioritiesAndExpiry {
+  asterix::audio::Runtime audio(2);
+  XCTAssertTrue(audio.play(asterix::audio::Cue::footstep));
+  XCTAssertTrue(audio.play(asterix::audio::Cue::attack));
+  XCTAssertFalse(audio.play(asterix::audio::Cue::footstep));
+  XCTAssertTrue(audio.play(asterix::audio::Cue::death));
+  XCTAssertEqual(audio.snapshot().active_effects, 2u);
+  XCTAssertEqual(audio.snapshot().dropped_effects, 1u);
+  auto events = audio.drainEvents();
+  XCTAssertEqual(events.size(), 3u);
+  XCTAssertEqual(events.back().cue, asterix::audio::Cue::death);
+  XCTAssertEqual(events.back().channel, 0u);
+  XCTAssertFalse(events.back().spatial);
+  audio.update(1);
+  XCTAssertEqual(audio.snapshot().active_effects, 0u);
 }
 
 @end

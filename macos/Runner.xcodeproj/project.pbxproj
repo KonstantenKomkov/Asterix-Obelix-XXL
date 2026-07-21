@@ -25,6 +25,8 @@
 		EA1900010000000000000001 /* MetalViewportFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1900110000000000000001 /* MetalViewportFactory.swift */; };
 		EA1900010000000000000002 /* MetalViewportFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1900110000000000000001 /* MetalViewportFactory.swift */; };
 		EA1900010000000000000003 /* GameControllerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1900110000000000000002 /* GameControllerInput.swift */; };
+		EA4000010000000000000001 /* AsterixAudioEngine.mm in Sources */ = {isa = PBXBuildFile; fileRef = EA4000110000000000000001 /* AsterixAudioEngine.mm */; };
+		EA4000010000000000000002 /* AVFAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA4000110000000000000003 /* AVFAudio.framework */; };
 		EA1800010000000000000001 /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000001 /* engine.cpp */; };
 		EA1800010000000000000002 /* engine.h in Headers */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000002 /* engine.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EA1800010000000000000003 /* libAsterixEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000004 /* libAsterixEngine.a */; };
@@ -84,6 +86,9 @@
 		EA2000110000000000000003 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		EA1900110000000000000001 /* MetalViewportFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalViewportFactory.swift; sourceTree = "<group>"; };
 		EA1900110000000000000002 /* GameControllerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControllerInput.swift; sourceTree = "<group>"; };
+		EA4000110000000000000001 /* AsterixAudioEngine.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AsterixAudioEngine.mm; sourceTree = "<group>"; };
+		EA4000110000000000000002 /* AsterixAudioEngine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsterixAudioEngine.h; sourceTree = "<group>"; };
+		EA4000110000000000000003 /* AVFAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFAudio.framework; path = System/Library/Frameworks/AVFAudio.framework; sourceTree = SDKROOT; };
 		EA1800110000000000000001 /* engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = engine.cpp; sourceTree = "<group>"; };
 		EA1800110000000000000002 /* engine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = engine.h; sourceTree = "<group>"; };
 		EA1800110000000000000003 /* AsterixEngineTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AsterixEngineTests.mm; sourceTree = "<group>"; };
@@ -131,6 +136,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA4000010000000000000002 /* AVFAudio.framework in Frameworks */,
 				EA1800010000000000000003 /* libAsterixEngine.a in Frameworks */,
 				FA954D8A4D435867DCA57512 /* Pods_Runner.framework in Frameworks */,
 			);
@@ -262,6 +268,7 @@
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				EA4000110000000000000003 /* AVFAudio.framework */,
 				8155FE7CACC619BB6BBC0BD3 /* Pods_Runner.framework */,
 				957748CEE3F74302667AD620 /* Pods_RunnerTests.framework */,
 			);
@@ -293,6 +300,8 @@
 		EA1900210000000000000001 /* macos */ = {
 			isa = PBXGroup;
 			children = (
+				EA4000110000000000000002 /* AsterixAudioEngine.h */,
+				EA4000110000000000000001 /* AsterixAudioEngine.mm */,
 				EA1900110000000000000002 /* GameControllerInput.swift */,
 				EA1900110000000000000001 /* MetalViewportFactory.swift */,
 			);
@@ -628,6 +637,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA4000010000000000000001 /* AsterixAudioEngine.mm in Sources */,
 				EA1900010000000000000003 /* GameControllerInput.swift in Sources */,
 				EA2000010000000000000001 /* AsterixMetalRenderer.mm in Sources */,
 				EA1900010000000000000001 /* MetalViewportFactory.swift in Sources */,

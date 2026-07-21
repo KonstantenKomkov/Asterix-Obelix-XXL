@@ -1,4 +1,5 @@
 #import "AsterixMetalRenderer.h"
+#import "../macos/AsterixAudioEngine.h"
 
 #import <QuartzCore/QuartzCore.h>
 #import <simd/simd.h>
@@ -13,6 +14,7 @@
 #include "asterix/combat_runtime.hpp"
 #include "asterix/enemy_runtime.hpp"
 #include "asterix/interactive_runtime.hpp"
+#include "asterix/audio_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -144,6 +146,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::interactive::Runtime> _interactiveRuntime;
   std::unique_ptr<asterix::camera::Runtime> _cameraRuntime;
   std::unique_ptr<asterix::combat::Runtime> _combatRuntime;
+  std::unique_ptr<asterix::audio::Runtime> _audioRuntime;
+  AsterixAudioEngine* _audioEngine;
+  float _footstepSeconds;
   asterix::player::Input _playerInput;
   bool _combatAttackWasPressed;
   bool _interactPressed;
@@ -161,6 +166,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _startTime = CACurrentMediaTime();
     _lastFrameTime = _startTime;
     _lastSimulationTime = _startTime;
+    _audioRuntime = std::make_unique<asterix::audio::Runtime>();
+    _audioEngine = [[AsterixAudioEngine alloc] init];
     [self buildSceneResources:view.device colorFormat:view.colorPixelFormat];
     view.delegate = self;
     view.paused = NO;
@@ -320,6 +327,14 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
 - (BOOL)combatHitWindow { @synchronized(self) {
   return _combatRuntime && _combatRuntime->attack().hit_window;
 } }
+- (BOOL)audioReady { return _audioEngine.ready; }
+- (NSUInteger)activeAudioEffects { return _audioEngine.activeEffectCount; }
+- (void)setMusicVolume:(float)music effectsVolume:(float)effects {
+  @synchronized(self) {
+    _audioRuntime->setVolumes(music,effects);
+    [_audioEngine setMusicVolume:music effectsVolume:effects];
+  }
+}
 - (uint32_t)debugOptions { @synchronized(self) { return _debugOptions; } }
 - (void)setDebugOptions:(uint32_t)options { @synchronized(self) { _debugOptions = options & 31u; } }
 - (NSUInteger)residentSectionCount {
@@ -441,6 +456,15 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   for (NSDictionary* item in manifest[@"resources"]) if ([item isKindOfClass:NSDictionary.class]) {
     NSString* identifier = item[@"id"];
     if (identifier) resources[identifier] = item;
+  }
+  NSData* audioData = nil;
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"audio"]) continue;
+    uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset<=payloadLength&&length<=payloadLength-offset)
+      audioData=[package subdataWithRange:NSMakeRange((NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+    break;
   }
   NSMutableDictionary<NSString*, id<MTLTexture>>* textures = [NSMutableDictionary dictionary];
   id<MTLTexture> selectedTexture = nil;
@@ -737,6 +761,16 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _sceneRadius = MAX(1.0f, simd_length(maximum - minimum) * 0.5f);
     _sceneError = nil;
   }
+  if(audioData) {
+    NSError* audioError=nil;
+    if([_audioEngine loadWaveData:audioData error:&audioError]) {
+      _audioRuntime->startBeds();
+      _audioRuntime->drainEvents();
+      [_audioEngine startBeds];
+    } else {
+      @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Audio: %@",audioError.localizedDescription]; }
+    }
+  }
   return meshCount > 0;
 }
 
@@ -767,6 +801,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     }
     _state = AsterixMetalRendererStateSuspended;
     _view.paused = YES;
+    [_audioEngine suspend];
   }
 }
 
@@ -778,6 +813,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _state = AsterixMetalRendererStateRunning;
     _lastSimulationTime = CACurrentMediaTime();
     _view.paused = NO;
+    [_audioEngine resume];
   }
 }
 
@@ -796,6 +832,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   }
 
   dispatch_group_wait(_inFlightCommands, DISPATCH_TIME_FOREVER);
+  [_audioEngine stop];
 
   @synchronized(self) {
     _commandQueue = nil;
@@ -817,6 +854,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _interactiveRuntime.reset();
     _cameraRuntime.reset();
     _combatRuntime.reset();
+    _audioRuntime.reset();
     _capsuleController.reset();
     _enemyCapsuleController.reset();
     _collisionWorld.reset();
@@ -908,18 +946,31 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                   _combatRuntime->resetFighter(100,2);
                 }
               }
-              for(const auto& event:_interactiveRuntime->drainEvents())
+              for(const auto& event:_interactiveRuntime->drainEvents()) {
+                if(_audioRuntime) {
+                  using IT=asterix::interactive::EventType;
+                  if(event.type==IT::lever_activated)_audioRuntime->play(asterix::audio::Cue::lever,_playerRuntime->snapshot().body.position);
+                  else if(event.type==IT::reward_collected)_audioRuntime->play(asterix::audio::Cue::reward);
+                  else if(event.type==IT::checkpoint_activated)_audioRuntime->play(asterix::audio::Cue::checkpoint);
+                }
                 if(event.type==asterix::interactive::EventType::checkpoint_activated)
                   for(const auto& checkpoint:_interactiveRuntime->checkpoints())
                     if(checkpoint.id==event.id)_playerRuntime->setCheckpoint(checkpoint.position);
+              }
             }
           }
           if (_enemyRuntime && _playerRuntime) {
             const auto enemyResult=_enemyRuntime->update(
                 (float)step,_playerRuntime->snapshot().body.position,
                 _playerRuntime->snapshot().state!=asterix::player::State::death);
-            if(enemyResult.dealt_damage)
+            if(enemyResult.dealt_damage) {
               _playerRuntime->applyDamage(_enemyRuntime->attackDamage());
+              if(_audioRuntime) {
+                _audioRuntime->play(asterix::audio::Cue::enemy_attack,enemyResult.snapshot->body.position);
+                if(_playerRuntime->snapshot().state==asterix::player::State::death)
+                  _audioRuntime->play(asterix::audio::Cue::death);
+              }
+            }
           }
           if (_combatRuntime && _playerRuntime) {
             const bool attackEdge=_playerInput.attack&&!_combatAttackWasPressed;
@@ -943,6 +994,15 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                _combatRuntime->attack().stage!=previousStage)
               _playerRuntime->restartAttack();
             for(const auto& event:_combatRuntime->drainEvents()) {
+              if(_audioRuntime) {
+                if(event.type==asterix::combat::EventType::attack_started)
+                  _audioRuntime->play(asterix::audio::Cue::attack,body.position);
+                else if(event.type==asterix::combat::EventType::hit) {
+                  auto hitPosition=body.position;
+                  for(const auto& fighter:_combatRuntime->fighters())if(fighter.id==event.target)hitPosition=fighter.position;
+                  _audioRuntime->play(asterix::audio::Cue::hit,hitPosition);
+                }
+              }
               if(event.type!=asterix::combat::EventType::hit||event.target!=2||
                  !_enemyRuntime) {
                 if(event.type==asterix::combat::EventType::hit&&event.target==100&&
@@ -959,10 +1019,28 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
             _cameraRuntime->update(_playerRuntime->snapshot().body.position,
                                    *_collisionWorld,(float)step);
           }
+          if(_audioRuntime&&_playerRuntime) {
+            _audioRuntime->update((float)step);
+            const auto player=_playerRuntime->snapshot();
+            if(player.state==asterix::player::State::run&&player.body.grounded) {
+              _footstepSeconds+=(float)step;
+              if(_footstepSeconds>=.34f) {
+                _footstepSeconds=0;
+                _audioRuntime->play(asterix::audio::Cue::footstep,player.body.position);
+              }
+            } else _footstepSeconds=.3f;
+            for(const auto& request:_audioRuntime->drainEvents()) {
+              vector_float3 position={request.position.x,request.position.y,request.position.z};
+              [_audioEngine playCue:(NSUInteger)request.cue channel:request.channel position:position spatial:request.spatial gain:request.gain];
+            }
+          }
         });
         if (_cameraRuntime && _cameraRuntime->initialized()) {
           cameraSnapshot=_cameraRuntime->snapshot();
           hasGameplayCamera=YES;
+          const auto forward=cameraSnapshot.target-cameraSnapshot.position;
+          [_audioEngine setListenerPosition:(vector_float3){cameraSnapshot.position.x,cameraSnapshot.position.y,cameraSnapshot.position.z}
+                                    forward:(vector_float3){forward.x,forward.y,forward.z}];
         }
       }
       const float seconds = asterix::simulation::interpolate(

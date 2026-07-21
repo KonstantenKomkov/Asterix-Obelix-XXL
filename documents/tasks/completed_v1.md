@@ -1,5 +1,29 @@
 # Выполненные задачи первой итерации
 
+## П. 40 — Аудио vertical slice
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен fixed-tick `audio::Runtime` с независимыми music/effects volumes,
+music/ambience beds, восемью каналами эффектов и priority preemption. Шаги,
+атаки, попадания, действия врага, рычаг, награда, checkpoint и смерть связаны с
+authoritative combat/enemy/interactive событиями и фазой run-анимации.
+
+macOS playback построен на AVAudioEngine. Импортированный PCM16 WAV читается
+напрямую из локального ASTPAK и зацикливается как фон; spatial effects проходят
+через AVAudioEnvironmentNode с HRTF, а listener следует gameplay-камере.
+Pause и application lifecycle приостанавливают audio graph вместе с renderer.
+
+Flutter применяет сохранённые уровни музыки и эффектов при входе в gameplay и
+после возврата из pause settings. Native stats сообщают готовность audio payload
+и число активных эффектов. Контракт и ограничения описаны в
+[документе audio runtime](../architecture/vertical_slice_audio.md).
+
+Unit tests покрывают routing, idempotent loop beds, clamp громкости, priorities,
+вытеснение и expiry каналов. Прошли `make check` (45 Flutter tests), 24 native
+XCTest, macOS debug build, diff review и resource policy;
+оригинальные или производные игровые ресурсы не добавлялись.
+
 ## П. 39 — Версионируемые сохранения
 
 **Выполнено:** 21 июля 2026.

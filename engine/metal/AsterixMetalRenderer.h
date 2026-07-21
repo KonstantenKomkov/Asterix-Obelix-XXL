@@ -42,6 +42,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) BOOL combatActive;
 @property(nonatomic, readonly) NSUInteger comboStage;
 @property(nonatomic, readonly) BOOL combatHitWindow;
+@property(nonatomic, readonly) BOOL audioReady;
+@property(nonatomic, readonly) NSUInteger activeAudioEffects;
 @property(nonatomic, readonly, nullable) NSString* sceneError;
 
 - (instancetype)initWithView:(MTKView*)view NS_DESIGNATED_INITIALIZER;
@@ -53,6 +55,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)restoreGameplaySaveState:(NSDictionary*)state;
 - (void)reportSceneError:(NSString*)message;
 - (void)setDebugOptions:(uint32_t)options;
+- (void)setMusicVolume:(float)music effectsVolume:(float)effects;
 - (void)setInputMoveX:(float)moveX
                 moveZ:(float)moveZ
                  jump:(BOOL)jump

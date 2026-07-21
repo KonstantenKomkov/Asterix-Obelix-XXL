@@ -45,6 +45,7 @@ class _GamePageState extends State<GamePage> {
     SharedPreferences.getInstance().then((preferences) {
       if (!mounted) return;
       _router.bindings = InputBindingsStore(preferences).load();
+      _applyAudioVolumes(preferences);
       _saveStore = SaveGameStore(preferences);
       final saved = _saveStore!.load();
       if (saved != null) {
@@ -103,6 +104,23 @@ class _GamePageState extends State<GamePage> {
     if (mounted) setState(() => _paused = value);
     unawaited(
       _inputChannel.invokeMethod<void>('setPaused', value).catchError((_) {}),
+    );
+    if (!value) {
+      SharedPreferences.getInstance().then(_applyAudioVolumes);
+    }
+  }
+
+  void _applyAudioVolumes(SharedPreferences preferences) {
+    unawaited(
+      _inputChannel
+          .invokeMethod<void>('setAudioVolumes', {
+            'music': (preferences.getDouble('musicVolume') ?? 0.8).clamp(0, 1),
+            'effects': (preferences.getDouble('effectsVolume') ?? 0.8).clamp(
+              0,
+              1,
+            ),
+          })
+          .catchError((_) {}),
     );
   }
 

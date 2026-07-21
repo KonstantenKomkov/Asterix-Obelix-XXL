@@ -3,11 +3,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('macOS game page embeds Metal platform view below HUD', (
     tester,
   ) async {
+    SharedPreferences.setMockInitialValues({
+      'musicVolume': 0.35,
+      'effectsVolume': 0.65,
+    });
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -19,12 +24,15 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, null),
     );
     final pauseCalls = <bool>[];
+    final audioCalls = <Map<Object?, Object?>>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(const MethodChannel('asterix/game-input'), (
           call,
         ) async {
           if (call.method == 'setPaused') {
             pauseCalls.add(call.arguments as bool);
+          } else if (call.method == 'setAudioVolumes') {
+            audioCalls.add(Map<Object?, Object?>.from(call.arguments as Map));
           }
           return null;
         });
@@ -60,6 +68,8 @@ void main() {
       await tester.pump();
       expect(find.text('ПАУЗА'), findsNothing);
       expect(pauseCalls, containsAllInOrder(<bool>[true, false]));
+      expect(audioCalls, isNotEmpty);
+      expect(audioCalls.last, {'music': 0.35, 'effects': 0.65});
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }

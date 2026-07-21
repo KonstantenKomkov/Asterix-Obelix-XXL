@@ -14,6 +14,7 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
   private var inputMethodChannel: FlutterMethodChannel?
   private var latestInput: [String: Double] = [:]
   private var pendingGameplayState: [String: Any]?
+  private var pendingAudioVolumes: (music: Float, effects: Float) = (0.8, 0.8)
 
   override init() {
     super.init()
@@ -41,6 +42,11 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
         result(nil)
       } else if call.method == "setPaused", let paused = call.arguments as? Bool {
         self?.viewport?.setGameplayPaused(paused)
+        result(nil)
+      } else if call.method == "setAudioVolumes", let values = call.arguments as? [String: NSNumber] {
+        let volumes = (values["music"]?.floatValue ?? 0.8, values["effects"]?.floatValue ?? 0.8)
+        self?.pendingAudioVolumes = volumes
+        self?.viewport?.setAudioVolumes(music: volumes.0, effects: volumes.1)
         result(nil)
       } else if call.method == "captureState" {
         result(self?.viewport?.gameplaySaveState ?? [:])
@@ -72,6 +78,7 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
       view.reportSceneConfigurationError("ASTERIX_ASSET_PACKAGE is not configured")
     }
     viewport = view
+    view.setAudioVolumes(music: pendingAudioVolumes.music, effects: pendingAudioVolumes.effects)
     if let state = pendingGameplayState { view.restoreGameplaySaveState(state) }
     return view
   }
@@ -135,6 +142,8 @@ final class MetalViewportView: MTKView {
       "combatActive": renderer.combatActive,
       "comboStage": renderer.comboStage,
       "combatHitWindow": renderer.combatHitWindow,
+      "audioReady": renderer.audioReady,
+      "activeAudioEffects": renderer.activeAudioEffects,
     ]
   }
 
@@ -153,6 +162,10 @@ final class MetalViewportView: MTKView {
 
   func setGameplayPaused(_ paused: Bool) {
     if paused { renderer?.suspend() } else { renderer?.resume() }
+  }
+
+  func setAudioVolumes(music: Float, effects: Float) {
+    renderer?.setMusicVolume(music, effectsVolume: effects)
   }
 
   var gameplaySaveState: [String: Any] {
