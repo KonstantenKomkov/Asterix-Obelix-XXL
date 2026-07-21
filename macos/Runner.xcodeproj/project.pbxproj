@@ -21,6 +21,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		EA1800010000000000000001 /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000001 /* engine.cpp */; };
+		EA1800010000000000000002 /* engine.h in Headers */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000002 /* engine.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EA1800010000000000000003 /* libAsterixEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000004 /* libAsterixEngine.a */; };
+		EA1800010000000000000004 /* libAsterixEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000004 /* libAsterixEngine.a */; };
+		EA1800010000000000000005 /* AsterixEngineTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000003 /* AsterixEngineTests.mm */; };
+		EA1800010000000000000006 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000006 /* XCTest.framework */; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
@@ -32,6 +38,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		EA1800610000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33CC10E52044A3C60003C045 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EA1800410000000000000001;
+			remoteInfo = AsterixEngine;
+		};
 		331C80D9294CF71000263BE5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 33CC10E52044A3C60003C045 /* Project object */;
@@ -62,6 +75,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		EA1800110000000000000001 /* engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = engine.cpp; sourceTree = "<group>"; };
+		EA1800110000000000000002 /* engine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = engine.h; sourceTree = "<group>"; };
+		EA1800110000000000000003 /* AsterixEngineTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AsterixEngineTests.mm; sourceTree = "<group>"; };
+		EA1800110000000000000004 /* libAsterixEngine.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAsterixEngine.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA1800110000000000000005 /* AsterixEngineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AsterixEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA1800110000000000000006 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
@@ -103,11 +122,39 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA1800010000000000000003 /* libAsterixEngine.a in Frameworks */,
 				FA954D8A4D435867DCA57512 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EA1800330000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EA1800350000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA1800010000000000000004 /* libAsterixEngine.a in Frameworks */,
+				EA1800010000000000000006 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXHeadersBuildPhase section */
+		EA1800320000000000000001 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA1800010000000000000002 /* engine.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
 
 /* Begin PBXGroup section */
 		331C80D6294CF71000263BE5 /* RunnerTests */ = {
@@ -132,6 +179,7 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
+				EA1800210000000000000001 /* Engine */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
@@ -144,6 +192,8 @@
 		33CC10EE2044A3C60003C045 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				EA1800110000000000000004 /* libAsterixEngine.a */,
+				EA1800110000000000000005 /* AsterixEngineTests.xctest */,
 				33CC10ED2044A3C60003C045 /* asterix_xxl.app */,
 				331C80D5294CF71000263BE5 /* RunnerTests.xctest */,
 			);
@@ -208,9 +258,87 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		EA1800210000000000000001 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				EA1800220000000000000001 /* include */,
+				EA1800240000000000000001 /* src */,
+				EA1800270000000000000001 /* tests */,
+			);
+			name = Engine;
+			path = ../engine;
+			sourceTree = "<group>";
+		};
+		EA1800220000000000000001 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				EA1800230000000000000001 /* asterix */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		EA1800230000000000000001 /* asterix */ = {
+			isa = PBXGroup;
+			children = (
+				EA1800110000000000000002 /* engine.h */,
+			);
+			path = asterix;
+			sourceTree = "<group>";
+		};
+		EA1800240000000000000001 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				EA1800110000000000000001 /* engine.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		EA1800270000000000000001 /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				EA1800110000000000000003 /* AsterixEngineTests.mm */,
+			);
+			path = tests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		EA1800410000000000000001 /* AsterixEngine */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EA1800510000000000000001 /* Build configuration list for PBXNativeTarget "AsterixEngine" */;
+			buildPhases = (
+				EA1800310000000000000001 /* Sources */,
+				EA1800330000000000000001 /* Frameworks */,
+				EA1800320000000000000001 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AsterixEngine;
+			productName = AsterixEngine;
+			productReference = EA1800110000000000000004 /* libAsterixEngine.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		EA1800420000000000000001 /* AsterixEngineTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EA1800520000000000000001 /* Build configuration list for PBXNativeTarget "AsterixEngineTests" */;
+			buildPhases = (
+				EA1800340000000000000001 /* Sources */,
+				EA1800350000000000000001 /* Frameworks */,
+				EA1800360000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EA1800620000000000000001 /* PBXTargetDependency */,
+			);
+			name = AsterixEngineTests;
+			productName = AsterixEngineTests;
+			productReference = EA1800110000000000000005 /* AsterixEngineTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		331C80D4294CF70F00263BE5 /* RunnerTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 331C80DE294CF71000263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */;
@@ -245,6 +373,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				EA1800620000000000000002 /* PBXTargetDependency */,
 				33CC11202044C79F0003C045 /* PBXTargetDependency */,
 			);
 			name = Runner;
@@ -263,6 +392,12 @@
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
+					EA1800410000000000000001 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					EA1800420000000000000001 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					331C80D4294CF70F00263BE5 = {
 						CreatedOnToolsVersion = 14.0;
 						TestTargetID = 33CC10EC2044A3C60003C045;
@@ -296,6 +431,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				EA1800410000000000000001 /* AsterixEngine */,
+				EA1800420000000000000001 /* AsterixEngineTests */,
 				33CC10EC2044A3C60003C045 /* Runner */,
 				331C80D4294CF70F00263BE5 /* RunnerTests */,
 				33CC111A2044C6BA0003C045 /* Flutter Assemble */,
@@ -304,6 +441,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		EA1800360000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		331C80D3294CF70F00263BE5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -425,6 +569,22 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		EA1800310000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA1800010000000000000001 /* engine.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EA1800340000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA1800010000000000000005 /* AsterixEngineTests.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		331C80D1294CF70F00263BE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -446,6 +606,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		EA1800620000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EA1800410000000000000001 /* AsterixEngine */;
+			targetProxy = EA1800610000000000000001 /* PBXContainerItemProxy */;
+		};
+		EA1800620000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EA1800410000000000000001 /* AsterixEngine */;
+			targetProxy = EA1800610000000000000001 /* PBXContainerItemProxy */;
+		};
 		331C80DA294CF71000263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 33CC10EC2044A3C60003C045 /* Runner */;
@@ -471,6 +641,108 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		EA1800710000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				FRAMEWORK_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../engine/include";
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		EA1800720000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				FRAMEWORK_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../engine/include";
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		EA1800730000000000000001 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				FRAMEWORK_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../engine/include";
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Profile;
+		};
+		EA1800740000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../engine/include";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.triada.asterixXxl.AsterixEngineTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		EA1800750000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../engine/include";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.triada.asterixXxl.AsterixEngineTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		EA1800760000000000000001 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../engine/include";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.triada.asterixXxl.AsterixEngineTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Profile;
+		};
 		331C80DB294CF71000263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C10FA9D090E4183EA6939950 /* Pods-RunnerTests.debug.xcconfig */;
@@ -755,6 +1027,26 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		EA1800510000000000000001 /* Build configuration list for PBXNativeTarget "AsterixEngine" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EA1800710000000000000001 /* Debug */,
+				EA1800720000000000000001 /* Release */,
+				EA1800730000000000000001 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EA1800520000000000000001 /* Build configuration list for PBXNativeTarget "AsterixEngineTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EA1800740000000000000001 /* Debug */,
+				EA1800750000000000000001 /* Release */,
+				EA1800760000000000000001 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		331C80DE294CF71000263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

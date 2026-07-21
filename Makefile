@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect run run-profile run-release format analyze test policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect run run-profile run-release format analyze test native-test policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -44,6 +44,9 @@ analyze: ## Запустить статический анализ
 
 test: ## Запустить тесты
 	$(FLUTTER) test
+
+native-test: ## Собрать нативное ядро и запустить его XCTest без Flutter host
+	xcodebuild test -workspace macos/Runner.xcworkspace -scheme AsterixEngine -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
 
 policy-check: ## Проверить отсутствие оригинальных игровых данных
 	./scripts/check_resource_policy.sh

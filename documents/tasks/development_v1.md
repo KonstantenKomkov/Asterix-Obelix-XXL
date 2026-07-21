@@ -2,7 +2,7 @@
 
 Задачи сформированы из [плана переписывания](../flutter_macos_rewrite_plan.md). Выполненные пункты следует переносить в [completed_v1.md](completed_v1.md).
 
-**Статус:** выполняется. Flutter macOS shell, главное меню, настройки, экран-заглушка игры и инвентаризатор оригинальных файлов уже созданы; Metal-рендерер и импорт оригинальных ресурсов ещё не реализованы.
+**Статус:** выполняется. Flutter macOS shell и каркас нативного C++20-ядра уже собираются вместе; Metal view и runtime transport ещё не реализованы.
 
 **Цель итерации:** пройти путь от прямого импорта исходных игровых файлов и фиксации эталонного поведения до полностью проходимого вертикального среза одного уровня. Видео не используется как источник моделей, сцен, текстур, анимаций или звука.
 
@@ -18,7 +18,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 18 | **Подготовить структуру нативного ядра:** `engine/include`, `engine/src`, `engine/metal`, `engine/macos`, сборка из Xcode и тестовый target | Этап 2 / M2 | P1 | L | После п. 17; чистая сборка Flutter собирает нативный модуль на Intel и Apple Silicon |
 | 19 | **Встроить `MTKView` в Flutter-окно:** platform view и корректный resize с учётом Retina scale | Этап 2 / M2 | P1 | L | После п. 18; Metal view занимает игровую область и не ломает Flutter UI |
 | 20 | **Реализовать lifecycle рендерера:** создание ресурсов, foreground/background, resize, остановка и освобождение | Этап 2 / M2 | P1 | M | После п. 19; повторное открытие/закрытие не приводит к crash или утечке |
 | 21 | **Определить C API и транспорт Dart ↔ native:** команды ввода, очередь событий, snapshot состояния и двойная буферизация без мелких FFI-вызовов на каждый объект | Этап 2 / M2 | P1 | L | После п. 17–18; ABI версионируется и покрыт integration-тестом |
@@ -97,7 +96,8 @@
 - [x] П. 8–15 — исследование форматов
 - [x] П. 16 — M1: importer proof
 - [x] П. 17 — архитектура workspace и runtime
-- [ ] П. 17–22 — M2: native core, Metal view и FFI proof
+- [x] П. 18 — структура и Xcode targets нативного ядра
+- [ ] П. 19–22 — M2: Metal view и FFI proof
 - [ ] П. 23–31 — asset pipeline и базовый 3D-движок
 - [ ] П. 32–39 — игровые системы vertical slice
 - [ ] П. 40–43 — аудио, presentation, приёмка M4 и решение о продолжении
@@ -105,7 +105,9 @@
 
 ---
 
-**Последнее обновление:** 21 июля 2026 — п. 17 выполнен: ADR-001 фиксирует границы Flutter/importer/C ABI/C++/Metal/macOS, ownership, thread model, versioned transport и полный native lifecycle.
+**Последнее обновление:** 21 июля 2026 — п. 18 выполнен: добавлены `engine/include`, `engine/src`, `engine/metal`, `engine/macos`, C++20 static target `AsterixEngine`, независимый XCTest target и universal-сборка Intel/Apple Silicon.
+
+**Предыдущее обновление:** 21 июля 2026 — п. 17 выполнен: ADR-001 фиксирует границы Flutter/importer/C ABI/C++/Metal/macOS, ownership, thread model, versioned transport и полный native lifecycle.
 
 **Предыдущее обновление:** 21 июля 2026 — п. 16 выполнен и M1 закрыт: `scripts/extract_slice_proof.sh` одной командой извлекает Gaul scene, PNG textures, animations/skins и PCM WAV с корневым manifest без ручной правки.
 

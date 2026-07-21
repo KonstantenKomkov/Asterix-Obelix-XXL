@@ -265,3 +265,24 @@ detach/destroy, включая идемпотентное освобождени
 restart. C ABI получает version/struct size, POD transport и status вместо
 исключений. Последующие задачи 18–22 содержат проверяемые условия реализации
 этого решения; архитектурные отступления требуют нового ADR.
+
+## П. 18 — Структура нативного ядра и Xcode targets
+
+**Выполнено:** 21 июля 2026.
+
+Созданы каталоги `engine/include`, `engine/src`, `engine/metal`, `engine/macos`
+и `engine/tests`. Platform-neutral каркас ядра собирается как статическая
+C++20-библиотека `AsterixEngine`; публичный C header и минимальная функция
+версии подтверждают корректность компиляции и линковки, не подменяя реализацию
+versioned transport из задачи 21.
+
+`Runner` явно зависит от `AsterixEngine` и линкует библиотеку. Для нативного
+кода добавлены отдельный hostless XCTest target `AsterixEngineTests`, shared
+Xcode scheme и команда `make native-test`. Native targets изолированы от
+CocoaPods/Flutter linker flags, поэтому тесты запускаются без Flutter host и
+plugin frameworks.
+
+Проверки подтвердили C++20 Build action, прохождение native XCTest, чистую
+Flutter release-сборку и universal static library с архитектурами `x86_64` и
+`arm64`. Полный `make check` и resource policy также прошли; оригинальные или
+производные игровые ресурсы не добавлялись.
