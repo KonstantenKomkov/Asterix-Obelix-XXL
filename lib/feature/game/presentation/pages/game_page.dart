@@ -38,6 +38,7 @@ class _GamePageState extends State<GamePage> {
               children: [
                 const _EngineViewport(),
                 const _Hud(),
+                const _DebugPanel(),
                 if (_paused)
                   _PauseOverlay(
                     onResume: () => setState(() => _paused = false),
@@ -155,11 +156,15 @@ class _Hud extends StatelessWidget {
                     final sections =
                         (values['residentSectionCount'] as num?)?.toInt() ?? 0;
                     final sceneError = values['sceneError'] as String? ?? '';
+                    final collision =
+                        (values['collisionTriangleCount'] as num?)?.toInt() ??
+                        0;
                     return Text(
                       'FPS ${fps.toStringAsFixed(1)}  CPU ${cpu.toStringAsFixed(2)} ms\n'
                       'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB\n'
                       '${meshes > 0
-                          ? 'Scene: $visible/$meshes meshes, $batches batches, $sections sections'
+                          ? 'Scene: $visible/$meshes meshes, $batches batches, $sections sections\n'
+                                'Collision: $collision triangles'
                           : sceneError.isEmpty
                           ? 'Scene: proof'
                           : 'Scene error: $sceneError'}',
@@ -173,6 +178,77 @@ class _Hud extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DebugPanel extends StatefulWidget {
+  const _DebugPanel();
+
+  @override
+  State<_DebugPanel> createState() => _DebugPanelState();
+}
+
+class _DebugPanelState extends State<_DebugPanel> {
+  static const _channel = MethodChannel('asterix/metal-debug');
+  static const _modes = <(String, int)>[
+    ('Wireframe', 1),
+    ('Collision', 2),
+    ('Triggers', 4),
+    ('Navmesh', 8),
+    ('Object IDs', 16),
+  ];
+  int _options = 0;
+
+  Future<void> _toggle(int flag) async {
+    final next = _options ^ flag;
+    setState(() => _options = next);
+    try {
+      await _channel.invokeMethod<void>('setOptions', next);
+    } on MissingPluginException {
+      // Widget tests and non-macOS fallback do not register the native channel.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topRight,
+        child: Container(
+          key: const Key('debug-panel'),
+          width: 180,
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.black54,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.cyanAccent.withValues(alpha: .45)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'DEBUG',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              for (final mode in _modes)
+                FilterChip(
+                  key: Key('debug-${mode.$2}'),
+                  label: Text(mode.$1),
+                  selected: (_options & mode.$2) != 0,
+                  onSelected: (_) => _toggle(mode.$2),
+                ),
+              const Text(
+                'Triggers/Navmesh: 0',
+                style: TextStyle(color: Colors.white54, fontSize: 11),
+              ),
+            ],
           ),
         ),
       ),

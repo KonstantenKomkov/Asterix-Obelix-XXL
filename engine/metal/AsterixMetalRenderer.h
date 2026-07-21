@@ -23,6 +23,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSUInteger visibleMeshCount;
 @property(nonatomic, readonly) NSUInteger drawBatchCount;
 @property(nonatomic, readonly) NSUInteger residentSectionCount;
+@property(nonatomic, readonly) NSUInteger collisionTriangleCount;
+@property(nonatomic, readonly) uint32_t debugOptions;
 @property(nonatomic, readonly, nullable) NSString* sceneError;
 
 - (instancetype)initWithView:(MTKView*)view NS_DESIGNATED_INITIALIZER;
@@ -31,6 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)resizeToDrawableSize:(CGSize)drawableSize;
 - (BOOL)loadAssetPackageAtURL:(NSURL*)url;
 - (void)reportSceneError:(NSString*)message;
+- (void)setDebugOptions:(uint32_t)options;
 - (void)suspend;
 - (void)resume;
 - (void)stop;

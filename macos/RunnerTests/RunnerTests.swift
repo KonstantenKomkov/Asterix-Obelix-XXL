@@ -56,7 +56,11 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(metalView.statistics["frameCount"] as? UInt64, 0)
     XCTAssertEqual(metalView.device == nil, systemDevice == nil)
     if systemDevice != nil {
-      XCTAssertEqual(metalView.statistics["sceneReady"] as? Bool, true)
+      XCTAssertEqual(
+        metalView.statistics["sceneReady"] as? Bool,
+        true,
+        metalView.statistics["sceneError"] as? String ?? "missing shader diagnostic"
+      )
     }
   }
 
@@ -76,5 +80,15 @@ class RunnerTests: XCTestCase {
     )
 
     XCTAssertEqual(size, CGSize(width: 201, height: 101))
+  }
+
+  @MainActor
+  func testDebugModesSwitchWithoutRecreatingViewport() {
+    let view = MetalViewportView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+    view.debugOptions = 0xffff_ffff
+    XCTAssertEqual(view.debugOptions, 31)
+    XCTAssertEqual(view.statistics["debugOptions"] as? UInt32, 31)
+    view.debugOptions = 0
+    XCTAssertEqual(view.debugOptions, 0)
   }
 }

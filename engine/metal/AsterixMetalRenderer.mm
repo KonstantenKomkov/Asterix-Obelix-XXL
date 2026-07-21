@@ -19,6 +19,7 @@ typedef struct {
   float diffuse;
   vector_uint4 joints;
   vector_float4 weights;
+  uint32_t objectId;
 } AsterixVertex;
 
 typedef struct {
@@ -26,6 +27,7 @@ typedef struct {
   uint32_t textured;
   float fogStart;
   float fogEnd;
+  uint32_t debugOptions;
 } AsterixUniforms;
 
 typedef struct {
@@ -77,9 +79,11 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   id<MTLDepthStencilState> _depthState;
   id<MTLBuffer> _vertices;
   id<MTLBuffer> _sceneVertices;
+  id<MTLBuffer> _collisionVertices;
   id<MTLTexture> _sceneTexture;
   NSUInteger _sceneVertexCount;
   NSUInteger _sceneMeshCount;
+  NSUInteger _collisionTriangleCount;
   NSUInteger _visibleMeshCount;
   NSUInteger _drawBatchCount;
   std::vector<AsterixMeshRange> _sceneMeshRanges;
@@ -101,6 +105,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   float _previousAnimationPhase;
   float _currentAnimationPhase;
   CFTimeInterval _lastSimulationTime;
+  uint32_t _debugOptions;
 }
 
 - (instancetype)initWithView:(MTKView*)view {
@@ -126,13 +131,18 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; };\n"
+      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; };\n"
       "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; };\n"
-      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ skinned+=bones[v[i].joints[j]]*local*v[i].weights[j]; normal+=(float3x3)bones[v[i].joints[j]]*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; o.c=v[i].c; o.n=normal; o.uv=v[i].uv; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
+      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
       "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]]) { constexpr sampler s(filter::linear, mip_filter::linear, address::repeat); float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<0.01) discard_fragment(); float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
-  if (library == nil) return;
+  if (library == nil) {
+    _sceneError = [NSString stringWithFormat:@"Metal shader compilation failed: %@",
+                                             error.localizedDescription ?: @"unknown error"];
+    NSLog(@"%@", _sceneError);
+    return;
+  }
   MTLRenderPipelineDescriptor* descriptor = [MTLRenderPipelineDescriptor new];
   descriptor.vertexFunction = [library newFunctionWithName:@"vs"];
   descriptor.fragmentFunction = [library newFunctionWithName:@"fs"];
@@ -146,14 +156,18 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   descriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
   descriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
   _pipeline = [device newRenderPipelineStateWithDescriptor:descriptor error:&error];
+  if (_pipeline == nil) {
+    _sceneError = [NSString stringWithFormat:@"Metal pipeline creation failed: %@",
+                                             error.localizedDescription ?: @"unknown error"];
+  }
   MTLDepthStencilDescriptor* depth = [MTLDepthStencilDescriptor new];
   depth.depthCompareFunction = MTLCompareFunctionLess;
   depth.depthWriteEnabled = YES;
   _depthState = [device newDepthStencilStateWithDescriptor:depth];
   const AsterixVertex vertices[] = {
-      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0, 0, 1}, {0.5f, 0}, 1, .35f, .65f, {1,0,0,0}, {1,0,0,0}},
-      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 0, 1}, {0, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}},
-      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}, {0, 0, 1}, {1, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}},
+      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0, 0, 1}, {0.5f, 0}, 1, .35f, .65f, {1,0,0,0}, {1,0,0,0}, 1},
+      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 0, 1}, {0, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}, 1},
+      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}, {0, 0, 1}, {1, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}, 1},
   };
   _vertices = [device newBufferWithBytes:vertices length:sizeof(vertices)
                                   options:MTLResourceStorageModeShared];
@@ -197,6 +211,9 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
 - (NSUInteger)sceneMeshCount { @synchronized(self) { return _sceneMeshCount; } }
 - (NSUInteger)visibleMeshCount { @synchronized(self) { return _visibleMeshCount; } }
 - (NSUInteger)drawBatchCount { @synchronized(self) { return _drawBatchCount; } }
+- (NSUInteger)collisionTriangleCount { @synchronized(self) { return _collisionTriangleCount; } }
+- (uint32_t)debugOptions { @synchronized(self) { return _debugOptions; } }
+- (void)setDebugOptions:(uint32_t)options { @synchronized(self) { _debugOptions = options & 31u; } }
 - (NSUInteger)residentSectionCount {
   @synchronized(self) {
     if (!_sceneRuntime) return 0;
@@ -206,7 +223,9 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   }
 }
 - (NSString*)sceneError { @synchronized(self) { return _sceneError; } }
-- (void)reportSceneError:(NSString*)message { @synchronized(self) { _sceneError = [message copy]; } }
+- (void)reportSceneError:(NSString*)message {
+  @synchronized(self) { if (_sceneError == nil) _sceneError = [message copy]; }
+}
 
 - (BOOL)loadAssetPackageAtURL:(NSURL*)url {
   MTKView* view = _view;
@@ -264,6 +283,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     textures[name] = texture;
   }
   NSMutableData* vertexData = [NSMutableData data];
+  NSMutableData* collisionVertexData = [NSMutableData data];
   std::vector<AsterixMeshRange> meshRanges;
   std::vector<asterix::scene::Node> runtimeNodes;
   NSUInteger meshCount = 0;
@@ -271,6 +291,37 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   vector_float3 maximum = {-INFINITY, -INFINITY, -INFINITY};
   asterix::scene::Runtime transformGraph;
   std::unordered_map<std::string, std::string> payloadNodes;
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"collision"]) continue;
+    uint64_t offset = [resource[@"offset"] unsignedLongLongValue];
+    uint64_t length = [resource[@"length"] unsignedLongLongValue];
+    if (offset > payloadLength || length > payloadLength - offset) continue;
+    NSData* data = [package subdataWithRange:NSMakeRange((NSUInteger)(payloadOffset + offset), (NSUInteger)length)];
+    NSDictionary* collision = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    for (NSDictionary* mesh in collision[@"meshes"]) {
+      NSArray* positions = mesh[@"vertices"];
+      const uint32_t objectId = [mesh[@"objectId"] unsignedIntValue];
+      matrix_float4x4 model = matrix_identity_float4x4;
+      NSArray* transform = mesh[@"transform"] ?: mesh[@"wallTransform"];
+      if ([transform isKindOfClass:NSArray.class] && transform.count == 16) {
+        for (NSUInteger component = 0; component < 16; ++component)
+          model.columns[component / 4][component % 4] = [transform[component] floatValue];
+        model.columns[0].w = model.columns[1].w = model.columns[2].w = 0;
+        model.columns[3].w = 1;
+      }
+      for (NSArray* triangle in mesh[@"triangles"]) for (NSNumber* item in triangle) {
+        const NSUInteger index = item.unsignedIntegerValue;
+        if (index >= positions.count || [positions[index] count] < 3) continue;
+        NSArray* p = positions[index];
+        vector_float4 world = simd_mul(model, (vector_float4){[p[0] floatValue],
+                                                              [p[1] floatValue],
+                                                              [p[2] floatValue], 1});
+        AsterixVertex vertex = {{world.x, world.y, world.z},
+          {1,.08f,.12f},{0,1,0},{0,0},1,1,0,{0,0,0,0},{1,0,0,0},objectId};
+        [collisionVertexData appendBytes:&vertex length:sizeof(vertex)];
+      }
+    }
+  }
   for (NSDictionary* object in manifest[@"objects"]) {
     if (![object[@"kind"] isEqual:@"scene-node"]) continue;
     NSString* objectId = object[@"id"];
@@ -365,7 +416,8 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
                                            (vector_float3){[n[0] floatValue], [n[1] floatValue], [n[2] floatValue]}));
         }
         AsterixVertex vertex = {{world.x, world.y, world.z}, c, normal, uv,
-                                alpha, ambient, diffuse, {0,0,0,0}, {1,0,0,0}};
+                                alpha, ambient, diffuse, {0,0,0,0}, {1,0,0,0},
+                                (uint32_t)[mesh[@"objectId"] unsignedIntValue]};
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
       }
     }
@@ -396,6 +448,8 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     return NO;
   }
   id<MTLBuffer> buffer = [device newBufferWithBytes:vertexData.bytes length:vertexData.length options:MTLResourceStorageModeShared];
+  id<MTLBuffer> collisionBuffer = collisionVertexData.length == 0 ? nil :
+      [device newBufferWithBytes:collisionVertexData.bytes length:collisionVertexData.length options:MTLResourceStorageModeShared];
   auto runtime = std::make_unique<asterix::scene::Runtime>();
   runtime->addSection({"gaul-stage-1",
                        {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
@@ -404,6 +458,8 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   runtime->resolveHierarchy();
   @synchronized(self) {
     _sceneVertices = buffer;
+    _collisionVertices = collisionBuffer;
+    _collisionTriangleCount = collisionVertexData.length / sizeof(AsterixVertex) / 3;
     _sceneTexture = selectedTexture;
     _sceneVertexCount = vertexData.length / sizeof(AsterixVertex);
     _sceneMeshCount = meshCount;
@@ -470,6 +526,8 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _depthState = nil;
     _vertices = nil;
     _sceneVertices = nil;
+    _collisionVertices = nil;
+    _collisionTriangleCount = 0;
     _sceneTexture = nil;
     _sceneVertexCount = 0;
     _sceneMeshCount = 0;
@@ -541,13 +599,19 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
       const float c = cosf(seconds * 0.7f), s = sinf(seconds * 0.7f);
       id<MTLBuffer> sceneVertices = nil;
       id<MTLTexture> sceneTexture = nil;
+      id<MTLBuffer> collisionVertices = nil;
       NSUInteger sceneVertexCount = 0;
+      NSUInteger collisionTriangleCount = 0;
+      uint32_t debugOptions = 0;
       vector_float3 sceneCenter = {0, 0, 0};
       float sceneRadius = 1;
       @synchronized(self) {
         sceneVertices = _sceneVertices;
         sceneTexture = _sceneTexture;
+        collisionVertices = _collisionVertices;
         sceneVertexCount = _sceneVertexCount;
+        collisionTriangleCount = _collisionTriangleCount;
+        debugOptions = _debugOptions;
         sceneCenter = _sceneCenter;
         sceneRadius = _sceneRadius;
       }
@@ -561,8 +625,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
                                                                          aspect, 0.1f, 1000.0f), rotation);
       AsterixUniforms uniforms = {viewProjection,
                                   hasScene && sceneTexture != nil ? 1u : 0u,
-                                  sceneRadius * 1.2f, sceneRadius * 3.2f};
+                                  sceneRadius * 1.2f, sceneRadius * 3.2f,
+                                  debugOptions};
       [encoder setRenderPipelineState:_pipeline];
+      [encoder setTriangleFillMode:(debugOptions & 1u) != 0 ? MTLTriangleFillModeLines : MTLTriangleFillModeFill];
       [encoder setDepthStencilState:_depthState];
       [encoder setVertexBuffer:hasScene ? sceneVertices : _vertices offset:0 atIndex:0];
       [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
@@ -605,6 +671,18 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
           const AsterixMeshRange range = meshRanges[item.node_index];
           [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:range.vertexStart
                       vertexCount:MIN((NSUInteger)item.vertex_count, range.vertexCount)];
+        }
+        if ((debugOptions & 2u) != 0 && collisionVertices != nil) {
+          AsterixUniforms debugUniforms = uniforms;
+          debugUniforms.textured = 0;
+          [encoder setTriangleFillMode:MTLTriangleFillModeLines];
+          [encoder setVertexBuffer:collisionVertices offset:0 atIndex:0];
+          [encoder setVertexBytes:&debugUniforms length:sizeof(debugUniforms) atIndex:1];
+          [encoder setFragmentBytes:&debugUniforms length:sizeof(debugUniforms) atIndex:1];
+          [encoder setDepthBias:-1.0 slopeScale:-1.0 clamp:-4.0];
+          [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0
+                      vertexCount:collisionTriangleCount * 3];
+          [encoder setDepthBias:0 slopeScale:0 clamp:0];
         }
       }
     }

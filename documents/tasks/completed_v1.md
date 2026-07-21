@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 31 — Debug tooling базового 3D-движка
+
+**Выполнено:** 21 июля 2026.
+
+Добавлена Flutter debug-панель и MethodChannel, передающий комбинируемую bit mask
+без пересборки приложения или пересоздания `MTKView`. Metal renderer поддерживает
+wireframe, красный world-space collision overlay с depth bias и стабильную
+hash-раскраску mesh по импортированным object IDs. Collision buffer строится из
+typed ASTPAK payload и учитывает transforms dynamic ground/wall.
+
+Режимы triggers и navmesh доступны в той же панели и явно показывают нулевое
+число элементов: соответствующие сериализованные данные в XXL1 Gaul не
+подтверждены, поэтому debug tooling не создаёт фиктивную геометрию. Native
+renderer маскирует неизвестные flags.
+
+HUD продолжает получать одним snapshot четыре раза в секунду FPS, CPU/GPU frame
+time, Metal memory, frame count, meshes, batches и resident sections; добавлены
+collision triangle count и текущая debug mask. Runner XCTest также выявил и
+исправил скрытую ошибку runtime-компиляции normal matrix в Metal shader;
+диагностика shader/pipeline теперь сохраняется в `sceneError`.
+
+Прошли `make check`, native XCTest, Runner XCTest, macOS debug build, widget
+tests, diff review и resource policy. Контракт режимов описан в
+[документе debug tooling](../architecture/debug_tooling.md). Пункт 31 завершает
+веху M3.
+
 ## П. 30 — Коллизии мира и движение капсулы
 
 **Выполнено:** 21 июля 2026.

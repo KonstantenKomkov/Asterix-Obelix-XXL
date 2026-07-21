@@ -28,6 +28,14 @@ void main() {
       expect(find.text('АСТЕРИКС'), findsOneWidget);
       expect(find.byKey(const Key('renderer-stats')), findsOneWidget);
       expect(find.textContaining('FPS 0.0'), findsOneWidget);
+      expect(find.byKey(const Key('debug-panel')), findsOneWidget);
+      expect(find.text('Wireframe'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('debug-1')));
+      await tester.pump();
+      expect(
+        tester.widget<FilterChip>(find.byKey(const Key('debug-1'))).selected,
+        isTrue,
+      );
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }

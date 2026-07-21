@@ -5,9 +5,11 @@ import MetalKit
 final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterStreamHandler {
   static let viewType = "asterix/metal-viewport"
   static let statsChannel = "asterix/metal-stats"
+  static let debugChannel = "asterix/metal-debug"
   private weak var viewport: MetalViewportView?
   private var eventSink: FlutterEventSink?
   private var timer: Timer?
+  private var debugMethodChannel: FlutterMethodChannel?
 
   override init() {
     super.init()
@@ -17,6 +19,16 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
     super.init()
     FlutterEventChannel(name: Self.statsChannel, binaryMessenger: messenger)
       .setStreamHandler(self)
+    let channel = FlutterMethodChannel(name: Self.debugChannel, binaryMessenger: messenger)
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard call.method == "setOptions", let options = call.arguments as? Int else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self?.viewport?.debugOptions = UInt32(truncatingIfNeeded: options)
+      result(nil)
+    }
+    debugMethodChannel = channel
   }
 
   func createArgsCodec() -> (FlutterMessageCodec & NSObjectProtocol)? {
@@ -76,8 +88,15 @@ final class MetalViewportView: MTKView {
       "visibleMeshCount": renderer.visibleMeshCount,
       "drawBatchCount": renderer.drawBatchCount,
       "residentSectionCount": renderer.residentSectionCount,
+      "collisionTriangleCount": renderer.collisionTriangleCount,
+      "debugOptions": renderer.debugOptions,
       "sceneError": renderer.sceneError ?? "",
     ]
+  }
+
+  var debugOptions: UInt32 {
+    get { renderer?.debugOptions ?? 0 }
+    set { renderer?.setDebugOptions(newValue) }
   }
 
   func loadAssetPackage(at url: URL) {
