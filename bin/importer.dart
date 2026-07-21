@@ -6,10 +6,16 @@ import 'package:asterix_xxl/importer/importer.dart';
 Future<void> main(List<String> arguments) async {
   try {
     if (arguments.length != 2 ||
-        !{'inspect', 'probe-kwn', 'probe-kwn-tree'}.contains(arguments.first)) {
+        !{
+          'inspect',
+          'probe-kwn',
+          'probe-kwn-tree',
+          'extract-geometry-summary',
+          'extract-geometry',
+        }.contains(arguments.first)) {
       throw const ImportException(
         code: ImportErrorCode.invalidArguments,
-        message: 'Expected inspect, probe-kwn, or probe-kwn-tree and one path.',
+        message: 'Expected a supported command and one input path.',
       );
     }
     final path = arguments[1];
@@ -28,6 +34,50 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (arguments.first == 'extract-geometry') {
+      final meshes = extractXxl1SectorStaticGeometryRecords(bytes, path: path);
+      final nodes = extractXxl1SectorSceneNodes(bytes, path: path);
+      stdout.writeln(
+        jsonEncode({
+          'schemaVersion': 1,
+          'format': 'asterix-sector-scene',
+          'meshes': meshes.map((mesh) => mesh.toJson()).toList(),
+          'nodes': nodes.map((node) => node.toJson()).toList(),
+        }),
+      );
+      return;
+    }
+    if (arguments.first == 'extract-geometry-summary') {
+      final meshes = extractXxl1SectorStaticGeometry(bytes, path: path);
+      final nodes = extractXxl1SectorSceneNodes(bytes, path: path);
+      stdout.writeln(
+        const JsonEncoder.withIndent('  ').convert({
+          'format': 'xxl1-sector-geometry-summary',
+          'meshCount': meshes.length,
+          'sceneNodeCount': nodes.length,
+          'geometryNodeCount': nodes
+              .where((node) => node.geometry != null && !node.geometry!.isNull)
+              .length,
+          'frameCount': meshes.fold<int>(
+            0,
+            (sum, mesh) => sum + mesh.frames.length,
+          ),
+          'vertexCount': meshes.fold<int>(
+            0,
+            (sum, mesh) => sum + mesh.vertices.length,
+          ),
+          'triangleCount': meshes.fold<int>(
+            0,
+            (sum, mesh) => sum + mesh.triangles.length,
+          ),
+          'uvSetCount': meshes.fold<int>(
+            0,
+            (sum, mesh) => sum + mesh.uvSets.length,
+          ),
+        }),
+      );
+      return;
+    }
     final result = arguments.first == 'inspect'
         ? parseSyntheticContainer(bytes, path: path).toJson()
         : probeKwnStructure(bytes, path: path).toJson();

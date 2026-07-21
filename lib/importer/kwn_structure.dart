@@ -18,6 +18,29 @@ final class KwnStructure {
   };
 }
 
+final class KwnObjectSlice {
+  const KwnObjectSlice({
+    required this.category,
+    required this.classId,
+    required this.objectIndex,
+    required this.objectId,
+    required this.payloadOffset,
+    required this.endOffset,
+  });
+
+  final int category;
+  final int classId;
+  final int objectIndex;
+  final int objectId;
+  final int payloadOffset;
+  final int endOffset;
+}
+
+List<KwnObjectSlice> scanXxl1SectorObjects(
+  Uint8List bytes, {
+  required String path,
+}) => _scanSector(BinaryReader(bytes, path: path)).objects;
+
 KwnStructure probeKwnStructure(Uint8List bytes, {required String path}) {
   final family = _familyFromPath(path);
   final reader = BinaryReader(bytes, path: path);
@@ -87,19 +110,29 @@ KwnStructure _probeObjectPack(
 }
 
 KwnStructure _probeSector(BinaryReader reader) {
+  final scan = _scanSector(reader);
+  return KwnStructure(KwnFamily.sector, {
+    'size': reader.length,
+    'categoryCount': 15,
+    'directoryEnd': scan.directoryEnd,
+    'classCounts': scan.counts.map((classes) => classes.length).toList(),
+    'objectCount': scan.objects.length,
+  });
+}
+
+_SectorScan _scanSector(BinaryReader reader) {
   final counts = <List<int>>[];
-  var objectCount = 0;
   for (var category = 0; category < 15; category++) {
     final classCount = reader.readUint16();
     final categoryCounts = <int>[];
     for (var classId = 0; classId < classCount; classId++) {
       final count = reader.readUint16();
       categoryCounts.add(count);
-      objectCount += count;
     }
     counts.add(categoryCounts);
   }
   final directoryEnd = reader.offset;
+  final objects = <KwnObjectSlice>[];
 
   const order = [0, 9, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14];
   for (final category in order) {
@@ -121,11 +154,20 @@ KwnStructure _probeSector(BinaryReader reader) {
       final count = counts[category][classId];
       if (count == 0) continue;
       final classEnd = reader.readUint32();
-      reader
-          .readUint16(); // absolute start object ID; validated when levels are linked
+      final startObjectId = reader.readUint16();
       for (var object = 0; object < count; object++) {
         final objectEnd = reader.readUint32();
         _validateForwardOffset(reader, objectEnd, 'object');
+        objects.add(
+          KwnObjectSlice(
+            category: category,
+            classId: classId,
+            objectIndex: object,
+            objectId: startObjectId + object,
+            payloadOffset: reader.offset,
+            endOffset: objectEnd,
+          ),
+        );
         reader.seek(objectEnd);
       }
       _requireOffset(reader, classEnd, 'class');
@@ -133,13 +175,23 @@ KwnStructure _probeSector(BinaryReader reader) {
     _requireOffset(reader, categoryEnd, 'category');
   }
   _requireEnd(reader);
-  return KwnStructure(KwnFamily.sector, {
-    'size': reader.length,
-    'categoryCount': 15,
-    'directoryEnd': directoryEnd,
-    'classCounts': counts.map((classes) => classes.length).toList(),
-    'objectCount': objectCount,
+  return _SectorScan(
+    counts: counts,
+    directoryEnd: directoryEnd,
+    objects: objects,
+  );
+}
+
+final class _SectorScan {
+  const _SectorScan({
+    required this.counts,
+    required this.directoryEnd,
+    required this.objects,
   });
+
+  final List<List<int>> counts;
+  final int directoryEnd;
+  final List<KwnObjectSlice> objects;
 }
 
 KwnStructure _probeProtectedLevel(BinaryReader reader) {

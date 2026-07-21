@@ -44,6 +44,20 @@ final class BinaryReader {
     return value;
   }
 
+  int readInt32([Endian endian = Endian.little]) {
+    _require(4);
+    final value = _data.getInt32(offset, endian);
+    offset += 4;
+    return value;
+  }
+
+  double readFloat32([Endian endian = Endian.little]) {
+    _require(4);
+    final value = _data.getFloat32(offset, endian);
+    offset += 4;
+    return value;
+  }
+
   Uint8List readBytes(int count) {
     if (count < 0) {
       throw ImportException(
