@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 41 — Presentation MVP
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен launch screen и адаптивное главное меню с редактируемым активным
+профилем. Continue включается только при валидном save; New Game начинает чистое
+состояние выбранного профиля и не восстанавливает чужой checkpoint. Settings,
+controls, HUD и pause overlay входят в единый presentation flow.
+
+Fullscreen setting подключён к `NSWindow.toggleFullScreen` через method channel
+и применяется сразу. Меню перестраивается в прокручиваемую compact-компоновку,
+а developer panel скрывается на узком gameplay viewport. Tests подтверждают
+отсутствие overflow на 560×420 и 1440×900; native Retina resize остаётся покрыт
+Runner XCTest.
+
+Добавлены русская и английская locale с Material/Cupertino delegates,
+сохранением выбора и локализованными menu/settings/controls/HUD/pause строками.
+Настройка субтитров управляет локализованным opening subtitle с безопасным
+lifecycle timer. Контракт описан в
+[документе presentation MVP](../architecture/presentation_mvp.md).
+
+Review исправил восстановление save другого профиля при New Game и lifecycle
+TextEditingController/timer. Прошли `make check` (47 Flutter tests), 7 Runner
+XCTest, macOS debug build, diff review и resource policy; игровые ресурсы не
+добавлялись.
+
 ## П. 40 — Аудио vertical slice
 
 **Выполнено:** 21 июля 2026.

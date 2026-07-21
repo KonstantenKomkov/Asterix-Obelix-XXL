@@ -16,6 +16,10 @@ final class PreferencesSettingsDataSource {
         0,
         1,
       ),
+      languageCode: switch (_preferences.getString('languageCode')) {
+        'en' => 'en',
+        _ => 'ru',
+      },
       fullscreen: _preferences.getBool('fullscreen') ?? false,
       subtitles: _preferences.getBool('subtitles') ?? true,
     );
@@ -29,6 +33,10 @@ final class PreferencesSettingsDataSource {
       _preferences.setDouble('effectsVolume', effects),
       _preferences.setBool('fullscreen', settings.fullscreen),
       _preferences.setBool('subtitles', settings.subtitles),
+      _preferences.setString(
+        'languageCode',
+        settings.languageCode == 'en' ? 'en' : 'ru',
+      ),
     ]);
   }
 }

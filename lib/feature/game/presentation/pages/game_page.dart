@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../input/data/input_bindings_store.dart';
 import '../../../input/domain/game_input.dart';
 import '../../../save/data/save_game_store.dart';
@@ -14,7 +15,16 @@ import '../../../save/domain/save_game.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 
 class GamePage extends StatefulWidget {
-  const GamePage({super.key});
+  const GamePage({
+    super.key,
+    this.profileId = 'default',
+    this.profileName = '',
+    this.restoreSavedGame = true,
+  });
+
+  final String profileId;
+  final String profileName;
+  final bool restoreSavedGame;
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -35,22 +45,28 @@ class _GamePageState extends State<GamePage> {
   String _profileName = 'Игрок';
   int _lastSavedCheckpoint = 0;
   bool _saving = false;
+  bool _subtitlesEnabled = true;
 
   @override
   void initState() {
     super.initState();
+    _profileId = widget.profileId;
+    _profileName = widget.profileName.isEmpty ? 'Игрок' : widget.profileName;
     _statsStream = _statsChannel.receiveBroadcastStream().asBroadcastStream();
     _statsSubscription = _statsStream.listen(_onStats);
     _input = _router.snapshot();
     SharedPreferences.getInstance().then((preferences) {
       if (!mounted) return;
       _router.bindings = InputBindingsStore(preferences).load();
+      _subtitlesEnabled = preferences.getBool('subtitles') ?? true;
       _applyAudioVolumes(preferences);
       _saveStore = SaveGameStore(preferences);
       final saved = _saveStore!.load();
-      if (saved != null) {
-        _profileId = saved.profileId;
-        _profileName = saved.profileName;
+      if (saved != null && widget.restoreSavedGame) {
+        if (widget.profileId == 'default') {
+          _profileId = saved.profileId;
+          _profileName = saved.profileName;
+        }
         _lastSavedCheckpoint = saved.checkpointId;
         unawaited(
           _inputChannel
@@ -159,6 +175,7 @@ class _GamePageState extends State<GamePage> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return Focus(
       autofocus: true,
       onKeyEvent: _onKey,
@@ -168,24 +185,36 @@ class _GamePageState extends State<GamePage> {
           children: [
             const _EngineViewport(),
             _Hud(stream: _statsStream),
+            _OpeningSubtitle(enabled: _subtitlesEnabled),
             Positioned(
               left: 24,
               bottom: 20,
               child: Text(
                 _input?.controllerConnected == true
-                    ? 'Controller connected'
-                    : 'Keyboard',
+                    ? strings.controllerConnected
+                    : strings.keyboard,
                 key: const Key('input-device'),
                 style: const TextStyle(color: Colors.white54),
               ),
             ),
-            const _DebugPanel(),
+            if (MediaQuery.sizeOf(context).width >= 760) const _DebugPanel(),
             if (_paused)
               _PauseOverlay(
                 onResume: () => _setPaused(false),
-                onSettings: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
-                ),
+                onSettings: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SettingsPage(),
+                    ),
+                  );
+                  final preferences = await SharedPreferences.getInstance();
+                  if (mounted) {
+                    setState(() {
+                      _subtitlesEnabled =
+                          preferences.getBool('subtitles') ?? true;
+                    });
+                  }
+                },
               ),
           ],
         ),
@@ -248,6 +277,7 @@ class _Hud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return StreamBuilder<dynamic>(
       stream: stream,
       builder: (context, snapshot) {
@@ -282,9 +312,9 @@ class _Hud extends StatelessWidget {
         final hitWindow = values['combatHitWindow'] == true;
         final hint = values['interactionHint'] as String? ?? '';
         final hintText = switch (hint) {
-          'activate_lever' => 'Активировать рычаг',
-          'collect_reward' => 'Подобрать награду',
-          'respawn' => 'Вернуться к checkpoint',
+          'activate_lever' => strings.activateLever,
+          'collect_reward' => strings.collectReward,
+          'respawn' => strings.respawn,
           _ => '',
         };
         final healthValue = playerMaximumHealth <= 0
@@ -309,8 +339,8 @@ class _Hud extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'АСТЕРИКС',
+                    Text(
+                      strings.asterix,
                       style: TextStyle(fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(height: 8),
@@ -320,8 +350,10 @@ class _Hud extends StatelessWidget {
                       minHeight: 10,
                     ),
                     const SizedBox(height: 6),
-                    Text('Здоровье: $playerHealth / $playerMaximumHealth'),
-                    Text('Награды: $rewards'),
+                    Text(
+                      '${strings.health}: $playerHealth / $playerMaximumHealth',
+                    ),
+                    Text('${strings.rewards}: $rewards'),
                     if (hintText.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -443,27 +475,83 @@ class _PauseOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return ColoredBox(
       color: Colors.black87,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('ПАУЗА', style: Theme.of(context).textTheme.displayLarge),
+            Text(
+              strings.pause,
+              style: Theme.of(context).textTheme.displayLarge,
+            ),
             const SizedBox(height: 28),
-            FilledButton(onPressed: onResume, child: const Text('ПРОДОЛЖИТЬ')),
+            FilledButton(onPressed: onResume, child: Text(strings.resume)),
             const SizedBox(height: 12),
             OutlinedButton(
               key: const Key('pause-settings'),
               onPressed: onSettings,
-              child: const Text('НАСТРОЙКИ'),
+              child: Text(strings.settings),
             ),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('ВЫЙТИ В МЕНЮ'),
+              child: Text(strings.exitToMenu),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OpeningSubtitle extends StatefulWidget {
+  const _OpeningSubtitle({required this.enabled});
+
+  final bool enabled;
+
+  @override
+  State<_OpeningSubtitle> createState() => _OpeningSubtitleState();
+}
+
+class _OpeningSubtitleState extends State<_OpeningSubtitle> {
+  bool _visible = true;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _visible = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.enabled || !_visible) return const SizedBox.shrink();
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          key: const Key('opening-subtitle'),
+          margin: const EdgeInsets.only(bottom: 54, left: 24, right: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.black87,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            AppStrings.of(context).openingSubtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 18, color: Colors.white),
+          ),
         ),
       ),
     );
