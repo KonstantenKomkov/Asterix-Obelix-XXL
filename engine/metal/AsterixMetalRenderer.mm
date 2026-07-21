@@ -10,6 +10,7 @@
 #include "asterix/simulation_runtime.hpp"
 #include "asterix/player_runtime.hpp"
 #include "asterix/camera_runtime.hpp"
+#include "asterix/combat_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -124,7 +125,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::collision::CapsuleController> _capsuleController;
   std::unique_ptr<asterix::player::Runtime> _playerRuntime;
   std::unique_ptr<asterix::camera::Runtime> _cameraRuntime;
+  std::unique_ptr<asterix::combat::Runtime> _combatRuntime;
   asterix::player::Input _playerInput;
+  bool _combatAttackWasPressed;
 }
 
 - (instancetype)initWithView:(MTKView*)view {
@@ -248,6 +251,16 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
 } }
 - (BOOL)cameraCollisionLimited { @synchronized(self) {
   return _cameraRuntime && _cameraRuntime->snapshot().collision_limited;
+} }
+- (BOOL)combatActive { @synchronized(self) {
+  return _combatRuntime && _combatRuntime->attack().active;
+} }
+- (NSUInteger)comboStage { @synchronized(self) {
+  return _combatRuntime && _combatRuntime->attack().active
+      ? _combatRuntime->attack().stage + 1 : 0;
+} }
+- (BOOL)combatHitWindow { @synchronized(self) {
+  return _combatRuntime && _combatRuntime->attack().hit_window;
 } }
 - (uint32_t)debugOptions { @synchronized(self) { return _debugOptions; } }
 - (void)setDebugOptions:(uint32_t)options { @synchronized(self) { _debugOptions = options & 31u; } }
@@ -504,6 +517,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::collision::CapsuleController> capsuleController;
   std::unique_ptr<asterix::player::Runtime> playerRuntime;
   std::unique_ptr<asterix::camera::Runtime> cameraRuntime;
+  std::unique_ptr<asterix::combat::Runtime> combatRuntime;
   if (!collisionTriangles.empty()) {
     auto spawn = std::find_if(collisionTriangles.begin(),collisionTriangles.end(),[](const auto& triangle) {
       const auto normal=asterix::collision::normalized(
@@ -520,6 +534,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     body.checkpoint=body.position;
     playerRuntime=std::make_unique<asterix::player::Runtime>(*capsuleController,body);
     cameraRuntime=std::make_unique<asterix::camera::Runtime>();
+    combatRuntime=std::make_unique<asterix::combat::Runtime>();
+    asterix::combat::Fighter playerFighter;
+    playerFighter.id=1; playerFighter.team=1; playerFighter.position=body.position;
+    combatRuntime->addFighter(playerFighter);
   }
   runtime->addSection({"gaul-stage-1",
                        {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
@@ -541,6 +559,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _capsuleController = std::move(capsuleController);
     _playerRuntime = std::move(playerRuntime);
     _cameraRuntime = std::move(cameraRuntime);
+    _combatRuntime = std::move(combatRuntime);
+    _combatAttackWasPressed = false;
     _sceneCenter = (minimum + maximum) * 0.5f;
     _sceneRadius = MAX(1.0f, simd_length(maximum - minimum) * 0.5f);
     _sceneError = nil;
@@ -620,6 +640,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _sceneRuntime.reset();
     _playerRuntime.reset();
     _cameraRuntime.reset();
+    _combatRuntime.reset();
     _capsuleController.reset();
     _collisionWorld.reset();
     _depthTexture = nil;
@@ -683,6 +704,19 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           _previousAnimationPhase = _currentAnimationPhase;
           _currentAnimationPhase += (float)step;
           if (_playerRuntime) _playerRuntime->update((float)step,_playerInput);
+          if (_combatRuntime && _playerRuntime) {
+            const bool attackEdge=_playerInput.attack&&!_combatAttackWasPressed;
+            _combatAttackWasPressed=_playerInput.attack;
+            if(attackEdge)_combatRuntime->pressAttack(1);
+            const auto body=_playerRuntime->snapshot().body;
+            asterix::collision::Vec3 facing={_playerInput.move_x,0,_playerInput.move_z};
+            _combatRuntime->setTransform(1,body.position,facing);
+            const std::size_t previousStage=_combatRuntime->attack().stage;
+            _combatRuntime->update((float)step);
+            if(_combatRuntime->attack().active&&
+               _combatRuntime->attack().stage!=previousStage)
+              _playerRuntime->restartAttack();
+          }
           if (_cameraRuntime && _playerRuntime && _collisionWorld) {
             _cameraRuntime->update(_playerRuntime->snapshot().body.position,
                                    *_collisionWorld,(float)step);

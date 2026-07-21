@@ -1,5 +1,33 @@
 # Выполненные задачи первой итерации
 
+## П. 35 — Боевая система и первая комбинация
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен data-driven fixed-tick `combat::Runtime`. Fighter содержит team,
+transform/facing, AABB hurtbox, health, i-frame timer и knockback velocity;
+attack stages задают duration, hit/input windows, локальный hitbox, damage и
+knockback. Self/team/dead targets исключаются, а один stage не может нанести
+одной цели повторный урон.
+
+Первая комбинация содержит три удара с damage 1/1/2. Каждый stage длится 0,55 с,
+следующий ставится в очередь только внутри input window; после одиночного или
+финального удара действует recovery 0,10 с. Таким образом базовая длительность
+0,55 с и повтор через 0,65 с совпадают с эталонными измерениями. Размеры hitbox и
+окна поздних stages оставлены конфигурируемыми, поскольку из оригинала они не
+извлечены.
+
+Hit включает 0,4 с invulnerability, применяет направленный knockback и публикует
+events attack-started/combo-queued/hit/defeated. Metal runtime связывает combat с
+player transform, сохранённым facing и attack input; новый combo stage
+перезапускает attack animation state. HUD snapshot показывает stage и hit window.
+
+Unit-тесты покрывают input window, единственное попадание за stage, damage,
+knockback, i-frames, сохранение facing и полную трёхударную комбинацию. Прошли
+`make check`, native XCTest, Runner XCTest, diff review и resource policy.
+Контракт и границы эталонных данных описаны в
+[документе combat runtime](../architecture/combat_runtime.md).
+
 ## П. 34 — Gameplay-камера
 
 **Выполнено:** 21 июля 2026.

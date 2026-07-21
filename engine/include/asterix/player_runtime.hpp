@@ -69,6 +69,12 @@ class Runtime {
   const Snapshot& snapshot() const { return snapshot_; }
   const Config& config() const { return config_; }
 
+  void restartAttack() {
+    if (snapshot_.state != State::death && snapshot_.state != State::hurt) {
+      enter(State::attack);
+    }
+  }
+
   bool applyDamage(std::int32_t amount) {
     if (amount <= 0 || snapshot_.state == State::death ||
         snapshot_.invulnerability_seconds > 0) return false;

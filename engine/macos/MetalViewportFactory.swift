@@ -111,6 +111,9 @@ final class MetalViewportView: MTKView {
       "playerPosition": [renderer.playerPosition.x, renderer.playerPosition.y, renderer.playerPosition.z],
       "cameraFov": renderer.cameraFieldOfView,
       "cameraCollisionLimited": renderer.cameraCollisionLimited,
+      "combatActive": renderer.combatActive,
+      "comboStage": renderer.comboStage,
+      "combatHitWindow": renderer.combatHitWindow,
     ]
   }
 

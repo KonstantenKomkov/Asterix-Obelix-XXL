@@ -7,6 +7,7 @@
 #include "asterix/simulation_runtime.hpp"
 #include "asterix/player_runtime.hpp"
 #include "asterix/camera_runtime.hpp"
+#include "asterix/combat_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -14,6 +15,48 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testCombatHitboxDamagesOnceAppliesKnockbackAndInvulnerability {
+  using namespace asterix::combat;
+  Runtime combat;
+  Fighter player; player.id=1; player.team=1; player.position={0,0,0};
+  player.facing={0,0,1};
+  Fighter enemy; enemy.id=2; enemy.team=2; enemy.position={0,0,1};
+  combat.addFighter(player); combat.addFighter(enemy);
+  combat.setTransform(1,{0,0,0},{0,0,0});
+  XCTAssertTrue(combat.pressAttack(1));
+  XCTAssertFalse(combat.pressAttack(1));
+  for(int tick=0;tick<20;++tick)combat.update(1.0f/60.0f);
+  XCTAssertEqual(combat.fighters()[1].health,2);
+  XCTAssertGreaterThan(combat.fighters()[1].knockback_velocity.z,0);
+  XCTAssertGreaterThan(combat.fighters()[1].invulnerability_seconds,0);
+  auto events=combat.drainEvents();
+  XCTAssertEqual(std::count_if(events.begin(),events.end(),[](const Event& event){
+    return event.type==EventType::hit;
+  }),1);
+  for(int tick=0;tick<20;++tick)combat.update(1.0f/60.0f);
+  XCTAssertEqual(combat.fighters()[1].health,2);
+}
+
+- (void)testCombatQueuesAndCompletesThreeStageCombo {
+  using namespace asterix::combat;
+  Config config; config.invulnerability_seconds=.05f;
+  Runtime combat(config);
+  Fighter player; player.id=1; player.team=1;
+  Fighter enemy; enemy.id=2; enemy.team=2; enemy.position={1,0,0}; enemy.health=5;
+  combat.addFighter(player); combat.addFighter(enemy);
+  XCTAssertTrue(combat.pressAttack(1));
+  for(int tick=0;tick<20;++tick)combat.update(1.0f/60.0f);
+  XCTAssertTrue(combat.pressAttack(1));
+  for(int tick=0;tick<33;++tick)combat.update(1.0f/60.0f);
+  XCTAssertEqual(combat.attack().stage,1u);
+  XCTAssertTrue(combat.pressAttack(1));
+  for(int tick=0;tick<33;++tick)combat.update(1.0f/60.0f);
+  XCTAssertEqual(combat.attack().stage,2u);
+  for(int tick=0;tick<40;++tick)combat.update(1.0f/60.0f);
+  XCTAssertFalse(combat.attack().active);
+  XCTAssertEqual(combat.fighters()[1].health,1);
+}
 
 - (void)testCameraTargetZonesFollowPlayerWithoutLosingTarget {
   using namespace asterix;

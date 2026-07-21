@@ -219,6 +219,10 @@ class _Hud extends StatelessWidget {
                         (values['cameraFov'] as num?)?.toDouble() ?? 70;
                     final cameraLimited =
                         values['cameraCollisionLimited'] == true;
+                    final combatActive = values['combatActive'] == true;
+                    final comboStage =
+                        (values['comboStage'] as num?)?.toInt() ?? 0;
+                    final hitWindow = values['combatHitWindow'] == true;
                     return Text(
                       'FPS ${fps.toStringAsFixed(1)}  CPU ${cpu.toStringAsFixed(2)} ms\n'
                       'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB\n'
@@ -226,7 +230,8 @@ class _Hud extends StatelessWidget {
                           ? 'Scene: $visible/$meshes meshes, $batches batches, $sections sections\n'
                                 'Collision: $collision triangles\n'
                                 'Player: $playerState, HP $playerHealth\n'
-                                'Camera: ${cameraFov.toStringAsFixed(0)}°${cameraLimited ? ' collision' : ''}'
+                                'Camera: ${cameraFov.toStringAsFixed(0)}°${cameraLimited ? ' collision' : ''}\n'
+                                'Combat: ${combatActive ? 'combo $comboStage${hitWindow ? ' HIT' : ''}' : 'ready'}'
                           : sceneError.isEmpty
                           ? 'Scene: proof'
                           : 'Scene error: $sceneError'}',
