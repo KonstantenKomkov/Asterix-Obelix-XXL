@@ -77,6 +77,15 @@ class Runtime {
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
     enter(State::idle);
   }
+  bool restore(collision::Vec3 position,collision::Vec3 checkpoint,
+               std::int32_t health) {
+    if(health<0||health>config_.maximum_health||!finite(position)||!finite(checkpoint))return false;
+    snapshot_.body.position=position; snapshot_.body.checkpoint=checkpoint;
+    snapshot_.body.velocity={}; snapshot_.body.grounded=false;
+    snapshot_.health=health; snapshot_.invulnerability_seconds=0;
+    horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
+    enter(health==0?State::death:State::idle); return true;
+  }
 
   void restartAttack() {
     if (snapshot_.state != State::death && snapshot_.state != State::hurt) {
@@ -159,6 +168,9 @@ class Runtime {
   }
 
  private:
+  static bool finite(collision::Vec3 value) {
+    return std::isfinite(value.x)&&std::isfinite(value.y)&&std::isfinite(value.z);
+  }
   static float approach(float value, float target, float delta) {
     if (value < target) return std::min(value + delta, target);
     return std::max(value - delta, target);

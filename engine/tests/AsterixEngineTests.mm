@@ -77,6 +77,31 @@
   XCTAssertEqualWithAccuracy(player.snapshot().body.position.x,0,.001);
 }
 
+- (void)testPersistentWorldStateValidatesAndRestoresCheckpointBaseline {
+  using namespace asterix::interactive;
+  Runtime runtime;
+  runtime.addTrigger({1,{0,0,0},{1,1,1},true,false});
+  runtime.addLever({2,{0,0,0},1});
+  runtime.addDestructible({3,{1,0,0},2,2,false});
+  runtime.addReward({4,{1,0,0},3,1});
+  runtime.addCheckpoint({5,{0,0,0},1});
+  runtime.update({0,0,0},true);
+  runtime.damage(3,1);
+  auto saved=runtime.persistentState();
+  runtime.damage(3,1);
+  runtime.update({1,0,0},false);
+  XCTAssertTrue(runtime.restorePersistent(saved));
+  XCTAssertTrue(runtime.levers().front().activated);
+  XCTAssertEqual(runtime.destructibles().front().health,1);
+  XCTAssertEqual(runtime.snapshot().rewards,0);
+  runtime.damage(3,1);
+  XCTAssertTrue(runtime.destructibles().front().destroyed);
+  XCTAssertTrue(runtime.restoreCheckpoint().has_value());
+  XCTAssertEqual(runtime.destructibles().front().health,1);
+  saved.destructible_health.front()=99;
+  XCTAssertFalse(runtime.restorePersistent(saved));
+}
+
 - (void)testEnemyPerceivesPursuesAttacksAndCanDefeatPlayer {
   using namespace asterix;
   collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},

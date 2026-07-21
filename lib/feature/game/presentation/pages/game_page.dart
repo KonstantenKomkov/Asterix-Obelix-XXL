@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../input/data/input_bindings_store.dart';
 import '../../../input/domain/game_input.dart';
+import '../../../save/data/save_game_store.dart';
+import '../../../save/domain/save_game.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 
 class GamePage extends StatefulWidget {
@@ -21,18 +23,40 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> {
   static const _controllerEvents = EventChannel('asterix/controller-events');
   static const _inputChannel = MethodChannel('asterix/game-input');
+  static const _statsChannel = EventChannel('asterix/metal-stats');
   bool _paused = false;
   final _router = GameInputRouter();
   StreamSubscription<dynamic>? _controllerSubscription;
+  StreamSubscription<dynamic>? _statsSubscription;
+  late final Stream<dynamic> _statsStream;
   GameInputSnapshot? _input;
+  SaveGameStore? _saveStore;
+  String _profileId = 'default';
+  String _profileName = 'Игрок';
+  int _lastSavedCheckpoint = 0;
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
+    _statsStream = _statsChannel.receiveBroadcastStream().asBroadcastStream();
+    _statsSubscription = _statsStream.listen(_onStats);
     _input = _router.snapshot();
     SharedPreferences.getInstance().then((preferences) {
       if (!mounted) return;
       _router.bindings = InputBindingsStore(preferences).load();
+      _saveStore = SaveGameStore(preferences);
+      final saved = _saveStore!.load();
+      if (saved != null) {
+        _profileId = saved.profileId;
+        _profileName = saved.profileName;
+        _lastSavedCheckpoint = saved.checkpointId;
+        unawaited(
+          _inputChannel
+              .invokeMethod<void>('restoreState', saved.gameplayState)
+              .catchError((_) {}),
+        );
+      }
       _publish(_router.snapshot());
     });
     _controllerSubscription = _controllerEvents.receiveBroadcastStream().listen(
@@ -51,6 +75,7 @@ class _GamePageState extends State<GamePage> {
       _inputChannel.invokeMethod<void>('setPaused', false).catchError((_) {}),
     );
     _controllerSubscription?.cancel();
+    _statsSubscription?.cancel();
     _router.reset();
     super.dispose();
   }
@@ -74,10 +99,44 @@ class _GamePageState extends State<GamePage> {
   }
 
   void _setPaused(bool value) {
+    if (value) unawaited(_saveGame(_lastSavedCheckpoint));
     if (mounted) setState(() => _paused = value);
     unawaited(
       _inputChannel.invokeMethod<void>('setPaused', value).catchError((_) {}),
     );
+  }
+
+  void _onStats(dynamic event) {
+    if (event is! Map || _saveStore == null) return;
+    final checkpoint = (event['activeCheckpoint'] as num?)?.toInt() ?? 0;
+    if (checkpoint > 0 && checkpoint != _lastSavedCheckpoint) {
+      _lastSavedCheckpoint = checkpoint;
+      unawaited(_saveGame(checkpoint));
+    }
+  }
+
+  Future<void> _saveGame(int checkpoint) async {
+    if (_saving || _saveStore == null || checkpoint <= 0) return;
+    _saving = true;
+    try {
+      final raw = await _inputChannel.invokeMapMethod<String, Object?>(
+        'captureState',
+      );
+      if (raw == null || raw.isEmpty) return;
+      await _saveStore!.save(
+        SaveGame(
+          profileId: _profileId,
+          profileName: _profileName,
+          checkpointId: checkpoint,
+          savedAt: DateTime.now().toUtc(),
+          gameplayState: Map<String, Object?>.from(raw),
+        ),
+      );
+    } on MissingPluginException {
+      // Non-macOS/widget tests have no native persistence endpoint.
+    } finally {
+      _saving = false;
+    }
   }
 
   @override
@@ -90,7 +149,7 @@ class _GamePageState extends State<GamePage> {
           fit: StackFit.expand,
           children: [
             const _EngineViewport(),
-            const _Hud(),
+            _Hud(stream: _statsStream),
             Positioned(
               left: 24,
               bottom: 20,
@@ -166,14 +225,13 @@ class _EngineViewport extends StatelessWidget {
 }
 
 class _Hud extends StatelessWidget {
-  const _Hud();
-
-  static const _stats = EventChannel('asterix/metal-stats');
+  const _Hud({required this.stream});
+  final Stream<dynamic> stream;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<dynamic>(
-      stream: _stats.receiveBroadcastStream(),
+      stream: stream,
       builder: (context, snapshot) {
         final values = snapshot.data is Map
             ? Map<Object?, Object?>.from(snapshot.data as Map)

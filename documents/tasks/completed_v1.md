@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 39 — Версионируемые сохранения
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен JSON envelope schema v2 с profile ID/name, checkpoint ID, UTC timestamp
+и authoritative gameplay payload. `SaveGameStore` сохраняет его в
+`SharedPreferences`, закрыто обрабатывает повреждённые данные и неизвестные
+версии. Реализована миграция legacy schema v1 с плоскими profile/checkpoint полями.
+
+Native capture/restore включает position, checkpoint и health игрока; position и
+health противника; reward counter, active checkpoint, triggers, levers,
+destructible health и reward flags. Restore валидирует структуру и диапазоны,
+синхронизирует combat fighters и устанавливает восстановленный мир как новый
+baseline death/fall rollback.
+
+Autosave выполняется при активации checkpoint и открытии паузы. При перезапуске
+Flutter загружает профиль и отправляет state через method channel; Swift bridge
+очередит restore до завершения асинхронной загрузки ASTPAK. Контракт и стратегия
+миграций описаны в [документе versioned saves](../architecture/versioned_saves.md).
+
+Тесты покрывают round-trip после пересоздания store, v1→v2 migration, corrupt и
+future-schema rejection, native persistent world validation и новый checkpoint
+baseline. Прошли 45 Flutter tests, analyze, 22 native XCTest, macOS debug build,
+diff review и resource policy. Ресурсы не добавлялись.
+
 ## П. 38 — HUD, пауза и игровые настройки
 
 **Выполнено:** 21 июля 2026.

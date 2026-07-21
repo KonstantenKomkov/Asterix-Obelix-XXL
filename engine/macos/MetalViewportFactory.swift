@@ -13,6 +13,7 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
   private var debugMethodChannel: FlutterMethodChannel?
   private var inputMethodChannel: FlutterMethodChannel?
   private var latestInput: [String: Double] = [:]
+  private var pendingGameplayState: [String: Any]?
 
   override init() {
     super.init()
@@ -41,6 +42,12 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
       } else if call.method == "setPaused", let paused = call.arguments as? Bool {
         self?.viewport?.setGameplayPaused(paused)
         result(nil)
+      } else if call.method == "captureState" {
+        result(self?.viewport?.gameplaySaveState ?? [:])
+      } else if call.method == "restoreState", let state = call.arguments as? [String: Any] {
+        self?.pendingGameplayState = state
+        self?.viewport?.restoreGameplaySaveState(state)
+        result(nil)
       } else {
         result(FlutterMethodNotImplemented)
       }
@@ -65,6 +72,7 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
       view.reportSceneConfigurationError("ASTERIX_ASSET_PACKAGE is not configured")
     }
     viewport = view
+    if let state = pendingGameplayState { view.restoreGameplaySaveState(state) }
     return view
   }
 
@@ -92,6 +100,7 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
 final class MetalViewportView: MTKView {
   private var renderer: AsterixMetalRenderer?
   private var lifecycleObservers: [(NotificationCenter, NSObjectProtocol)] = []
+  private var pendingGameplayState: [String: Any]?
 
   var statistics: [String: Any] {
     guard let renderer else { return [:] }
@@ -146,10 +155,26 @@ final class MetalViewportView: MTKView {
     if paused { renderer?.suspend() } else { renderer?.resume() }
   }
 
+  var gameplaySaveState: [String: Any] {
+    renderer?.gameplaySaveState() as? [String: Any] ?? [:]
+  }
+
+  func restoreGameplaySaveState(_ state: [String: Any]) {
+    pendingGameplayState = state
+    if renderer?.restoreGameplaySaveState(state) == true {
+      pendingGameplayState = nil
+    }
+  }
+
   func loadAssetPackage(at url: URL) {
     // Package parsing and buffer preparation must never stall the UI/render loop.
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-      self?.renderer?.loadAssetPackage(at: url)
+      guard let self else { return }
+      let loaded = self.renderer?.loadAssetPackage(at: url) == true
+      DispatchQueue.main.async { [weak self] in
+        guard loaded, let self, let state = self.pendingGameplayState else { return }
+        self.restoreGameplaySaveState(state)
+      }
     }
   }
 

@@ -35,6 +35,14 @@ struct Destructible { std::uint32_t id; Vec3 position; std::int32_t health=2; st
 struct Reward { std::uint32_t id; Vec3 position; std::uint32_t source_object=0; std::int32_t value=1; bool available=true; bool collected=false; };
 struct Checkpoint { std::uint32_t id; Vec3 position; float radius=1.0f; bool activated=false; };
 struct Snapshot { std::int32_t rewards=0; std::uint32_t active_checkpoint=0; };
+struct PersistentState {
+  Snapshot snapshot{};
+  std::vector<bool> triggers_fired;
+  std::vector<bool> levers_activated;
+  std::vector<std::int32_t> destructible_health;
+  std::vector<bool> rewards_available;
+  std::vector<bool> rewards_collected;
+};
 
 class Runtime {
  public:
@@ -56,6 +64,43 @@ class Runtime {
   const std::vector<Destructible>& destructibles() const { return destructibles_; }
   const std::vector<Reward>& rewards() const { return rewards_; }
   const std::vector<Checkpoint>& checkpoints() const { return checkpoints_; }
+  PersistentState persistentState() const {
+    PersistentState state; state.snapshot=snapshot_;
+    for(const auto& value:triggers_)state.triggers_fired.push_back(value.fired);
+    for(const auto& value:levers_)state.levers_activated.push_back(value.activated);
+    for(const auto& value:destructibles_)state.destructible_health.push_back(value.health);
+    for(const auto& value:rewards_) {
+      state.rewards_available.push_back(value.available);
+      state.rewards_collected.push_back(value.collected);
+    }
+    return state;
+  }
+  bool restorePersistent(const PersistentState& state) {
+    if(state.triggers_fired.size()!=triggers_.size()||
+       state.levers_activated.size()!=levers_.size()||
+       state.destructible_health.size()!=destructibles_.size()||
+       state.rewards_available.size()!=rewards_.size()||
+       state.rewards_collected.size()!=rewards_.size())return false;
+    if(state.snapshot.rewards<0)return false;
+    const auto checkpoint=std::find_if(checkpoints_.begin(),checkpoints_.end(),
+        [&state](const auto& value){return value.id==state.snapshot.active_checkpoint;});
+    if(checkpoint==checkpoints_.end())return false;
+    for(std::size_t i=0;i<destructibles_.size();++i)
+      if(state.destructible_health[i]<0||state.destructible_health[i]>destructibles_[i].maximum_health)return false;
+    snapshot_=state.snapshot;
+    for(std::size_t i=0;i<triggers_.size();++i)triggers_[i].fired=state.triggers_fired[i];
+    for(std::size_t i=0;i<levers_.size();++i)levers_[i].activated=state.levers_activated[i];
+    for(std::size_t i=0;i<destructibles_.size();++i) {
+      destructibles_[i].health=state.destructible_health[i];
+      destructibles_[i].destroyed=destructibles_[i].health==0;
+    }
+    for(std::size_t i=0;i<rewards_.size();++i) {
+      rewards_[i].available=state.rewards_available[i]; rewards_[i].collected=state.rewards_collected[i];
+    }
+    for(auto& value:checkpoints_)value.activated=value.id==snapshot_.active_checkpoint;
+    saved_=Saved{triggers_,levers_,destructibles_,rewards_,snapshot_};
+    inside_triggers_.clear(); events_.clear(); return true;
+  }
   Hint hint(Vec3 player,bool player_dead) const {
     if(player_dead&&snapshot_.active_checkpoint!=0)return Hint::respawn;
     for(const auto& lever:levers_)

@@ -68,6 +68,19 @@ static uint64_t AsterixReadU64(const uint8_t* p) {
   return (uint64_t)AsterixReadU32(p) | (uint64_t)AsterixReadU32(p + 4) << 32;
 }
 
+static NSArray* AsterixVec3Array(asterix::collision::Vec3 value) {
+  return @[@(value.x),@(value.y),@(value.z)];
+}
+
+static BOOL AsterixReadVec3(id value,asterix::collision::Vec3& result) {
+  if(![value isKindOfClass:NSArray.class]||[(NSArray*)value count]!=3)return NO;
+  NSArray* values=(NSArray*)value;
+  for(id item in values)if(![item isKindOfClass:NSNumber.class])return NO;
+  result={(float)[values[0] doubleValue],(float)[values[1] doubleValue],
+          (float)[values[2] doubleValue]};
+  return std::isfinite(result.x)&&std::isfinite(result.y)&&std::isfinite(result.z);
+}
+
 static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
                                            float nearZ, float farZ) {
   const float y = 1.0f / tanf(fovY * 0.5f);
@@ -321,6 +334,83 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
 - (void)reportSceneError:(NSString*)message {
   @synchronized(self) { if (_sceneError == nil) _sceneError = [message copy]; }
 }
+
+- (NSDictionary*)gameplaySaveState { @synchronized(self) {
+  if(!_playerRuntime||!_enemyRuntime||!_interactiveRuntime)return @{};
+  const auto player=_playerRuntime->snapshot();
+  const auto enemy=_enemyRuntime->snapshot();
+  const auto world=_interactiveRuntime->persistentState();
+  NSMutableArray* triggers=[NSMutableArray array];
+  for(bool value:world.triggers_fired)[triggers addObject:@(value)];
+  NSMutableArray* levers=[NSMutableArray array];
+  for(bool value:world.levers_activated)[levers addObject:@(value)];
+  NSMutableArray* objects=[NSMutableArray array];
+  for(auto value:world.destructible_health)[objects addObject:@(value)];
+  NSMutableArray* available=[NSMutableArray array];
+  for(bool value:world.rewards_available)[available addObject:@(value)];
+  NSMutableArray* collected=[NSMutableArray array];
+  for(bool value:world.rewards_collected)[collected addObject:@(value)];
+  return @{ @"player":@{ @"position":AsterixVec3Array(player.body.position),
+                           @"checkpoint":AsterixVec3Array(player.body.checkpoint),
+                           @"health":@(player.health)},
+            @"enemy":@{ @"position":AsterixVec3Array(enemy.body.position),
+                          @"health":@(enemy.health)},
+            @"world":@{ @"rewards":@(world.snapshot.rewards),
+                          @"checkpoint":@(world.snapshot.active_checkpoint),
+                          @"triggers":triggers,@"levers":levers,@"objects":objects,
+                          @"rewardAvailable":available,@"rewardCollected":collected} };
+} }
+
+- (BOOL)restoreGameplaySaveState:(NSDictionary*)state { @synchronized(self) {
+  if(!_playerRuntime||!_enemyRuntime||!_interactiveRuntime||!_combatRuntime||
+     ![state isKindOfClass:NSDictionary.class])return NO;
+  NSDictionary* player=state[@"player"];
+  NSDictionary* enemy=state[@"enemy"];
+  NSDictionary* world=state[@"world"];
+  if(![player isKindOfClass:NSDictionary.class]||![enemy isKindOfClass:NSDictionary.class]||
+     ![world isKindOfClass:NSDictionary.class])return NO;
+  asterix::collision::Vec3 playerPosition,checkpoint,enemyPosition;
+  if(!AsterixReadVec3(player[@"position"],playerPosition)||
+     !AsterixReadVec3(player[@"checkpoint"],checkpoint)||
+     !AsterixReadVec3(enemy[@"position"],enemyPosition)||
+     ![player[@"health"] isKindOfClass:NSNumber.class]||
+     ![enemy[@"health"] isKindOfClass:NSNumber.class])return NO;
+  const auto booleans=[](id value,std::vector<bool>& output) {
+    if(![value isKindOfClass:NSArray.class])return false;
+    for(id item in (NSArray*)value) {
+      if(![item isKindOfClass:NSNumber.class])return false;
+      output.push_back([item boolValue]);
+    }
+    return true;
+  };
+  asterix::interactive::PersistentState persistent;
+  if(![world[@"rewards"] isKindOfClass:NSNumber.class]||
+     ![world[@"checkpoint"] isKindOfClass:NSNumber.class]||
+     !booleans(world[@"triggers"],persistent.triggers_fired)||
+     !booleans(world[@"levers"],persistent.levers_activated)||
+     !booleans(world[@"rewardAvailable"],persistent.rewards_available)||
+     !booleans(world[@"rewardCollected"],persistent.rewards_collected)||
+     ![world[@"objects"] isKindOfClass:NSArray.class])return NO;
+  persistent.snapshot.rewards=[world[@"rewards"] intValue];
+  persistent.snapshot.active_checkpoint=[world[@"checkpoint"] unsignedIntValue];
+  for(id item in (NSArray*)world[@"objects"]) {
+    if(![item isKindOfClass:NSNumber.class])return NO;
+    persistent.destructible_health.push_back([item intValue]);
+  }
+  const int playerHealth=[player[@"health"] intValue];
+  const int enemyHealth=[enemy[@"health"] intValue];
+  if(playerHealth<0||playerHealth>_playerRuntime->config().maximum_health||
+     enemyHealth<0||enemyHealth>3||
+     !_interactiveRuntime->restorePersistent(persistent)||
+     !_playerRuntime->restore(playerPosition,checkpoint,playerHealth)||
+     !_enemyRuntime->restore(enemyPosition,enemyHealth))return NO;
+  _combatRuntime->cancelAttack();
+  _combatRuntime->setFighterHealth(1,playerHealth);
+  _combatRuntime->setFighterHealth(2,enemyHealth);
+  if(!persistent.destructible_health.empty())
+    _combatRuntime->setFighterHealth(100,persistent.destructible_health.front());
+  return YES;
+} }
 
 - (BOOL)loadAssetPackageAtURL:(NSURL*)url {
   MTKView* view = _view;
@@ -801,6 +891,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                 if(_enemyRuntime)_enemyRuntime->reset();
                 if(_combatRuntime) {
                   _combatRuntime->cancelAttack();
+                  _combatRuntime->setFighterHealth(
+                      1,_playerRuntime->config().maximum_health);
                   _combatRuntime->resetFighter(2,3);
                   _combatRuntime->resetFighter(100,2);
                 }

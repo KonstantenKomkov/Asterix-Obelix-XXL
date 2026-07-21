@@ -77,6 +77,12 @@ class Runtime {
     snapshot_={}; snapshot_.body=initial_body_; snapshot_.health=config_.health;
     snapshot_.facing={1,0,0}; impact_done_=false;
   }
+  bool restore(Vec3 position,std::int32_t health) {
+    if(health<0||health>config_.health||!finite(position))return false;
+    reset(); snapshot_.body.position=position; snapshot_.body.velocity={};
+    snapshot_.health=health; snapshot_.state=health==0?State::death:State::idle;
+    return true;
+  }
 
   bool applyDamage(std::int32_t damage, Vec3 knockback = {}) {
     if (damage <= 0 || snapshot_.state == State::death) return false;

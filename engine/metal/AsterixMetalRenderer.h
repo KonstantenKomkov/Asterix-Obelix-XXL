@@ -49,6 +49,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)resizeToDrawableSize:(CGSize)drawableSize;
 - (BOOL)loadAssetPackageAtURL:(NSURL*)url;
+- (NSDictionary*)gameplaySaveState;
+- (BOOL)restoreGameplaySaveState:(NSDictionary*)state;
 - (void)reportSceneError:(NSString*)message;
 - (void)setDebugOptions:(uint32_t)options;
 - (void)setInputMoveX:(float)moveX
