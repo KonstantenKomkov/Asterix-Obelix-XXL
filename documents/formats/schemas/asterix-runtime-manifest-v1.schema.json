@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://asterix-xxl.invalid/schemas/asterix-runtime-manifest-v1.schema.json",
+  "title": "Asterix runtime package manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schema", "bundleId", "objects", "resources"],
+  "properties": {
+    "format": { "const": "asterix-runtime-package" },
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["major", "minor"],
+      "properties": {
+        "major": { "const": 1 },
+        "minor": { "const": 0 }
+      }
+    },
+    "bundleId": { "type": "string", "minLength": 1 },
+    "entryObjectId": { "$ref": "#/$defs/stableId" },
+    "objects": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/object" }
+    },
+    "resources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/resource" }
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^astx:[a-z][a-z0-9-]{0,31}:[0-9a-f]{32}$"
+    },
+    "kind": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,31}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "key"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "source", "payloadIds", "dependencies"],
+      "properties": {
+        "id": { "$ref": "#/$defs/stableId" },
+        "kind": { "$ref": "#/$defs/kind" },
+        "source": { "$ref": "#/$defs/source" },
+        "payloadIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/stableId" }
+        },
+        "dependencies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/stableId" }
+        },
+        "metadata": { "$ref": "#/$defs/metadata" }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "source", "offset", "length", "sha256"],
+      "properties": {
+        "id": { "$ref": "#/$defs/stableId" },
+        "kind": { "$ref": "#/$defs/kind" },
+        "source": { "$ref": "#/$defs/source" },
+        "offset": { "type": "integer", "minimum": 0, "multipleOf": 16 },
+        "length": { "type": "integer", "minimum": 0 },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "metadata": { "$ref": "#/$defs/metadata" }
+      }
+    }
+  }
+}

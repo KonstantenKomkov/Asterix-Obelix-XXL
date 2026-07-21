@@ -383,3 +383,32 @@ Review выявил и устранил критическую ошибку ин
 проверяет device и готовность scene pipeline. Прошли `make check`, Runner XCTest,
 profile host verification и resource policy; оригинальные игровые ресурсы не
 добавлялись.
+
+## П. 23 — Версионируемый runtime-формат ресурсов
+
+**Выполнено:** 21 июля 2026.
+
+В [ADR-002](../architecture/adr-002-runtime-asset-package.md) выбран собственный
+контейнер ASTPAK вместо glTF-only решения. Importer proof содержит scene graph,
+collision, spatial data, animations и audio за пределами базовой модели glTF;
+при этом GLB при необходимости может храниться как typed payload внутри ASTPAK.
+
+Реализованы детерминированные builder и reader ASTPAK 1.0: 48-байтовый
+little-endian header, canonical JSON manifest, 16-byte-aligned payload ranges и
+SHA-256 каждого ресурса. Reader проверяет версии, границы, canonical identity,
+уникальность IDs, ссылки и checksums до выдачи immutable manifest/payload.
+Добавлена команда `make package-inspect INPUT=...`.
+
+Manifest 1.0 описан отдельной
+[JSON Schema](../formats/schemas/asterix-runtime-manifest-v1.schema.json) и
+[спецификацией binary layout](../formats/runtime_asset_package.md). Устойчивый ID
+`astx:<kind>:<128-bit hex>` зависит от нормализованных `kind`, относительного
+source path и source object key, но не от изменяемых payload bytes. Совпадения
+ID, неканонические locators и неявное переназначение завершаются ошибкой.
+
+Синтетические тесты покрывают побайтную детерминированность независимо от
+порядка input, round trip двух payload, alignment, стабильность IDs при
+изменении содержимого, отсутствующие/дублированные ссылки, global ID collision,
+неподдерживаемую версию, corruption checksum и immutable parsed manifest.
+Прошли `make check`, JSON syntax check и resource policy; оригинальные или
+производные игровые ресурсы не добавлялись.

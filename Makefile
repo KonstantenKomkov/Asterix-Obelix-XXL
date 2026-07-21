@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect package-inspect run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -26,6 +26,10 @@ inventory: ## Построить локальный JSON-манифест ори
 importer-inspect: ## Проверить файл каркасом импортёра (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/файлу' >&2; exit 2)
 	$(DART) run bin/importer.dart inspect "$(INPUT)"
+
+package-inspect: ## Проверить и вывести manifest runtime-пакета (INPUT=...)
+	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/package.astpak' >&2; exit 2)
+	$(DART) run bin/asset_package.dart inspect "$(INPUT)"
 
 run: ## Запустить приложение на macOS в debug
 	$(FLUTTER) run -d macos
