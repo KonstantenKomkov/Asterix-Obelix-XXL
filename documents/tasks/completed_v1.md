@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 36 — Навигация и первый противник
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен отдельный fixed-tick `enemy::Runtime` со состояниями idle, pursuit,
+attack, stun, death и returning. Конфигурируются perception и attack ranges,
+скорость, leash, attack impact/duration/cooldown, stun, здоровье и урон. Противник
+преследует живого игрока по collision surface, атакует один раз за цикл и после
+потери цели или выхода за leash возвращается к spawn.
+
+Runtime подключён к общей боевой системе как fighter другой команды. Player
+combo наносит противнику damage и knockback, а enemy attack вызывает hurt/death
+игрока. После смерти игрок не может начать новый удар. Второй capsule controller
+не обновляет dynamic world повторно, поэтому геометрия продолжает двигаться ровно
+один раз за simulation tick.
+
+Metal loader выбирает spawn противника среди соседних допустимых ground points.
+Native snapshot и Flutter diagnostic HUD показывают enemy state, health и
+position. Контракт и ограничения описаны в
+[документе enemy runtime](../architecture/enemy_runtime.md); оригинальные или
+производные игровые ресурсы не добавлялись.
+
+XCTest покрывает perception, pursuit, attack, проигрыш игрока, stun, knockback,
+death, возврат в leash и победу игрока полной трёхударной комбинацией. Прошли
+native XCTest, все Flutter tests, diff review и resource policy.
+
 ## П. 35 — Боевая система и первая комбинация
 
 **Выполнено:** 21 июля 2026.

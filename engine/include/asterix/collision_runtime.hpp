@@ -104,7 +104,8 @@ class CapsuleController {
       throw std::invalid_argument("capsule dimensions are invalid");
   }
 
-  CapsuleState move(CapsuleState state, Vec3 desired_velocity, float dt) {
+  CapsuleState move(CapsuleState state, Vec3 desired_velocity, float dt,
+                    bool advance_dynamic_world = true) {
     if (!std::isfinite(dt) || dt <= 0) throw std::invalid_argument("movement dt is invalid");
     state.recovered_from_fall=false;
     if (state.grounded) {
@@ -115,7 +116,7 @@ class CapsuleController {
         }
       }
     }
-    world_.advanceDynamic(dt);
+    if (advance_dynamic_world) world_.advanceDynamic(dt);
     state.velocity.x=desired_velocity.x;
     state.velocity.z=desired_velocity.z;
     if (state.grounded && state.velocity.y<0) state.velocity.y=0;

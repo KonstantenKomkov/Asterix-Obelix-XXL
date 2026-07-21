@@ -11,6 +11,7 @@
 #include "asterix/player_runtime.hpp"
 #include "asterix/camera_runtime.hpp"
 #include "asterix/combat_runtime.hpp"
+#include "asterix/enemy_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -124,6 +125,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::collision::World> _collisionWorld;
   std::unique_ptr<asterix::collision::CapsuleController> _capsuleController;
   std::unique_ptr<asterix::player::Runtime> _playerRuntime;
+  std::unique_ptr<asterix::collision::CapsuleController> _enemyCapsuleController;
+  std::unique_ptr<asterix::enemy::Runtime> _enemyRuntime;
   std::unique_ptr<asterix::camera::Runtime> _cameraRuntime;
   std::unique_ptr<asterix::combat::Runtime> _combatRuntime;
   asterix::player::Input _playerInput;
@@ -244,6 +247,20 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
 - (vector_float3)playerPosition { @synchronized(self) {
   if (!_playerRuntime) return (vector_float3){0,0,0};
   const auto p=_playerRuntime->snapshot().body.position;
+  return (vector_float3){p.x,p.y,p.z};
+} }
+- (NSString*)enemyState { @synchronized(self) {
+  if (!_enemyRuntime) return @"unavailable";
+  NSString* name=[NSString stringWithUTF8String:
+      asterix::enemy::stateName(_enemyRuntime->snapshot().state)];
+  return name ?: @"unavailable";
+} }
+- (NSInteger)enemyHealth { @synchronized(self) {
+  return _enemyRuntime ? _enemyRuntime->snapshot().health : 0;
+} }
+- (vector_float3)enemyPosition { @synchronized(self) {
+  if (!_enemyRuntime) return (vector_float3){0,0,0};
+  const auto p=_enemyRuntime->snapshot().body.position;
   return (vector_float3){p.x,p.y,p.z};
 } }
 - (float)cameraFieldOfView { @synchronized(self) {
@@ -516,6 +533,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::collision::World> collisionWorld;
   std::unique_ptr<asterix::collision::CapsuleController> capsuleController;
   std::unique_ptr<asterix::player::Runtime> playerRuntime;
+  std::unique_ptr<asterix::collision::CapsuleController> enemyCapsuleController;
+  std::unique_ptr<asterix::enemy::Runtime> enemyRuntime;
   std::unique_ptr<asterix::camera::Runtime> cameraRuntime;
   std::unique_ptr<asterix::combat::Runtime> combatRuntime;
   if (!collisionTriangles.empty()) {
@@ -533,11 +552,29 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                    (spawnTriangle.a.z+spawnTriangle.b.z+spawnTriangle.c.z)/3};
     body.checkpoint=body.position;
     playerRuntime=std::make_unique<asterix::player::Runtime>(*capsuleController,body);
+    enemyCapsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
+    asterix::collision::CapsuleState enemyBody=body;
+    const float slope=std::cos(50.0f*3.14159265358979323846f/180.0f);
+    const asterix::collision::Vec3 offsets[]={{3,0,0},{-3,0,0},{0,0,3},{0,0,-3},
+                                              {2,0,0},{-2,0,0},{0,0,2},{0,0,-2}};
+    for(const auto offset:offsets) {
+      const auto candidate=body.position+offset;
+      const auto ground=collisionWorld->groundAt(candidate.x,candidate.z,
+                                                  body.position.y+5.0f,slope);
+      if(!ground)continue;
+      enemyBody.position={candidate.x,ground->height+.9f,candidate.z};
+      break;
+    }
+    enemyBody.checkpoint=enemyBody.position;
+    enemyRuntime=std::make_unique<asterix::enemy::Runtime>(*enemyCapsuleController,enemyBody);
     cameraRuntime=std::make_unique<asterix::camera::Runtime>();
     combatRuntime=std::make_unique<asterix::combat::Runtime>();
     asterix::combat::Fighter playerFighter;
     playerFighter.id=1; playerFighter.team=1; playerFighter.position=body.position;
     combatRuntime->addFighter(playerFighter);
+    asterix::combat::Fighter enemyFighter;
+    enemyFighter.id=2; enemyFighter.team=2; enemyFighter.position=enemyBody.position;
+    combatRuntime->addFighter(enemyFighter);
   }
   runtime->addSection({"gaul-stage-1",
                        {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
@@ -558,6 +595,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _collisionWorld = std::move(collisionWorld);
     _capsuleController = std::move(capsuleController);
     _playerRuntime = std::move(playerRuntime);
+    _enemyCapsuleController = std::move(enemyCapsuleController);
+    _enemyRuntime = std::move(enemyRuntime);
     _cameraRuntime = std::move(cameraRuntime);
     _combatRuntime = std::move(combatRuntime);
     _combatAttackWasPressed = false;
@@ -639,9 +678,11 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _sceneMeshRanges.clear();
     _sceneRuntime.reset();
     _playerRuntime.reset();
+    _enemyRuntime.reset();
     _cameraRuntime.reset();
     _combatRuntime.reset();
     _capsuleController.reset();
+    _enemyCapsuleController.reset();
     _collisionWorld.reset();
     _depthTexture = nil;
     _view = nil;
@@ -704,18 +745,39 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           _previousAnimationPhase = _currentAnimationPhase;
           _currentAnimationPhase += (float)step;
           if (_playerRuntime) _playerRuntime->update((float)step,_playerInput);
+          if (_enemyRuntime && _playerRuntime) {
+            const auto enemyResult=_enemyRuntime->update(
+                (float)step,_playerRuntime->snapshot().body.position,
+                _playerRuntime->snapshot().state!=asterix::player::State::death);
+            if(enemyResult.dealt_damage)
+              _playerRuntime->applyDamage(_enemyRuntime->attackDamage());
+          }
           if (_combatRuntime && _playerRuntime) {
             const bool attackEdge=_playerInput.attack&&!_combatAttackWasPressed;
             _combatAttackWasPressed=_playerInput.attack;
-            if(attackEdge)_combatRuntime->pressAttack(1);
+            const bool playerAlive=
+                _playerRuntime->snapshot().state!=asterix::player::State::death;
+            if(attackEdge&&playerAlive)_combatRuntime->pressAttack(1);
             const auto body=_playerRuntime->snapshot().body;
             asterix::collision::Vec3 facing={_playerInput.move_x,0,_playerInput.move_z};
             _combatRuntime->setTransform(1,body.position,facing);
+            if(_enemyRuntime) {
+              const auto enemy=_enemyRuntime->snapshot();
+              _combatRuntime->setTransform(2,enemy.body.position,enemy.facing);
+            }
             const std::size_t previousStage=_combatRuntime->attack().stage;
             _combatRuntime->update((float)step);
             if(_combatRuntime->attack().active&&
                _combatRuntime->attack().stage!=previousStage)
               _playerRuntime->restartAttack();
+            for(const auto& event:_combatRuntime->drainEvents()) {
+              if(event.type!=asterix::combat::EventType::hit||event.target!=2||
+                 !_enemyRuntime)continue;
+              asterix::collision::Vec3 knockback{};
+              for(const auto& fighter:_combatRuntime->fighters())
+                if(fighter.id==2)knockback=fighter.knockback_velocity;
+              _enemyRuntime->applyDamage(event.damage,knockback);
+            }
           }
           if (_cameraRuntime && _playerRuntime && _collisionWorld) {
             _cameraRuntime->update(_playerRuntime->snapshot().body.position,

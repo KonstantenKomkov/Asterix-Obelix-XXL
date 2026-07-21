@@ -8,6 +8,7 @@
 #include "asterix/player_runtime.hpp"
 #include "asterix/camera_runtime.hpp"
 #include "asterix/combat_runtime.hpp"
+#include "asterix/enemy_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -15,6 +16,98 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testEnemyPerceivesPursuesAttacksAndCanDefeatPlayer {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController playerController(world,capsuleConfig);
+  collision::CapsuleController enemyController(world,capsuleConfig);
+  collision::CapsuleState playerBody;
+  playerBody.position={0,.9f,0}; playerBody.checkpoint=playerBody.position;
+  playerBody.grounded=true;
+  player::Runtime player(playerController,playerBody);
+  collision::CapsuleState enemyBody;
+  enemyBody.position={4,.9f,0}; enemyBody.checkpoint=enemyBody.position;
+  enemyBody.grounded=true;
+  enemy::Runtime enemy(enemyController,enemyBody);
+  bool sawPursuit=false,sawAttack=false;
+  for(int tick=0;tick<600&&player.snapshot().health>0;++tick) {
+    auto result=enemy.update(1.0f/60.0f,player.snapshot().body.position,
+                             player.snapshot().health>0);
+    sawPursuit|=result.snapshot->state==enemy::State::pursuit;
+    sawAttack|=result.snapshot->state==enemy::State::attack;
+    if(result.dealt_damage)player.applyDamage(enemy.attackDamage());
+    player.update(1.0f/60.0f,{});
+  }
+  XCTAssertTrue(sawPursuit);
+  XCTAssertTrue(sawAttack);
+  XCTAssertEqual(player.snapshot().state,player::State::death);
+}
+
+- (void)testEnemyStunDeathAndReturnToLeashOrigin {
+  using namespace asterix;
+  collision::World world({{{-30,0,-30},{30,0,-30},{-30,0,30},1},
+                          {{30,0,-30},{30,0,30},{-30,0,30},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,.9f,0}; body.checkpoint=body.position; body.grounded=true;
+  enemy::Config config; config.leash_radius=3;
+  enemy::Runtime enemy(controller,body,config);
+  for(int tick=0;tick<180;++tick)enemy.update(1.0f/60.0f,{8,.9f,0});
+  XCTAssertTrue(enemy.snapshot().state==enemy::State::returning||
+                enemy.snapshot().state==enemy::State::idle);
+  for(int tick=0;tick<240&&enemy.snapshot().state!=enemy::State::idle;++tick)
+    enemy.update(1.0f/60.0f,{20,.9f,0});
+  XCTAssertLessThan(collision::length(enemy.snapshot().body.position-
+                                      collision::Vec3{0,.9f,0}),.35f);
+  XCTAssertTrue(enemy.applyDamage(1,{2,0,0}));
+  XCTAssertEqual(enemy.snapshot().state,enemy::State::stun);
+  XCTAssertTrue(enemy.applyDamage(2));
+  XCTAssertEqual(enemy.snapshot().state,enemy::State::death);
+  const auto deathPosition=enemy.snapshot().body.position;
+  for(int tick=0;tick<120;++tick)enemy.update(1.0f/60.0f,{0,.9f,0});
+  XCTAssertEqualWithAccuracy(enemy.snapshot().body.position.x,deathPosition.x,.001);
+}
+
+- (void)testPlayerComboCanDefeatEnemy {
+  using namespace asterix;
+  collision::World world({{{-10,0,-10},{10,0,-10},{-10,0,10},1},
+                          {{10,0,-10},{10,0,10},{-10,0,10},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={1,.9f,0}; body.checkpoint=body.position; body.grounded=true;
+  enemy::Runtime enemy(controller,body);
+  combat::Config combatConfig;
+  combatConfig.invulnerability_seconds=.05f;
+  combat::Runtime combat(combatConfig);
+  combat::Fighter playerFighter;
+  playerFighter.id=1; playerFighter.team=1; playerFighter.position={0,.9f,0};
+  combat.addFighter(playerFighter);
+  combat::Fighter enemyFighter;
+  enemyFighter.id=2; enemyFighter.team=2; enemyFighter.position=body.position;
+  combat.addFighter(enemyFighter);
+  XCTAssertTrue(combat.pressAttack(1));
+  bool sawStun=false;
+  for(int tick=0;tick<180&&enemy.snapshot().state!=enemy::State::death;++tick) {
+    if(combat.attack().input_window)combat.pressAttack(1);
+    combat.setTransform(1,{0,.9f,0},{1,0,0});
+    combat.setTransform(2,enemy.snapshot().body.position,enemy.snapshot().facing);
+    combat.update(1.0f/60.0f);
+    for(const auto& event:combat.drainEvents()) {
+      if(event.type==combat::EventType::hit&&event.target==2) {
+        enemy.applyDamage(event.damage);
+        sawStun|=enemy.snapshot().state==enemy::State::stun;
+      }
+    }
+  }
+  XCTAssertTrue(sawStun);
+  XCTAssertEqual(enemy.snapshot().state,enemy::State::death);
+  XCTAssertEqual(enemy.snapshot().health,0);
+}
 
 - (void)testCombatHitboxDamagesOnceAppliesKnockbackAndInvulnerability {
   using namespace asterix::combat;

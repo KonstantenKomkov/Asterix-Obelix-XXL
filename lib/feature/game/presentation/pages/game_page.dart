@@ -215,6 +215,10 @@ class _Hud extends StatelessWidget {
                         values['playerState'] as String? ?? 'unavailable';
                     final playerHealth =
                         (values['playerHealth'] as num?)?.toInt() ?? 0;
+                    final enemyState =
+                        values['enemyState'] as String? ?? 'unavailable';
+                    final enemyHealth =
+                        (values['enemyHealth'] as num?)?.toInt() ?? 0;
                     final cameraFov =
                         (values['cameraFov'] as num?)?.toDouble() ?? 70;
                     final cameraLimited =
@@ -230,6 +234,7 @@ class _Hud extends StatelessWidget {
                           ? 'Scene: $visible/$meshes meshes, $batches batches, $sections sections\n'
                                 'Collision: $collision triangles\n'
                                 'Player: $playerState, HP $playerHealth\n'
+                                'Enemy: $enemyState, HP $enemyHealth\n'
                                 'Camera: ${cameraFov.toStringAsFixed(0)}°${cameraLimited ? ' collision' : ''}\n'
                                 'Combat: ${combatActive ? 'combo $comboStage${hitWindow ? ' HIT' : ''}' : 'ready'}'
                           : sceneError.isEmpty
