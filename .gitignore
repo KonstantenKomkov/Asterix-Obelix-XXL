@@ -10,6 +10,20 @@
 .env
 .env.*
 
+# Оригинальные игровые данные и результаты локального импорта
+*.exe
+*.dll
+*.kwn
+*.KWN
+*.rws
+*.RWS
+*.sav
+*.mdf
+*.mds
+*.iso
+/original_data/
+/assets_generated/
+
 .dart_tool/
 .flutter-plugins-dependencies
 .pub-cache/

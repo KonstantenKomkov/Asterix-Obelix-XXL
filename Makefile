@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get run run-profile run-release format analyze test check build clean doctor
+.PHONY: help setup get run run-profile run-release format analyze test policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -37,7 +37,10 @@ analyze: ## Запустить статический анализ
 test: ## Запустить тесты
 	$(FLUTTER) test
 
-check: format analyze test ## Выполнить все проверки
+policy-check: ## Проверить отсутствие оригинальных игровых данных
+	./scripts/check_resource_policy.sh
+
+check: policy-check format analyze test ## Выполнить все проверки
 
 build: ## Собрать release-приложение для macOS
 	$(FLUTTER) build macos --release
