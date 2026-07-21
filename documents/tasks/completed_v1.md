@@ -308,3 +308,24 @@ Runner XCTest проверяет создание именно Metal view, pixel
 Flutter HUD над viewport. Прошли Runner/native XCTest, полный `make check`,
 resource policy и Flutter macOS release build. Оригинальные игровые ресурсы не
 добавлялись.
+
+## П. 20 — Lifecycle Metal renderer
+
+**Выполнено:** 21 июля 2026.
+
+В `engine/metal` добавлен Objective-C++ `AsterixMetalRenderer`, который владеет
+Metal command queue, реализует `MTKViewDelegate` и явные состояния running,
+suspended и stopped. Resize обновляет сохранённый drawable size; кадр очищает и
+предъявляет drawable через command buffer, не передавая Metal-типы в C++ core.
+
+AppKit bridge приостанавливает display callbacks при потере активности,
+невидимом/свёрнутом окне и sleep, а после foreground/wake возобновляет их только
+для видимого окна. При уничтожении platform view снимаются все observers,
+renderer переводится в stopped, перестаёт принимать кадры, снимает delegate,
+ожидает завершения in-flight command buffers и освобождает command queue.
+Повторные suspend/resume/stop безопасны.
+
+Runner XCTest покрывает переходы lifecycle, resize, повторный stop, снятие
+delegate и 100 циклов create/stop/release с weak-проверкой освобождения.
+Прошли Runner/native XCTest, Flutter release build, полный `make check` и
+resource policy. Оригинальные или производные игровые ресурсы не добавлялись.

@@ -2,7 +2,7 @@
 
 Задачи сформированы из [плана переписывания](../flutter_macos_rewrite_plan.md). Выполненные пункты следует переносить в [completed_v1.md](completed_v1.md).
 
-**Статус:** выполняется. Flutter macOS shell содержит нативный `MTKView` с Retina-resize и Flutter HUD; lifecycle renderer и runtime transport ещё не реализованы.
+**Статус:** выполняется. Flutter macOS shell содержит нативный `MTKView`, Retina-resize и управляемый lifecycle renderer; runtime transport и тестовая 3D-сцена ещё не реализованы.
 
 **Цель итерации:** пройти путь от прямого импорта исходных игровых файлов и фиксации эталонного поведения до полностью проходимого вертикального среза одного уровня. Видео не используется как источник моделей, сцен, текстур, анимаций или звука.
 
@@ -18,7 +18,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 20 | **Реализовать lifecycle рендерера:** создание ресурсов, foreground/background, resize, остановка и освобождение | Этап 2 / M2 | P1 | M | После п. 19; повторное открытие/закрытие не приводит к crash или утечке |
 | 21 | **Определить C API и транспорт Dart ↔ native:** команды ввода, очередь событий, snapshot состояния и двойная буферизация без мелких FFI-вызовов на каждый объект | Этап 2 / M2 | P1 | L | После п. 17–18; ABI версионируется и покрыт integration-тестом |
 | 22 | **Вывести тестовую Metal-сцену и Flutter HUD:** камера, треугольник/куб, frame timing и счётчики памяти | Этап 2 / M2 | P1 | M | После п. 19–21; стабильные 60 FPS на выбранном минимальном Mac |
 | 23 | **Реализовать версионируемый формат сборки ресурсов:** glTF 2.0 либо собственный контейнер, manifest schema и устойчивые object IDs | Этап 3 | P1 | L | После п. 16–17; решение и версия формата документированы |
@@ -97,7 +96,8 @@
 - [x] П. 17 — архитектура workspace и runtime
 - [x] П. 18 — структура и Xcode targets нативного ядра
 - [x] П. 19 — MTKView platform view и Retina-resize
-- [ ] П. 20–22 — M2: lifecycle, transport и Metal scene proof
+- [x] П. 20 — lifecycle Metal renderer
+- [ ] П. 21–22 — M2: transport и Metal scene proof
 - [ ] П. 23–31 — asset pipeline и базовый 3D-движок
 - [ ] П. 32–39 — игровые системы vertical slice
 - [ ] П. 40–43 — аудио, presentation, приёмка M4 и решение о продолжении
@@ -105,7 +105,9 @@
 
 ---
 
-**Последнее обновление:** 21 июля 2026 — п. 19 выполнен: Flutter game screen использует зарегистрированный macOS `AppKitView` с `MTKView`, drawable resize в физических Retina-пикселях и Flutter HUD поверх native view.
+**Последнее обновление:** 21 июля 2026 — п. 20 выполнен: Objective-C++ renderer управляет command queue, resize, suspend/resume, sleep/wake, occlusion, ожиданием in-flight GPU work и идемпотентным stop/release.
+
+**Предыдущее обновление:** 21 июля 2026 — п. 19 выполнен: Flutter game screen использует зарегистрированный macOS `AppKitView` с `MTKView`, drawable resize в физических Retina-пикселях и Flutter HUD поверх native view.
 
 **Предыдущее обновление:** 21 июля 2026 — п. 18 выполнен: добавлены `engine/include`, `engine/src`, `engine/metal`, `engine/macos`, C++20 static target `AsterixEngine`, независимый XCTest target и universal-сборка Intel/Apple Silicon.
 
