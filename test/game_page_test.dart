@@ -36,6 +36,12 @@ void main() {
         tester.widget<FilterChip>(find.byKey(const Key('debug-1'))).selected,
         isTrue,
       );
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      expect(find.text('ПАУЗА'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      expect(find.text('ПАУЗА'), findsNothing);
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }

@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../input/data/input_bindings_store.dart';
+import '../../../input/domain/game_input.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
@@ -13,39 +18,86 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
+  static const _controllerEvents = EventChannel('asterix/controller-events');
+  static const _inputChannel = MethodChannel('asterix/game-input');
   bool _paused = false;
+  final _router = GameInputRouter();
+  StreamSubscription<dynamic>? _controllerSubscription;
+  GameInputSnapshot? _input;
+
+  @override
+  void initState() {
+    super.initState();
+    _input = _router.snapshot();
+    SharedPreferences.getInstance().then((preferences) {
+      if (!mounted) return;
+      _router.bindings = InputBindingsStore(preferences).load();
+      _publish(_router.snapshot());
+    });
+    _controllerSubscription = _controllerEvents.receiveBroadcastStream().listen(
+      (event) {
+        if (event is Map) {
+          _publish(_router.handleController(Map<Object?, Object?>.from(event)));
+        }
+      },
+      onError: (_) {},
+    );
+  }
+
+  @override
+  void dispose() {
+    _controllerSubscription?.cancel();
+    _router.reset();
+    super.dispose();
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    _publish(_router.handleKey(event));
+    return _router.bindings.keyboard.containsValue(event.logicalKey.keyId)
+        ? KeyEventResult.handled
+        : KeyEventResult.ignored;
+  }
+
+  void _publish(GameInputSnapshot snapshot) {
+    if (_router.consumePauseEdge(snapshot)) _setPaused(!_paused);
+    if (mounted) setState(() => _input = snapshot);
+    _inputChannel
+        .invokeMethod<void>('setSnapshot', {
+          for (final action in GameAction.values)
+            action.name: snapshot.value(action),
+        })
+        .catchError((_) {});
+  }
+
+  void _setPaused(bool value) {
+    if (mounted) setState(() => _paused = value);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Shortcuts(
-      shortcuts: const {
-        SingleActivator(LogicalKeyboardKey.escape): _PauseIntent(),
-      },
-      child: Actions(
-        actions: {
-          _PauseIntent: CallbackAction<_PauseIntent>(
-            onInvoke: (_) {
-              setState(() => _paused = !_paused);
-              return null;
-            },
-          ),
-        },
-        child: Focus(
-          autofocus: true,
-          child: Scaffold(
-            body: Stack(
-              fit: StackFit.expand,
-              children: [
-                const _EngineViewport(),
-                const _Hud(),
-                const _DebugPanel(),
-                if (_paused)
-                  _PauseOverlay(
-                    onResume: () => setState(() => _paused = false),
-                  ),
-              ],
+    return Focus(
+      autofocus: true,
+      onKeyEvent: _onKey,
+      child: Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const _EngineViewport(),
+            const _Hud(),
+            Positioned(
+              left: 24,
+              bottom: 20,
+              child: Text(
+                _input?.controllerConnected == true
+                    ? 'Controller connected'
+                    : 'Keyboard',
+                key: const Key('input-device'),
+                style: const TextStyle(color: Colors.white54),
+              ),
             ),
-          ),
+            const _DebugPanel(),
+            if (_paused) _PauseOverlay(onResume: () => _setPaused(false)),
+          ],
         ),
       ),
     );
@@ -282,8 +334,4 @@ class _PauseOverlay extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PauseIntent extends Intent {
-  const _PauseIntent();
 }

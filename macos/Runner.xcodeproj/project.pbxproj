@@ -24,6 +24,7 @@
 		EA2000010000000000000001 /* AsterixMetalRenderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = EA2000110000000000000001 /* AsterixMetalRenderer.mm */; };
 		EA1900010000000000000001 /* MetalViewportFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1900110000000000000001 /* MetalViewportFactory.swift */; };
 		EA1900010000000000000002 /* MetalViewportFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1900110000000000000001 /* MetalViewportFactory.swift */; };
+		EA1900010000000000000003 /* GameControllerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1900110000000000000002 /* GameControllerInput.swift */; };
 		EA1800010000000000000001 /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000001 /* engine.cpp */; };
 		EA1800010000000000000002 /* engine.h in Headers */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000002 /* engine.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EA1800010000000000000003 /* libAsterixEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA1800110000000000000004 /* libAsterixEngine.a */; };
@@ -82,6 +83,7 @@
 		EA2000110000000000000002 /* AsterixMetalRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsterixMetalRenderer.h; sourceTree = "<group>"; };
 		EA2000110000000000000003 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		EA1900110000000000000001 /* MetalViewportFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalViewportFactory.swift; sourceTree = "<group>"; };
+		EA1900110000000000000002 /* GameControllerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControllerInput.swift; sourceTree = "<group>"; };
 		EA1800110000000000000001 /* engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = engine.cpp; sourceTree = "<group>"; };
 		EA1800110000000000000002 /* engine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = engine.h; sourceTree = "<group>"; };
 		EA1800110000000000000003 /* AsterixEngineTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AsterixEngineTests.mm; sourceTree = "<group>"; };
@@ -291,6 +293,7 @@
 		EA1900210000000000000001 /* macos */ = {
 			isa = PBXGroup;
 			children = (
+				EA1900110000000000000002 /* GameControllerInput.swift */,
 				EA1900110000000000000001 /* MetalViewportFactory.swift */,
 			);
 			path = macos;
@@ -625,6 +628,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA1900010000000000000003 /* GameControllerInput.swift in Sources */,
 				EA2000010000000000000001 /* AsterixMetalRenderer.mm in Sources */,
 				EA1900010000000000000001 /* MetalViewportFactory.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,

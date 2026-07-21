@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 32 — Единый ввод, remapping и переподключение
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен единый Dart `GameInputRouter` для gameplay и pause UI. Он сводит
+клавиатуру и нормализованные controller axes/buttons в actions движения, прыжка,
+атаки и паузы; pause обрабатывается по фронту нажатия. Каждый изменившийся
+snapshot пакетно передаётся native runtime, без покадровых object calls.
+
+macOS-слой использует системный `GameController.framework` и extended gamepad
+profile, общий для совместимых Xbox- и PlayStation-контроллеров. Connect и
+disconnect публикуются во Flutter: отключение сразу очищает значения, а повторное
+подключение заново устанавливает handlers. Текущий тип устройства виден в
+gameplay.
+
+Экран управления позволяет переназначать клавиши и controller controls,
+сбрасывать раскладку и сохраняет версионированную конфигурацию в
+`SharedPreferences`. Unit-тесты покрывают общий snapshot, pause edge, hot-plug и
+сериализацию; widget-тест проверяет pause с клавиатуры. Прошли `make check`,
+Runner XCTest, native XCTest, diff review и resource policy. Контракт описан в
+[документе игрового ввода](../architecture/game_input.md).
+
 ## П. 31 — Debug tooling базового 3D-движка
 
 **Выполнено:** 21 июля 2026.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/settings_bloc.dart';
+import '../../../input/presentation/controls_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -52,6 +53,18 @@ class SettingsPage extends StatelessWidget {
                     onChanged: (value) => context.read<SettingsBloc>().add(
                       SettingsEvent.changed(
                         settings.copyWith(fullscreen: value),
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 48),
+                  ListTile(
+                    key: const Key('controls-settings'),
+                    title: const Text('Управление'),
+                    subtitle: const Text('Клавиатура и контроллеры'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const ControlsPage(),
                       ),
                     ),
                   ),

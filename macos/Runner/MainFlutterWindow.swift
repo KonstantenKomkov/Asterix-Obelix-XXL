@@ -2,6 +2,7 @@ import Cocoa
 import FlutterMacOS
 
 class MainFlutterWindow: NSWindow {
+  private var gameControllerInput: GameControllerInput?
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
@@ -14,6 +15,7 @@ class MainFlutterWindow: NSWindow {
       MetalViewportFactory(messenger: registrar.messenger),
       withId: MetalViewportFactory.viewType
     )
+    gameControllerInput = GameControllerInput(messenger: registrar.messenger)
 
     super.awakeFromNib()
   }

@@ -6,10 +6,13 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
   static let viewType = "asterix/metal-viewport"
   static let statsChannel = "asterix/metal-stats"
   static let debugChannel = "asterix/metal-debug"
+  static let inputChannel = "asterix/game-input"
   private weak var viewport: MetalViewportView?
   private var eventSink: FlutterEventSink?
   private var timer: Timer?
   private var debugMethodChannel: FlutterMethodChannel?
+  private var inputMethodChannel: FlutterMethodChannel?
+  private var latestInput: [String: Double] = [:]
 
   override init() {
     super.init()
@@ -29,6 +32,16 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
       result(nil)
     }
     debugMethodChannel = channel
+    let input = FlutterMethodChannel(name: Self.inputChannel, binaryMessenger: messenger)
+    input.setMethodCallHandler { [weak self] call, result in
+      guard call.method == "setSnapshot", let values = call.arguments as? [String: NSNumber] else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self?.latestInput = values.mapValues(\.doubleValue)
+      result(nil)
+    }
+    inputMethodChannel = input
   }
 
   func createArgsCodec() -> (FlutterMessageCodec & NSObjectProtocol)? {
@@ -55,8 +68,9 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
     eventSink = events
     timer?.invalidate()
     timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
-      guard let stats = self?.viewport?.statistics else { return }
-      self?.eventSink?(stats)
+      guard let self, var stats = self.viewport?.statistics else { return }
+      stats["input"] = self.latestInput
+      self.eventSink?(stats)
     }
     return nil
   }
