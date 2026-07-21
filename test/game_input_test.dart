@@ -19,6 +19,14 @@ void main() {
       'value': 1.0,
     });
     expect(snapshot.pressed(GameAction.jump), isTrue);
+    snapshot = router.handleKey(
+      const KeyDownEvent(
+        logicalKey: LogicalKeyboardKey.keyE,
+        physicalKey: PhysicalKeyboardKey.keyE,
+        timeStamp: Duration.zero,
+      ),
+    );
+    expect(snapshot.pressed(GameAction.interact), isTrue);
     snapshot = router.handleController(const {
       'type': 'control',
       'control': 'menu',

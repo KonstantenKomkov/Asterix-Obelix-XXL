@@ -1,5 +1,32 @@
 # Выполненные задачи первой итерации
 
+## П. 37 — Интерактивы вертикального среза
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен fixed-tick `interactive::Runtime` для AABB-триггеров, рычагов,
+разрушаемых объектов, связанных наград и checkpoint. Состояние адресуется
+устойчивыми ID и публикует события входа, взаимодействия, урона, разрушения,
+подбора награды, активации и восстановления checkpoint.
+
+В unified input snapshot добавлен action `interact`: клавиша `E` и gamepad B.
+Рычаг реагирует только на фронт action в радиусе, destructible получает damage
+из общей combat hitbox, а связанная награда становится доступна после разрушения.
+Счётчик наград, checkpoint и состояния объектов опубликованы в native stats и
+диагностическом Flutter HUD.
+
+Checkpoint сохраняет mutable world snapshot. Падение синхронно откатывает мир с
+capsule recovery; после смерти `interact` восстанавливает игрока с полным
+здоровьем. Rollback возвращает триггеры, рычаг, destructible, награды, противника,
+его combat-health и отменяет незавершённую атаку. Контракт описан в
+[документе interactive runtime](../architecture/interactive_runtime.md).
+
+XCTest покрывает one-shot trigger, lever edge, damage/destruction, появление и
+подбор награды, а также checkpoint rollback и player respawn. Прошли `make check`,
+21 native XCTest, macOS debug build, diff review и resource policy. Использован
+только синтетический runtime-набор; оригинальные или производные ресурсы не
+добавлялись.
+
 ## П. 36 — Навигация и первый противник
 
 **Выполнено:** 21 июля 2026.

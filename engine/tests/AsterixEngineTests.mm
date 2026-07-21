@@ -9,6 +9,7 @@
 #include "asterix/camera_runtime.hpp"
 #include "asterix/combat_runtime.hpp"
 #include "asterix/enemy_runtime.hpp"
+#include "asterix/interactive_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -16,6 +17,65 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testInteractivesTriggerLeverDestructionAndReward {
+  using namespace asterix::interactive;
+  Runtime runtime;
+  runtime.addTrigger({1,{0,0,0},{1,1,1},true,false});
+  runtime.addLever({2,{2,0,0},1});
+  runtime.addDestructible({3,{3,0,0},2,2,false});
+  runtime.addReward({4,{3,0,0},3,2});
+  runtime.update({0,0,0},false);
+  runtime.update({0,0,0},false);
+  runtime.update({2,0,0},true);
+  XCTAssertTrue(runtime.levers().front().activated);
+  XCTAssertTrue(runtime.damage(3,1));
+  XCTAssertFalse(runtime.destructibles().front().destroyed);
+  XCTAssertTrue(runtime.damage(3,1));
+  XCTAssertTrue(runtime.destructibles().front().destroyed);
+  runtime.update({3,0,0},false);
+  XCTAssertEqual(runtime.snapshot().rewards,2);
+  XCTAssertTrue(runtime.rewards().front().collected);
+  int triggerEvents=0;
+  for(const auto& event:runtime.drainEvents())
+    if(event.type==EventType::trigger_entered)++triggerEvents;
+  XCTAssertEqual(triggerEvents,1);
+}
+
+- (void)testCheckpointRestoresWorldAndRespawnsPlayer {
+  using namespace asterix;
+  interactive::Runtime worldState;
+  worldState.addLever({1,{0,0,0},1});
+  worldState.addDestructible({2,{1,0,0},2,2,false});
+  worldState.addReward({3,{1,0,0},2,1});
+  worldState.addCheckpoint({4,{0,.9f,0},1});
+  worldState.update({0,.9f,0},false);
+  XCTAssertEqual(worldState.snapshot().active_checkpoint,4u);
+  worldState.update({0,0,0},true);
+  worldState.damage(2,2);
+  worldState.update({1,0,0},false);
+  XCTAssertTrue(worldState.levers().front().activated);
+  XCTAssertTrue(worldState.destructibles().front().destroyed);
+  XCTAssertEqual(worldState.snapshot().rewards,1);
+  const auto respawn=worldState.restoreCheckpoint();
+  XCTAssertTrue(respawn.has_value());
+  XCTAssertFalse(worldState.levers().front().activated);
+  XCTAssertFalse(worldState.destructibles().front().destroyed);
+  XCTAssertEqual(worldState.destructibles().front().health,2);
+  XCTAssertFalse(worldState.rewards().front().available);
+  XCTAssertEqual(worldState.snapshot().rewards,0);
+
+  collision::World collisionWorld({{{-2,0,-2},{2,0,-2},{-2,0,2},1},
+                                   {{2,0,-2},{2,0,2},{-2,0,2},1}});
+  collision::CapsuleController controller(collisionWorld);
+  collision::CapsuleState body; body.position={1,.9f,0}; body.checkpoint=body.position;
+  player::Runtime player(controller,body);
+  player.applyDamage(3);
+  player.respawn(*respawn);
+  XCTAssertEqual(player.snapshot().state,player::State::idle);
+  XCTAssertEqual(player.snapshot().health,player.config().maximum_health);
+  XCTAssertEqualWithAccuracy(player.snapshot().body.position.x,0,.001);
+}
 
 - (void)testEnemyPerceivesPursuesAttacksAndCanDefeatPlayer {
   using namespace asterix;

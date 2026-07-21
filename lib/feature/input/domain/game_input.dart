@@ -9,6 +9,7 @@ enum GameAction {
   moveBackward,
   jump,
   attack,
+  interact,
   pause,
 }
 
@@ -19,6 +20,7 @@ final defaultKeyboardBindings = <GameAction, int>{
   GameAction.moveBackward: LogicalKeyboardKey.keyS.keyId,
   GameAction.jump: LogicalKeyboardKey.space.keyId,
   GameAction.attack: LogicalKeyboardKey.keyJ.keyId,
+  GameAction.interact: LogicalKeyboardKey.keyE.keyId,
   GameAction.pause: LogicalKeyboardKey.escape.keyId,
 };
 
@@ -29,6 +31,7 @@ const defaultGamepadBindings = <GameAction, String>{
   GameAction.moveBackward: 'leftY-',
   GameAction.jump: 'buttonA',
   GameAction.attack: 'buttonX',
+  GameAction.interact: 'buttonB',
   GameAction.pause: 'menu',
 };
 
@@ -167,5 +170,6 @@ String actionLabel(GameAction action) => switch (action) {
   GameAction.moveBackward => 'Назад',
   GameAction.jump => 'Прыжок',
   GameAction.attack => 'Атака',
+  GameAction.interact => 'Взаимодействие',
   GameAction.pause => 'Пауза',
 };

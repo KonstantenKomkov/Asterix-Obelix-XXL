@@ -31,6 +31,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSString* enemyState;
 @property(nonatomic, readonly) NSInteger enemyHealth;
 @property(nonatomic, readonly) vector_float3 enemyPosition;
+@property(nonatomic, readonly) NSInteger rewardCount;
+@property(nonatomic, readonly) NSUInteger activeCheckpoint;
+@property(nonatomic, readonly) BOOL leverActivated;
+@property(nonatomic, readonly) BOOL destructibleDestroyed;
 @property(nonatomic, readonly) float cameraFieldOfView;
 @property(nonatomic, readonly) BOOL cameraCollisionLimited;
 @property(nonatomic, readonly) BOOL combatActive;
@@ -48,7 +52,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setInputMoveX:(float)moveX
                 moveZ:(float)moveZ
                  jump:(BOOL)jump
-                attack:(BOOL)attack;
+                attack:(BOOL)attack
+              interact:(BOOL)interact;
 - (void)suspend;
 - (void)resume;
 - (void)stop;

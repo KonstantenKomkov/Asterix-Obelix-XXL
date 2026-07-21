@@ -46,6 +46,7 @@ final class GameControllerInput: NSObject, FlutterStreamHandler {
     pad.leftThumbstick.yAxis.valueChangedHandler = { [weak self] _, value in self?.emit("leftY", value) }
     pad.buttonA.valueChangedHandler = { [weak self] _, value, _ in self?.emit("buttonA", value) }
     pad.buttonX.valueChangedHandler = { [weak self] _, value, _ in self?.emit("buttonX", value) }
+    pad.buttonB.valueChangedHandler = { [weak self] _, value, _ in self?.emit("buttonB", value) }
     pad.buttonMenu.valueChangedHandler = { [weak self] _, value, _ in self?.emit("menu", value) }
   }
 

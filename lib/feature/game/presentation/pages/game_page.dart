@@ -219,6 +219,12 @@ class _Hud extends StatelessWidget {
                         values['enemyState'] as String? ?? 'unavailable';
                     final enemyHealth =
                         (values['enemyHealth'] as num?)?.toInt() ?? 0;
+                    final rewards =
+                        (values['rewardCount'] as num?)?.toInt() ?? 0;
+                    final checkpoint =
+                        (values['activeCheckpoint'] as num?)?.toInt() ?? 0;
+                    final lever = values['leverActivated'] == true;
+                    final destroyed = values['destructibleDestroyed'] == true;
                     final cameraFov =
                         (values['cameraFov'] as num?)?.toDouble() ?? 70;
                     final cameraLimited =
@@ -235,6 +241,8 @@ class _Hud extends StatelessWidget {
                                 'Collision: $collision triangles\n'
                                 'Player: $playerState, HP $playerHealth\n'
                                 'Enemy: $enemyState, HP $enemyHealth\n'
+                                'World: reward $rewards, checkpoint $checkpoint\n'
+                                'Lever: ${lever ? 'on' : 'off'}, object: ${destroyed ? 'destroyed' : 'intact'}\n'
                                 'Camera: ${cameraFov.toStringAsFixed(0)}°${cameraLimited ? ' collision' : ''}\n'
                                 'Combat: ${combatActive ? 'combo $comboStage${hitWindow ? ' HIT' : ''}' : 'ready'}'
                           : sceneError.isEmpty

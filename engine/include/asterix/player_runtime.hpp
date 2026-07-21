@@ -69,6 +69,15 @@ class Runtime {
   const Snapshot& snapshot() const { return snapshot_; }
   const Config& config() const { return config_; }
 
+  void setCheckpoint(collision::Vec3 position) { snapshot_.body.checkpoint=position; }
+  void respawn(collision::Vec3 position) {
+    snapshot_.body.position=position; snapshot_.body.checkpoint=position;
+    snapshot_.body.velocity={}; snapshot_.body.grounded=false;
+    snapshot_.health=config_.maximum_health; snapshot_.invulnerability_seconds=0;
+    horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
+    enter(State::idle);
+  }
+
   void restartAttack() {
     if (snapshot_.state != State::death && snapshot_.state != State::hurt) {
       enter(State::attack);

@@ -99,6 +99,16 @@ class Runtime {
         ? collision::normalized(facing) : fighter.facing;
   }
 
+  void resetFighter(std::uint32_t id, std::int32_t health) {
+    if(health<=0)throw std::invalid_argument("combat fighter health is invalid");
+    Fighter& fighter=require(id); fighter.health=health;
+    fighter.invulnerability_seconds=0; fighter.knockback_velocity={};
+  }
+  void cancelAttack() {
+    attack_={}; attacker_id_=0; queued_=false; hit_targets_.clear();
+    events_.clear();
+  }
+
   bool pressAttack(std::uint32_t id) {
     Fighter& fighter = require(id);
     if (fighter.health <= 0) return false;

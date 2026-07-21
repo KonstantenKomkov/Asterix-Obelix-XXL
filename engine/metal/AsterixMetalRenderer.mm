@@ -12,6 +12,7 @@
 #include "asterix/camera_runtime.hpp"
 #include "asterix/combat_runtime.hpp"
 #include "asterix/enemy_runtime.hpp"
+#include "asterix/interactive_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -127,10 +128,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::player::Runtime> _playerRuntime;
   std::unique_ptr<asterix::collision::CapsuleController> _enemyCapsuleController;
   std::unique_ptr<asterix::enemy::Runtime> _enemyRuntime;
+  std::unique_ptr<asterix::interactive::Runtime> _interactiveRuntime;
   std::unique_ptr<asterix::camera::Runtime> _cameraRuntime;
   std::unique_ptr<asterix::combat::Runtime> _combatRuntime;
   asterix::player::Input _playerInput;
   bool _combatAttackWasPressed;
+  bool _interactPressed;
+  bool _interactWasPressed;
 }
 
 - (instancetype)initWithView:(MTKView*)view {
@@ -262,6 +266,20 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   if (!_enemyRuntime) return (vector_float3){0,0,0};
   const auto p=_enemyRuntime->snapshot().body.position;
   return (vector_float3){p.x,p.y,p.z};
+} }
+- (NSInteger)rewardCount { @synchronized(self) {
+  return _interactiveRuntime ? _interactiveRuntime->snapshot().rewards : 0;
+} }
+- (NSUInteger)activeCheckpoint { @synchronized(self) {
+  return _interactiveRuntime ? _interactiveRuntime->snapshot().active_checkpoint : 0;
+} }
+- (BOOL)leverActivated { @synchronized(self) {
+  return _interactiveRuntime&&!_interactiveRuntime->levers().empty()&&
+      _interactiveRuntime->levers().front().activated;
+} }
+- (BOOL)destructibleDestroyed { @synchronized(self) {
+  return _interactiveRuntime&&!_interactiveRuntime->destructibles().empty()&&
+      _interactiveRuntime->destructibles().front().destroyed;
 } }
 - (float)cameraFieldOfView { @synchronized(self) {
   return _cameraRuntime ? _cameraRuntime->snapshot().field_of_view_degrees : 70;
@@ -535,6 +553,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::unique_ptr<asterix::player::Runtime> playerRuntime;
   std::unique_ptr<asterix::collision::CapsuleController> enemyCapsuleController;
   std::unique_ptr<asterix::enemy::Runtime> enemyRuntime;
+  std::unique_ptr<asterix::interactive::Runtime> interactiveRuntime;
   std::unique_ptr<asterix::camera::Runtime> cameraRuntime;
   std::unique_ptr<asterix::combat::Runtime> combatRuntime;
   if (!collisionTriangles.empty()) {
@@ -567,6 +586,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     }
     enemyBody.checkpoint=enemyBody.position;
     enemyRuntime=std::make_unique<asterix::enemy::Runtime>(*enemyCapsuleController,enemyBody);
+    interactiveRuntime=std::make_unique<asterix::interactive::Runtime>();
+    interactiveRuntime->addTrigger({10,body.position,{1.5f,1,1.5f},true,false});
+    interactiveRuntime->addLever({11,body.position+asterix::collision::Vec3{1,0,0},1.0f});
+    interactiveRuntime->addDestructible({100,body.position+asterix::collision::Vec3{2,0,0},2,2,false});
+    interactiveRuntime->addReward({12,body.position+asterix::collision::Vec3{2,0,0},100,1});
+    interactiveRuntime->addCheckpoint({13,body.position,1.0f});
+    interactiveRuntime->update(body.position,false);
     cameraRuntime=std::make_unique<asterix::camera::Runtime>();
     combatRuntime=std::make_unique<asterix::combat::Runtime>();
     asterix::combat::Fighter playerFighter;
@@ -575,6 +601,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     asterix::combat::Fighter enemyFighter;
     enemyFighter.id=2; enemyFighter.team=2; enemyFighter.position=enemyBody.position;
     combatRuntime->addFighter(enemyFighter);
+    asterix::combat::Fighter objectFighter;
+    objectFighter.id=100; objectFighter.team=2;
+    objectFighter.position=body.position+asterix::collision::Vec3{2,0,0};
+    objectFighter.health=2; combatRuntime->addFighter(objectFighter);
   }
   runtime->addSection({"gaul-stage-1",
                        {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
@@ -597,9 +627,12 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _playerRuntime = std::move(playerRuntime);
     _enemyCapsuleController = std::move(enemyCapsuleController);
     _enemyRuntime = std::move(enemyRuntime);
+    _interactiveRuntime = std::move(interactiveRuntime);
     _cameraRuntime = std::move(cameraRuntime);
     _combatRuntime = std::move(combatRuntime);
     _combatAttackWasPressed = false;
+    _interactPressed = false;
+    _interactWasPressed = false;
     _sceneCenter = (minimum + maximum) * 0.5f;
     _sceneRadius = MAX(1.0f, simd_length(maximum - minimum) * 0.5f);
     _sceneError = nil;
@@ -616,12 +649,14 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   }
 }
 
-- (void)setInputMoveX:(float)moveX moveZ:(float)moveZ jump:(BOOL)jump attack:(BOOL)attack {
+- (void)setInputMoveX:(float)moveX moveZ:(float)moveZ jump:(BOOL)jump
+               attack:(BOOL)attack interact:(BOOL)interact {
   @synchronized(self) {
     _playerInput.move_x=std::clamp(moveX,-1.0f,1.0f);
     _playerInput.move_z=std::clamp(moveZ,-1.0f,1.0f);
     _playerInput.jump=jump;
     _playerInput.attack=attack;
+    _interactPressed=interact;
   }
 }
 
@@ -679,6 +714,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _sceneRuntime.reset();
     _playerRuntime.reset();
     _enemyRuntime.reset();
+    _interactiveRuntime.reset();
     _cameraRuntime.reset();
     _combatRuntime.reset();
     _capsuleController.reset();
@@ -745,6 +781,37 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           _previousAnimationPhase = _currentAnimationPhase;
           _currentAnimationPhase += (float)step;
           if (_playerRuntime) _playerRuntime->update((float)step,_playerInput);
+          if(_interactiveRuntime&&_playerRuntime) {
+            const bool interactEdge=_interactPressed&&!_interactWasPressed;
+            _interactWasPressed=_interactPressed;
+            if(_playerRuntime->snapshot().state==asterix::player::State::death&&interactEdge) {
+              const auto respawn=_interactiveRuntime->restoreCheckpoint();
+              if(respawn) {
+                _playerRuntime->respawn(*respawn);
+                if(_enemyRuntime)_enemyRuntime->reset();
+                if(_combatRuntime) {
+                  _combatRuntime->cancelAttack();
+                  _combatRuntime->resetFighter(2,3);
+                  _combatRuntime->resetFighter(100,2);
+                }
+              }
+            } else {
+              _interactiveRuntime->update(_playerRuntime->snapshot().body.position,interactEdge);
+              if(_playerRuntime->snapshot().body.recovered_from_fall) {
+                _interactiveRuntime->restoreCheckpoint();
+                if(_enemyRuntime)_enemyRuntime->reset();
+                if(_combatRuntime) {
+                  _combatRuntime->cancelAttack();
+                  _combatRuntime->resetFighter(2,3);
+                  _combatRuntime->resetFighter(100,2);
+                }
+              }
+              for(const auto& event:_interactiveRuntime->drainEvents())
+                if(event.type==asterix::interactive::EventType::checkpoint_activated)
+                  for(const auto& checkpoint:_interactiveRuntime->checkpoints())
+                    if(checkpoint.id==event.id)_playerRuntime->setCheckpoint(checkpoint.position);
+            }
+          }
           if (_enemyRuntime && _playerRuntime) {
             const auto enemyResult=_enemyRuntime->update(
                 (float)step,_playerRuntime->snapshot().body.position,
@@ -765,6 +832,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
               const auto enemy=_enemyRuntime->snapshot();
               _combatRuntime->setTransform(2,enemy.body.position,enemy.facing);
             }
+            if(_interactiveRuntime&&!_interactiveRuntime->destructibles().empty())
+              _combatRuntime->setTransform(100,
+                  _interactiveRuntime->destructibles().front().position,{1,0,0});
             const std::size_t previousStage=_combatRuntime->attack().stage;
             _combatRuntime->update((float)step);
             if(_combatRuntime->attack().active&&
@@ -772,7 +842,11 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
               _playerRuntime->restartAttack();
             for(const auto& event:_combatRuntime->drainEvents()) {
               if(event.type!=asterix::combat::EventType::hit||event.target!=2||
-                 !_enemyRuntime)continue;
+                 !_enemyRuntime) {
+                if(event.type==asterix::combat::EventType::hit&&event.target==100&&
+                   _interactiveRuntime)_interactiveRuntime->damage(100,event.damage);
+                continue;
+              }
               asterix::collision::Vec3 knockback{};
               for(const auto& fighter:_combatRuntime->fighters())
                 if(fighter.id==2)knockback=fighter.knockback_velocity;

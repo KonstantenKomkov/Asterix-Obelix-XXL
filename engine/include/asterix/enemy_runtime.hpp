@@ -57,7 +57,7 @@ class Runtime {
  public:
   Runtime(collision::CapsuleController& controller,
           collision::CapsuleState body, Config config = {})
-      : controller_(controller), config_(config), spawn_(body.position) {
+      : controller_(controller), config_(config), spawn_(body.position), initial_body_(body) {
     if (config.perception_radius <= 0 || config.attack_range <= 0 ||
         config.move_speed <= 0 || config.leash_radius <= config.attack_range ||
         config.return_tolerance < 0 || config.attack_duration <= 0 ||
@@ -73,6 +73,10 @@ class Runtime {
 
   const Snapshot& snapshot() const { return snapshot_; }
   std::int32_t attackDamage() const { return config_.attack_damage; }
+  void reset() {
+    snapshot_={}; snapshot_.body=initial_body_; snapshot_.health=config_.health;
+    snapshot_.facing={1,0,0}; impact_done_=false;
+  }
 
   bool applyDamage(std::int32_t damage, Vec3 knockback = {}) {
     if (damage <= 0 || snapshot_.state == State::death) return false;
@@ -164,6 +168,7 @@ class Runtime {
   collision::CapsuleController& controller_;
   Config config_;
   Vec3 spawn_{};
+  collision::CapsuleState initial_body_{};
   Snapshot snapshot_{};
   bool impact_done_=false;
 };

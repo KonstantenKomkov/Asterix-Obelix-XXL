@@ -112,6 +112,10 @@ final class MetalViewportView: MTKView {
       "enemyState": renderer.enemyState,
       "enemyHealth": renderer.enemyHealth,
       "enemyPosition": [renderer.enemyPosition.x, renderer.enemyPosition.y, renderer.enemyPosition.z],
+      "rewardCount": renderer.rewardCount,
+      "activeCheckpoint": renderer.activeCheckpoint,
+      "leverActivated": renderer.leverActivated,
+      "destructibleDestroyed": renderer.destructibleDestroyed,
       "cameraFov": renderer.cameraFieldOfView,
       "cameraCollisionLimited": renderer.cameraCollisionLimited,
       "combatActive": renderer.combatActive,
@@ -129,7 +133,8 @@ final class MetalViewportView: MTKView {
     let x = (values["moveRight"]?.floatValue ?? 0) - (values["moveLeft"]?.floatValue ?? 0)
     let z = (values["moveForward"]?.floatValue ?? 0) - (values["moveBackward"]?.floatValue ?? 0)
     renderer?.setInputMoveX(x, moveZ: z, jump: (values["jump"]?.doubleValue ?? 0) > 0.5,
-                           attack: (values["attack"]?.doubleValue ?? 0) > 0.5)
+                           attack: (values["attack"]?.doubleValue ?? 0) > 0.5,
+                           interact: (values["interact"]?.doubleValue ?? 0) > 0.5)
   }
 
   func loadAssetPackage(at url: URL) {
