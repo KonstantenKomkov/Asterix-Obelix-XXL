@@ -6,6 +6,7 @@
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
 #include "asterix/player_runtime.hpp"
+#include "asterix/camera_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -13,6 +14,41 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testCameraTargetZonesFollowPlayerWithoutLosingTarget {
+  using namespace asterix;
+  collision::World empty({});
+  camera::Runtime camera;
+  auto initial=camera.update({0,1,0},empty,1.0f/60.0f);
+  XCTAssertEqualWithAccuracy(initial.position.z,10,.001);
+  auto inside=camera.update({.5f,1.25f,.5f},empty,1.0f/60.0f);
+  XCTAssertEqualWithAccuracy(inside.target.x,0,.001);
+  XCTAssertEqualWithAccuracy(inside.target.y,1,.001);
+  for(int tick=0;tick<120;++tick)camera.update({4,2,6},empty,1.0f/60.0f);
+  const auto followed=camera.snapshot();
+  XCTAssertEqualWithAccuracy(followed.target.x,3.25,.001);
+  XCTAssertEqualWithAccuracy(followed.target.y,1.5,.001);
+  XCTAssertEqualWithAccuracy(followed.target.z,5.25,.001);
+  XCTAssertLessThan(collision::length(
+      followed.target-collision::Vec3{4,2,6}),1.3f);
+}
+
+- (void)testCameraCollisionAvoidanceAndZoneFov {
+  using namespace asterix;
+  collision::World world({{{-5,-5,5},{5,-5,5},{-5,8,5},7},
+                          {{5,-5,5},{5,8,5},{-5,8,5},7}});
+  camera::Parameters zoneParameters; zoneParameters.distance=8;
+  zoneParameters.field_of_view_degrees=55;
+  camera::Zone zone{{-2,-2,-2},{2,3,2},zoneParameters};
+  camera::Runtime camera({}, {zone});
+  for(int tick=0;tick<120;++tick)camera.update({0,1,0},world,1.0f/60.0f);
+  const auto snapshot=camera.snapshot();
+  XCTAssertEqual(snapshot.active_zone,0);
+  XCTAssertEqualWithAccuracy(snapshot.field_of_view_degrees,55,.001);
+  XCTAssertTrue(snapshot.collision_limited);
+  XCTAssertLessThan(snapshot.position.z,5);
+  XCTAssertGreaterThan(snapshot.position.z,0);
+}
 
 - (void)testPlayerTransitionsIdleRunJumpFallAndLand {
   using namespace asterix;

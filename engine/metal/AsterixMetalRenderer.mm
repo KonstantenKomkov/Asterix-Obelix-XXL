@@ -9,6 +9,7 @@
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
 #include "asterix/player_runtime.hpp"
+#include "asterix/camera_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -73,6 +74,18 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
                             {0, 0, z, -1}, {0, 0, z * nearZ, 0}}};
 }
 
+static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
+  vector_float3 backward = simd_normalize(eye - target);
+  vector_float3 right = simd_normalize(simd_cross((vector_float3){0,1,0}, backward));
+  if (!isfinite(right.x)) right = (vector_float3){1,0,0};
+  vector_float3 up = simd_cross(backward, right);
+  return (matrix_float4x4){{
+      {right.x, up.x, backward.x, 0},
+      {right.y, up.y, backward.y, 0},
+      {right.z, up.z, backward.z, 0},
+      {-simd_dot(right,eye),-simd_dot(up,eye),-simd_dot(backward,eye),1}}};
+}
+
 @implementation AsterixMetalRenderer {
   __weak MTKView* _view;
   id<MTLCommandQueue> _commandQueue;
@@ -110,6 +123,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   std::unique_ptr<asterix::collision::World> _collisionWorld;
   std::unique_ptr<asterix::collision::CapsuleController> _capsuleController;
   std::unique_ptr<asterix::player::Runtime> _playerRuntime;
+  std::unique_ptr<asterix::camera::Runtime> _cameraRuntime;
   asterix::player::Input _playerInput;
 }
 
@@ -228,6 +242,12 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   if (!_playerRuntime) return (vector_float3){0,0,0};
   const auto p=_playerRuntime->snapshot().body.position;
   return (vector_float3){p.x,p.y,p.z};
+} }
+- (float)cameraFieldOfView { @synchronized(self) {
+  return _cameraRuntime ? _cameraRuntime->snapshot().field_of_view_degrees : 70;
+} }
+- (BOOL)cameraCollisionLimited { @synchronized(self) {
+  return _cameraRuntime && _cameraRuntime->snapshot().collision_limited;
 } }
 - (uint32_t)debugOptions { @synchronized(self) { return _debugOptions; } }
 - (void)setDebugOptions:(uint32_t)options { @synchronized(self) { _debugOptions = options & 31u; } }
@@ -483,6 +503,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   std::unique_ptr<asterix::collision::World> collisionWorld;
   std::unique_ptr<asterix::collision::CapsuleController> capsuleController;
   std::unique_ptr<asterix::player::Runtime> playerRuntime;
+  std::unique_ptr<asterix::camera::Runtime> cameraRuntime;
   if (!collisionTriangles.empty()) {
     auto spawn = std::find_if(collisionTriangles.begin(),collisionTriangles.end(),[](const auto& triangle) {
       const auto normal=asterix::collision::normalized(
@@ -498,6 +519,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
                    (spawnTriangle.a.z+spawnTriangle.b.z+spawnTriangle.c.z)/3};
     body.checkpoint=body.position;
     playerRuntime=std::make_unique<asterix::player::Runtime>(*capsuleController,body);
+    cameraRuntime=std::make_unique<asterix::camera::Runtime>();
   }
   runtime->addSection({"gaul-stage-1",
                        {{minimum.x, minimum.y, minimum.z}, {maximum.x, maximum.y, maximum.z}},
@@ -518,6 +540,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _collisionWorld = std::move(collisionWorld);
     _capsuleController = std::move(capsuleController);
     _playerRuntime = std::move(playerRuntime);
+    _cameraRuntime = std::move(cameraRuntime);
     _sceneCenter = (minimum + maximum) * 0.5f;
     _sceneRadius = MAX(1.0f, simd_length(maximum - minimum) * 0.5f);
     _sceneError = nil;
@@ -596,6 +619,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     _sceneMeshRanges.clear();
     _sceneRuntime.reset();
     _playerRuntime.reset();
+    _cameraRuntime.reset();
     _capsuleController.reset();
     _collisionWorld.reset();
     _depthTexture = nil;
@@ -652,12 +676,22 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     if (_pipeline != nil && _vertices != nil) {
       const double elapsed = MAX(0.0, cpuStart - _lastSimulationTime);
       _lastSimulationTime = cpuStart;
+      asterix::camera::Snapshot cameraSnapshot;
+      BOOL hasGameplayCamera = NO;
       @synchronized(self) {
         _simulationClock.advance(elapsed, [&](double step) {
           _previousAnimationPhase = _currentAnimationPhase;
           _currentAnimationPhase += (float)step;
           if (_playerRuntime) _playerRuntime->update((float)step,_playerInput);
+          if (_cameraRuntime && _playerRuntime && _collisionWorld) {
+            _cameraRuntime->update(_playerRuntime->snapshot().body.position,
+                                   *_collisionWorld,(float)step);
+          }
         });
+        if (_cameraRuntime && _cameraRuntime->initialized()) {
+          cameraSnapshot=_cameraRuntime->snapshot();
+          hasGameplayCamera=YES;
+        }
       }
       const float seconds = asterix::simulation::interpolate(
           _previousAnimationPhase, _currentAnimationPhase,
@@ -682,12 +716,17 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
         sceneRadius = _sceneRadius;
       }
       BOOL hasScene = sceneVertices != nil && sceneVertexCount > 0;
-      matrix_float4x4 rotation = hasScene
+      matrix_float4x4 rotation = hasScene && hasGameplayCamera
+          ? AsterixLookAt(
+              (vector_float3){cameraSnapshot.position.x,cameraSnapshot.position.y,cameraSnapshot.position.z},
+              (vector_float3){cameraSnapshot.target.x,cameraSnapshot.target.y,cameraSnapshot.target.z})
+          : hasScene
           ? (matrix_float4x4){{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
                               {-sceneCenter.x, -sceneCenter.y, -sceneCenter.z - sceneRadius * 2.2f, 1}}}
           : (matrix_float4x4){{{c, 0, -s, 0}, {0, 1, 0, 0}, {s, 0, c, 0}, {0, 0, -2.4f, 1}}};
       const float aspect = MAX(0.01f, view.drawableSize.width / view.drawableSize.height);
-      const matrix_float4x4 viewProjection = simd_mul(AsterixPerspective(70.0f * 3.14159265358979323846f / 180.0f,
+      const float fieldOfView = hasGameplayCamera ? cameraSnapshot.field_of_view_degrees : 70.0f;
+      const matrix_float4x4 viewProjection = simd_mul(AsterixPerspective(fieldOfView * 3.14159265358979323846f / 180.0f,
                                                                          aspect, 0.1f, 1000.0f), rotation);
       AsterixUniforms uniforms = {viewProjection,
                                   hasScene && sceneTexture != nil ? 1u : 0u,
@@ -722,9 +761,14 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
             _sceneRuntime->updateStreaming(preloadFrustum, _frameCount);
             for (std::size_t section : _sceneRuntime->pendingSections())
               _sceneRuntime->markResident(section);
+            const std::array<float,3> cameraPosition = hasGameplayCamera
+                ? std::array<float,3>{cameraSnapshot.position.x,
+                                      cameraSnapshot.position.y,
+                                      cameraSnapshot.position.z}
+                : std::array<float,3>{sceneCenter.x, sceneCenter.y,
+                                      sceneCenter.z + sceneRadius * 2.2f};
             batches = _sceneRuntime->buildBatches(renderFrustum,
-                                                  {sceneCenter.x, sceneCenter.y,
-                                                   sceneCenter.z + sceneRadius * 2.2f},
+                                                  cameraPosition,
                                                   sceneRadius * 1.5f);
           }
           meshRanges = _sceneMeshRanges;

@@ -28,6 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSString* playerState;
 @property(nonatomic, readonly) NSInteger playerHealth;
 @property(nonatomic, readonly) vector_float3 playerPosition;
+@property(nonatomic, readonly) float cameraFieldOfView;
+@property(nonatomic, readonly) BOOL cameraCollisionLimited;
 @property(nonatomic, readonly, nullable) NSString* sceneError;
 
 - (instancetype)initWithView:(MTKView*)view NS_DESIGNATED_INITIALIZER;

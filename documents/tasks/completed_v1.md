@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 34 — Gameplay-камера
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен fixed-tick C++ `camera::Runtime`, следующий за authoritative player
+position. Target dead zones удерживают персонажа в управляемой области кадра без
+мелкой дрожи, а конфигурируемые AABB camera zones переопределяют дистанцию,
+высоту, FOV, размеры зон и smoothing. Default FOV 70° и дистанция 10 world units
+взяты из эталонных параметров; неподтверждённый специальный FOV 120° не принят
+как gameplay default.
+
+Collision avoidance проверяет segment target → camera против collision world,
+выбирает ближайшую поверхность и применяет padding/near distance после
+smoothing. Поэтому камера не интерполируется сквозь стену и сохраняет устойчивый
+look-at даже в тесном пространстве.
+
+Metal renderer использует camera snapshot для view/projection, frustum culling и
+LOD distance; HUD публикует текущий FOV и collision-limited flag. Unit-тесты
+покрывают dead zones, длительное слежение без потери игрока, zone override и
+препятствие между target и камерой.
+
+Прошли `make check`, native XCTest, Runner XCTest, diff review и resource policy.
+Контракт и ограничения mapping оригинальных camera objects описаны в
+[документе gameplay-камеры](../architecture/gameplay_camera.md).
+
 ## П. 33 — State machine Астерикса
 
 **Выполнено:** 21 июля 2026.
