@@ -376,6 +376,20 @@
   XCTAssertEqualWithAccuracy(state.velocity.y,0,.001f);
 }
 
+- (void)testSafeSpawnUsesLowestTraversableSurfaceRegardlessOfFileOrder {
+  using namespace asterix::collision;
+  const std::vector<Triangle> triangles = {
+      {{0,5,0},{0,5,1},{1,5,0},1},
+      {{-4,2,-4},{4,2,-4},{-4,2,4},2},
+      {{10,-10,-10},{10,10,-10},{10,-10,10},3},
+  };
+  const auto spawn=safeSpawnPoint(triangles);
+  XCTAssertTrue(spawn.has_value());
+  XCTAssertEqualWithAccuracy(spawn->x,-4.0f/3.0f,.001f);
+  XCTAssertEqualWithAccuracy(spawn->y,2.9f,.001f);
+  XCTAssertEqualWithAccuracy(spawn->z,-4.0f/3.0f,.001f);
+}
+
 - (void)testFixedTimestepMatchesAtThirtySixtyAndOneTwentyHertz {
   using asterix::simulation::FixedTimestep;
   auto scenario = [](double renderRate) {

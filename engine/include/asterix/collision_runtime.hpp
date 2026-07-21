@@ -53,6 +53,39 @@ struct CapsuleState {
 
 struct GroundHit { float height; Vec3 normal; int object_id; Vec3 velocity; };
 
+// Imported sectors can list ceilings and tiny decorative polygons before the
+// traversable terrain. Pick a low, non-degenerate walkable surface independent
+// of file order so the camera does not start above or inside overhead geometry.
+inline std::optional<Vec3> safeSpawnPoint(const std::vector<Triangle>& triangles,
+                                          float capsule_bottom_offset = .9f,
+                                          float maximum_slope_degrees = 50) {
+  const float minimum_up = std::cos(maximum_slope_degrees *
+                                    3.14159265358979323846f / 180.0f);
+  const Triangle* best = nullptr;
+  float best_projected_area = 0;
+  float best_height = std::numeric_limits<float>::infinity();
+  for (const Triangle& triangle : triangles) {
+    const Vec3 surface = cross(triangle.b - triangle.a, triangle.c - triangle.a);
+    const float surface_length = length(surface);
+    if (surface_length <= 1e-6f || std::abs(surface.y) / surface_length < minimum_up)
+      continue;
+    const float projected_area = std::abs(surface.y) * .5f;
+    if (projected_area < .05f) continue;
+    const float height = (triangle.a.y + triangle.b.y + triangle.c.y) / 3;
+    if (height < best_height - .01f ||
+        (std::abs(height - best_height) <= .01f &&
+         projected_area > best_projected_area)) {
+      best = &triangle;
+      best_height = height;
+      best_projected_area = projected_area;
+    }
+  }
+  if (best == nullptr) return std::nullopt;
+  return Vec3{(best->a.x + best->b.x + best->c.x) / 3,
+              (best->a.y + best->b.y + best->c.y) / 3 + capsule_bottom_offset,
+              (best->a.z + best->b.z + best->c.z) / 3};
+}
+
 class World {
  public:
   explicit World(std::vector<Triangle> triangles) : triangles_(std::move(triangles)) {}
