@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 28 — Скелетная анимация и материалы
+
+**Выполнено:** 21 июля 2026.
+
+Добавлен независимый C++20 animation runtime: интерполяция translation и
+shortest-path quaternion, sampling track, иерархическая joint palette с inverse
+bind matrices и нормализованный four-weight skinning. Metal vertex stage
+принимает joint indices/weights и palette; встроенная контрольная сцена
+непрерывно проходит полный GPU skinning path, а статическая сцена использует
+identity palette.
+
+Material path теперь переносит normals, RGBA color, ambient/diffuse factors и
+UV, использует mip filtering, directional Lambert lighting, alpha cutout,
+source-alpha blending и линейный distance fog. Packed RenderWare alpha также
+сохраняется. Исправлен контракт импортёра: skin JSON ранее терял render geometry,
+теперь он содержит vertices, normals, UV, triangles и materials вместе с HAnim и
+weights; старые локальные proof/ASTPAK требуют пересборки.
+
+Native XCTest покрывает mid-clip pose, parent-child palette, skin result и fog.
+Прошли `make check`, `make native-test`, macOS debug build, diff review и resource
+policy. Архитектура и известное ограничение сортировки пересекающихся прозрачных
+поверхностей описаны в
+[отчёте](../architecture/skeletal_animation_materials.md); оригинальные и
+производные игровые ресурсы в Git не добавлялись.
+
 ## П. 1 — Модель разработки и распространения ресурсов
 
 **Выполнено:** 21 июля 2026.

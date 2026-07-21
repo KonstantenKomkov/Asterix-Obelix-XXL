@@ -10,7 +10,10 @@ fvm dart run bin/importer.dart extract-animations \
   "$HOME/asterix-reference/animations/LVL01"
 ```
 
-Результат — JSON с ключевыми кадрами, тремя контрольными samples каждого clip, HAnim hierarchy, vertex bone indices/weights и inverse bind matrices. Производные данные сохраняются вне Git.
+Результат — JSON с ключевыми кадрами, тремя контрольными samples каждого clip,
+полной render geometry, HAnim hierarchy, vertex bone indices/weights и inverse
+bind matrices. До задачи 28 skin JSON ошибочно не сохранял render geometry;
+старые proof/ASTPAK необходимо пересобрать. Производные данные сохраняются вне Git.
 
 ## Animation manager
 

@@ -289,7 +289,12 @@ final class SliceAssetPipeline {
             transform: encodeCanonicalJson,
             value: data,
           ),
-          metadata: {'objectId': objectId},
+          metadata: {
+            'objectId': objectId,
+            'vertexCount': (data['vertices'] as List?)?.length ?? 0,
+            'frameCount': (data['frames'] as List?)?.length ?? 0,
+            'boneCount': (data['skin'] as Map?)?['boneCount'] ?? 0,
+          },
         ),
       );
     }

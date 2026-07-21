@@ -220,6 +220,12 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
       'schemaVersion': 1,
       'objectId': 7,
       'frames': <Object>[],
+      'vertices': <Object>[],
+      'normals': <Object>[],
+      'uvSets': <Object>[],
+      'triangles': <Object>[],
+      'materials': <Object>[],
+      'materialSlots': <Object>[],
     },
     '${root.path}/audio.wav': Uint8List.fromList(ascii.encode('RIFFtestWAVE')),
     '${root.path}/textures/000_stone.png': Uint8List.fromList(

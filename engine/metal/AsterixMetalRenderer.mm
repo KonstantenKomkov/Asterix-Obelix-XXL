@@ -11,12 +11,20 @@
 typedef struct {
   vector_float3 position;
   vector_float3 color;
+  vector_float3 normal;
   vector_float2 uv;
+  float alpha;
+  float ambient;
+  float diffuse;
+  vector_uint4 joints;
+  vector_float4 weights;
 } AsterixVertex;
 
 typedef struct {
   matrix_float4x4 transform;
   uint32_t textured;
+  float fogStart;
+  float fogEnd;
 } AsterixUniforms;
 
 typedef struct {
@@ -112,10 +120,10 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; float2 uv; }; struct U { float4x4 m; uint textured; };\n"
-      "struct O { float4 p [[position]]; float3 c; float2 uv; };\n"
-      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]]) { O o; o.p=u.m*float4(v[i].p,1); o.c=v[i].c; o.uv=v[i].uv; return o; }\n"
-      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]]) { constexpr sampler s(filter::linear, address::repeat); return u.textured != 0 ? t.sample(s,i.uv) : float4(i.c,1); }";
+      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; };\n"
+      "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; };\n"
+      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ skinned+=bones[v[i].joints[j]]*local*v[i].weights[j]; normal+=(float3x3)bones[v[i].joints[j]]*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; o.c=v[i].c; o.n=normal; o.uv=v[i].uv; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
+      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]]) { constexpr sampler s(filter::linear, mip_filter::linear, address::repeat); float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<0.01) discard_fragment(); float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
   if (library == nil) return;
@@ -123,6 +131,13 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   descriptor.vertexFunction = [library newFunctionWithName:@"vs"];
   descriptor.fragmentFunction = [library newFunctionWithName:@"fs"];
   descriptor.colorAttachments[0].pixelFormat = colorFormat;
+  descriptor.colorAttachments[0].blendingEnabled = YES;
+  descriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+  descriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+  descriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+  descriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+  descriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+  descriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
   descriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
   _pipeline = [device newRenderPipelineStateWithDescriptor:descriptor error:&error];
   MTLDepthStencilDescriptor* depth = [MTLDepthStencilDescriptor new];
@@ -130,9 +145,9 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
   depth.depthWriteEnabled = YES;
   _depthState = [device newDepthStencilStateWithDescriptor:depth];
   const AsterixVertex vertices[] = {
-      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0.5f, 0}},
-      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 1}},
-      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}, {1, 1}},
+      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0, 0, 1}, {0.5f, 0}, 1, .35f, .65f, {1,0,0,0}, {1,0,0,0}},
+      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 0, 1}, {0, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}},
+      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}, {0, 0, 1}, {1, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}},
   };
   _vertices = [device newBufferWithBytes:vertices length:sizeof(vertices)
                                   options:MTLResourceStorageModeShared];
@@ -285,6 +300,7 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
     NSData* meshData = [package subdataWithRange:NSMakeRange((NSUInteger)(payloadOffset + offset), (NSUInteger)length)];
     NSDictionary* mesh = [NSJSONSerialization JSONObjectWithData:meshData options:0 error:nil];
     NSArray* positions = mesh[@"vertices"];
+    NSArray* normals = mesh[@"normals"];
     NSArray* triangles = mesh[@"triangles"];
     NSArray* materials = mesh[@"materials"];
     NSArray* uvSets = mesh[@"uvSets"];
@@ -307,17 +323,23 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
       NSUInteger materialIndex = [triangle[3] unsignedIntegerValue];
       id color = materialIndex < materials.count ? materials[materialIndex][@"color"] : nil;
       vector_float3 c = {0.72f, 0.72f, 0.68f};
+      float alpha = 1.0f, ambient = .35f, diffuse = .65f;
       if ([color isKindOfClass:NSArray.class] && [(NSArray*)color count] >= 3) {
         NSArray* channels = color;
         c = (vector_float3){[channels[0] floatValue] / 255.0f,
                             [channels[1] floatValue] / 255.0f,
                             [channels[2] floatValue] / 255.0f};
+        if (channels.count >= 4) alpha = [channels[3] floatValue] / 255.0f;
       } else if ([color isKindOfClass:NSNumber.class]) {
         uint32_t packed = [(NSNumber*)color unsignedIntValue];
         c = (vector_float3){(packed & 0xff) / 255.0f,
                             ((packed >> 8) & 0xff) / 255.0f,
                             ((packed >> 16) & 0xff) / 255.0f};
+        alpha = ((packed >> 24) & 0xff) / 255.0f;
       }
+      NSDictionary* material = materialIndex < materials.count ? materials[materialIndex] : nil;
+      if ([material[@"ambient"] isKindOfClass:NSNumber.class]) ambient = [material[@"ambient"] floatValue];
+      if ([material[@"diffuse"] isKindOfClass:NSNumber.class]) diffuse = [material[@"diffuse"] floatValue];
       for (NSUInteger corner = 0; corner < 3; ++corner) {
         NSUInteger index = [triangle[corner] unsignedIntegerValue];
         if (index >= positions.count || [positions[index] count] < 3) continue;
@@ -330,7 +352,14 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
         vector_float2 uv = {0, 0};
         if (index < uvs.count && [uvs[index] count] >= 2)
           uv = (vector_float2){[uvs[index][0] floatValue], [uvs[index][1] floatValue]};
-        AsterixVertex vertex = {{world.x, world.y, world.z}, c, uv};
+        vector_float3 normal = {0, 1, 0};
+        if (index < normals.count && [normals[index] count] >= 3) {
+          NSArray* n = normals[index];
+          normal = simd_normalize(simd_mul((matrix_float3x3){model.columns[0].xyz, model.columns[1].xyz, model.columns[2].xyz},
+                                           (vector_float3){[n[0] floatValue], [n[1] floatValue], [n[2] floatValue]}));
+        }
+        AsterixVertex vertex = {{world.x, world.y, world.z}, c, normal, uv,
+                                alpha, ambient, diffuse, {0,0,0,0}, {1,0,0,0}};
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
       }
     }
@@ -516,11 +545,20 @@ static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
       const matrix_float4x4 viewProjection = simd_mul(AsterixPerspective(70.0f * 3.14159265358979323846f / 180.0f,
                                                                          aspect, 0.1f, 1000.0f), rotation);
       AsterixUniforms uniforms = {viewProjection,
-                                  hasScene && sceneTexture != nil ? 1u : 0u};
+                                  hasScene && sceneTexture != nil ? 1u : 0u,
+                                  sceneRadius * 1.2f, sceneRadius * 3.2f};
       [encoder setRenderPipelineState:_pipeline];
       [encoder setDepthStencilState:_depthState];
       [encoder setVertexBuffer:hasScene ? sceneVertices : _vertices offset:0 atIndex:0];
       [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+      matrix_float4x4 bones[2] = {matrix_identity_float4x4, matrix_identity_float4x4};
+      if (!hasScene) {
+        const float angle = sinf(seconds * 2.0f) * .45f;
+        bones[1] = (matrix_float4x4){{{cosf(angle), sinf(angle), 0, 0},
+                                      {-sinf(angle), cosf(angle), 0, 0},
+                                      {0, 0, 1, 0}, {0, 0, 0, 1}}};
+      }
+      [encoder setVertexBytes:bones length:sizeof(bones) atIndex:2];
       [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
       if (sceneTexture != nil) [encoder setFragmentTexture:sceneTexture atIndex:0];
       if (!hasScene) {

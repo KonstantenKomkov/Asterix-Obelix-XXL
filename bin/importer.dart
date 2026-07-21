@@ -208,7 +208,7 @@ Future<void> main(List<String> arguments) async {
         await File(
           '${output.path}/skin_${record.objectId.toString().padLeft(4, '0')}.json',
         ).writeAsString(
-          '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'objectId': record.objectId, 'frames': record.mesh.frames.map((frame) => frame.toJson()).toList(), if (record.mesh.skin case final skin?) 'skin': skin.toJson()})}\n',
+          '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, ...record.toJson()})}\n',
           flush: true,
         );
       }

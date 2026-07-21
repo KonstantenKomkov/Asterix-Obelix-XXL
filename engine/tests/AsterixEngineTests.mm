@@ -1,6 +1,7 @@
 #import <XCTest/XCTest.h>
 
 #include "asterix/engine.h"
+#include "asterix/animation_runtime.hpp"
 #include "asterix/scene_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
@@ -9,6 +10,26 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testAnimationPaletteSkinningAndFog {
+  using namespace asterix::animation;
+  Clip clip;
+  clip.duration = 2;
+  Track root;
+  root.keys = {{0, {}}, {2, {{0, 0, 0, 1}, {2, 0, 0}}}};
+  Track child;
+  child.keys = {{0, {{0, 0, 0, 1}, {0, 1, 0}}},
+                {2, {{0, 0, 0, 1}, {0, 1, 0}}}};
+  clip.tracks = {root, child};
+  const auto palette = skinningPalette(clip, {{-1}, {0}}, 1);
+  VertexBinding binding;
+  binding.joints = {1, 0, 0, 0};
+  const auto position = skinPosition({0, 0, 0}, binding, palette);
+  XCTAssertEqualWithAccuracy(position[0], 1, 0.001);
+  XCTAssertEqualWithAccuracy(position[1], 1, 0.001);
+  XCTAssertEqualWithAccuracy(fogFactor(5, 0, 10), .5, 0.001);
+  XCTAssertEqualWithAccuracy(fogFactor(20, 0, 10), 0, 0.001);
+}
 
 - (void)testSceneGraphResolvesHierarchyAndRejectsCycles {
   using namespace asterix::scene;
