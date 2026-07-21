@@ -11,9 +11,13 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'probe-protected-level';
     final extractsAnimations =
         arguments.isNotEmpty && arguments.first == 'extract-animations';
-    final expectedLength = extractsAnimations
+    final extractsCollision =
+        arguments.isNotEmpty && arguments.first == 'extract-collision';
+    final extractsLevelSpatial =
+        arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
+    final expectedLength = extractsAnimations || extractsLevelSpatial
         ? 4
-        : extractsTextures || probesProtectedLevel
+        : extractsTextures || probesProtectedLevel || extractsCollision
         ? 3
         : 2;
     if (arguments.length != expectedLength ||
@@ -26,6 +30,8 @@ Future<void> main(List<String> arguments) async {
           'extract-textures',
           'probe-protected-level',
           'extract-animations',
+          'extract-collision',
+          'extract-level-spatial',
         }.contains(arguments.first)) {
       throw const ImportException(
         code: ImportErrorCode.invalidArguments,
@@ -48,6 +54,63 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (extractsLevelSpatial) {
+      final match = RegExp(
+        r'^LVL(\d{2})\.KWN$',
+        caseSensitive: false,
+      ).firstMatch(file.uri.pathSegments.last);
+      if (match == null) {
+        throw ImportException(
+          code: ImportErrorCode.invalidArguments,
+          message: 'Protected level file must be named LVLnn.KWN.',
+          path: path,
+        );
+      }
+      final modulePath = arguments[2];
+      final scan = scanProtectedXxl1Level(
+        bytes,
+        await File(modulePath).readAsBytes(),
+        levelNumber: int.parse(match.group(1)!),
+        levelPath: path,
+        gameModulePath: modulePath,
+      );
+      final regions = extractXxl1LevelSpatialRegions(bytes, scan, path: path);
+      final output = File(arguments[3]);
+      await output.parent.create(recursive: true);
+      await output.writeAsString(
+        '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'spatialRegions': regions.map((region) => region.toJson()).toList()})}\n',
+        flush: true,
+      );
+      stdout.writeln(
+        'Extracted ${regions.length} level spatial regions into ${output.path}',
+      );
+      return;
+    }
+    if (extractsCollision) {
+      final meshes = extractXxl1SectorCollision(bytes, path: path);
+      final regions = extractXxl1SectorSpatialRegions(bytes, path: path);
+      final renderMeshes = extractXxl1SectorStaticGeometry(bytes, path: path);
+      final output = File(arguments[2]);
+      await output.parent.create(recursive: true);
+      await output.writeAsString(
+        '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'source': file.uri.pathSegments.last, 'meshes': meshes.map((mesh) => mesh.toJson()).toList(), 'spatialRegions': regions.map((region) => region.toJson()).toList()})}\n',
+        flush: true,
+      );
+      final overlay = File(
+        output.path.replaceFirst(
+          RegExp(r'\.json$', caseSensitive: false),
+          '.overlay.svg',
+        ),
+      );
+      await overlay.writeAsString(
+        _collisionOverlaySvg(renderMeshes, meshes),
+        flush: true,
+      );
+      stdout.writeln(
+        'Extracted ${meshes.length} collision meshes and ${regions.length} spatial regions into ${output.path}',
+      );
+      return;
+    }
     if (extractsAnimations) {
       final levelName = file.uri.pathSegments.last;
       final match = RegExp(
@@ -288,6 +351,67 @@ Future<void> main(List<String> arguments) async {
     stderr.writeln(jsonEncode(structured.toJson()));
     exitCode = 74;
   }
+}
+
+String _collisionOverlaySvg(
+  List<SceneMesh> renderMeshes,
+  List<CollisionMesh> collisionMeshes,
+) {
+  final points = <List<double>>[
+    ...renderMeshes.expand((mesh) => mesh.vertices),
+    ...collisionMeshes.expand((mesh) => mesh.vertices),
+  ];
+  if (points.isEmpty) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>\n';
+  }
+  var minX = points.first[0];
+  var maxX = minX;
+  var minZ = points.first[2];
+  var maxZ = minZ;
+  for (final point in points.skip(1)) {
+    if (point[0] < minX) minX = point[0];
+    if (point[0] > maxX) maxX = point[0];
+    if (point[2] < minZ) minZ = point[2];
+    if (point[2] > maxZ) maxZ = point[2];
+  }
+  final width = maxX - minX == 0 ? 1.0 : maxX - minX;
+  final height = maxZ - minZ == 0 ? 1.0 : maxZ - minZ;
+  String pathFor(List<List<double>> vertices, List<List<int>> triangles) {
+    final path = StringBuffer();
+    for (final triangle in triangles) {
+      final a = vertices[triangle[0]];
+      final b = vertices[triangle[1]];
+      final c = vertices[triangle[2]];
+      path.write(
+        'M${a[0].toStringAsFixed(3)},${(-a[2]).toStringAsFixed(3)} '
+        'L${b[0].toStringAsFixed(3)},${(-b[2]).toStringAsFixed(3)} '
+        'L${c[0].toStringAsFixed(3)},${(-c[2]).toStringAsFixed(3)} Z ',
+      );
+    }
+    return path.toString();
+  }
+
+  final renderPath = StringBuffer();
+  for (final mesh in renderMeshes) {
+    renderPath.write(
+      pathFor(
+        mesh.vertices,
+        mesh.triangles
+            .map((triangle) => [triangle.a, triangle.b, triangle.c])
+            .toList(),
+      ),
+    );
+  }
+  final collisionPath = StringBuffer();
+  for (final mesh in collisionMeshes) {
+    collisionPath.write(pathFor(mesh.vertices, mesh.triangles));
+  }
+  return '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="$minX ${-maxZ} $width $height">
+<rect x="$minX" y="${-maxZ}" width="$width" height="$height" fill="#101218"/>
+<path d="$renderPath" fill="none" stroke="#8a93a6" stroke-width="0.08" opacity="0.35"/>
+<path d="$collisionPath" fill="#ff3155" fill-opacity="0.12" stroke="#ff3155" stroke-width="0.14"/>
+</svg>
+''';
 }
 
 bool _hasFiniteSkinData(SceneMeshRecord record) {
