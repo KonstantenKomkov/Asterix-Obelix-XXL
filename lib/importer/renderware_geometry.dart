@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'binary_reader.dart';
 import 'import_error.dart';
 import 'kwn_structure.dart';
+import 'protected_level.dart';
 
 const _rwStruct = 1;
 const _rwFrameList = 0xE;
@@ -10,14 +11,89 @@ const _rwGeometry = 0xF;
 const _rwAtomic = 0x14;
 
 final class SceneFrame {
-  const SceneFrame({required this.matrix, required this.parentIndex});
+  const SceneFrame({
+    required this.matrix,
+    required this.parentIndex,
+    this.hierarchy,
+  });
 
   final List<double> matrix;
   final int parentIndex;
+  final HAnimHierarchy? hierarchy;
 
   Map<String, Object> toJson() => {
     'matrix': matrix,
     'parentIndex': parentIndex,
+    if (hierarchy case final value?) 'hierarchy': value.toJson(),
+  };
+}
+
+final class HAnimBone {
+  const HAnimBone({
+    required this.nodeId,
+    required this.nodeIndex,
+    required this.flags,
+  });
+
+  final int nodeId;
+  final int nodeIndex;
+  final int flags;
+
+  Map<String, Object> toJson() => {
+    'nodeId': nodeId,
+    'nodeIndex': nodeIndex,
+    'flags': flags,
+  };
+}
+
+final class HAnimHierarchy {
+  const HAnimHierarchy({
+    required this.version,
+    required this.nodeId,
+    required this.flags,
+    required this.keyFrameSize,
+    required this.bones,
+  });
+
+  final int version;
+  final int nodeId;
+  final int flags;
+  final int keyFrameSize;
+  final List<HAnimBone> bones;
+
+  Map<String, Object> toJson() => {
+    'version': version,
+    'nodeId': nodeId,
+    'flags': flags,
+    'keyFrameSize': keyFrameSize,
+    'bones': bones.map((bone) => bone.toJson()).toList(),
+  };
+}
+
+final class SceneSkin {
+  const SceneSkin({
+    required this.boneCount,
+    required this.usedBones,
+    required this.maxWeightsPerVertex,
+    required this.vertexBoneIndices,
+    required this.vertexWeights,
+    required this.inverseBindMatrices,
+  });
+
+  final int boneCount;
+  final List<int> usedBones;
+  final int maxWeightsPerVertex;
+  final List<List<int>> vertexBoneIndices;
+  final List<List<double>> vertexWeights;
+  final List<List<double>> inverseBindMatrices;
+
+  Map<String, Object> toJson() => {
+    'boneCount': boneCount,
+    'usedBones': usedBones,
+    'maxWeightsPerVertex': maxWeightsPerVertex,
+    'vertexBoneIndices': vertexBoneIndices,
+    'vertexWeights': vertexWeights,
+    'inverseBindMatrices': inverseBindMatrices,
   };
 }
 
@@ -80,6 +156,7 @@ final class SceneMesh {
     required this.triangles,
     required this.materials,
     required this.materialSlots,
+    this.skin,
   });
 
   final List<SceneFrame> frames;
@@ -89,6 +166,7 @@ final class SceneMesh {
   final List<SceneTriangle> triangles;
   final List<SceneMaterial> materials;
   final List<int> materialSlots;
+  final SceneSkin? skin;
 
   Map<String, Object> summary() => {
     'frameCount': frames.length,
@@ -98,6 +176,7 @@ final class SceneMesh {
     'triangleCount': triangles.length,
     'materialCount': materials.length,
     'materialSlotCount': materialSlots.length,
+    if (skin case final value?) 'boneCount': value.boneCount,
   };
 
   Map<String, Object> toJson() => {
@@ -108,6 +187,7 @@ final class SceneMesh {
     'triangles': triangles.map((triangle) => triangle.toJson()).toList(),
     'materials': materials.map((material) => material.toJson()).toList(),
     'materialSlots': materialSlots,
+    if (skin case final value?) 'skin': value.toJson(),
   };
 }
 
@@ -151,6 +231,23 @@ List<SceneMeshRecord> extractXxl1SectorStaticGeometryRecords(
       .toList();
 }
 
+List<SceneMeshRecord> extractXxl1LevelSkinGeometryRecords(
+  Uint8List bytes,
+  Xxl1LevelScan scan, {
+  required String path,
+}) => scan.objects
+    .where((object) => object.category == 10 && object.classId == 3)
+    .map(
+      (object) => SceneMeshRecord(
+        objectId: object.objectId,
+        mesh: parseXxl1StaticGeometry(
+          Uint8List.sublistView(bytes, object.payloadOffset, object.endOffset),
+          path: '$path#10:3:${object.objectIndex}',
+        ),
+      ),
+    )
+    .toList();
+
 SceneMesh parseXxl1StaticGeometry(Uint8List payload, {String? path}) {
   final reader = BinaryReader(payload, path: path);
   reader.readUint32(); // next CKAnyGeometry reference
@@ -160,11 +257,7 @@ SceneMesh parseXxl1StaticGeometry(Uint8List payload, {String? path}) {
   }
   if ((flags & 0x2000) != 0) {
     final costumes = reader.readUint32();
-    if (costumes != 1) {
-      _fail(reader, 'Multi-costume geometry needs explicit selection.', {
-        'costumes': costumes,
-      });
-    }
+    if (costumes == 0) _fail(reader, 'Geometry has no costumes.');
   }
 
   final frames = <SceneFrame>[];
@@ -199,8 +292,58 @@ List<SceneFrame> _parseFrameList(BinaryReader reader, _ChunkHeader outer) {
     frames.add(SceneFrame(matrix: matrix, parentIndex: parent));
   }
   _requireAt(reader, structure.end, 'frame-list struct');
-  _skipChunksTo(reader, outerEnd);
+  for (var index = 0; index < count; index++) {
+    final extension = _expectHeader(reader, 3);
+    HAnimHierarchy? hierarchy;
+    while (reader.offset < extension.end) {
+      final child = _readHeader(reader);
+      if (child.type == 0x11E) {
+        hierarchy = _parseHAnim(reader, child);
+      } else {
+        reader.seek(child.end);
+      }
+    }
+    _requireAt(reader, extension.end, 'frame extension');
+    if (hierarchy != null) {
+      frames[index] = SceneFrame(
+        matrix: frames[index].matrix,
+        parentIndex: frames[index].parentIndex,
+        hierarchy: hierarchy,
+      );
+    }
+  }
+  _requireAt(reader, outerEnd, 'frame list');
   return frames;
+}
+
+HAnimHierarchy _parseHAnim(BinaryReader reader, _ChunkHeader chunk) {
+  final version = reader.readUint32();
+  final nodeId = reader.readUint32();
+  final count = reader.readUint32();
+  var flags = 0;
+  var keyFrameSize = 0;
+  final bones = <HAnimBone>[];
+  if (count > 0) {
+    flags = reader.readUint32();
+    keyFrameSize = reader.readUint32();
+    for (var index = 0; index < count; index++) {
+      bones.add(
+        HAnimBone(
+          nodeId: reader.readUint32(),
+          nodeIndex: reader.readUint32(),
+          flags: reader.readUint32(),
+        ),
+      );
+    }
+  }
+  _requireAt(reader, chunk.end, 'HAnim extension');
+  return HAnimHierarchy(
+    version: version,
+    nodeId: nodeId,
+    flags: flags,
+    keyFrameSize: keyFrameSize,
+    bones: bones,
+  );
 }
 
 SceneMesh _parseAtomic(
@@ -304,7 +447,24 @@ SceneMesh _parseGeometry(
       });
     }
   }
-  _skipChunksTo(reader, outer.end);
+  SceneSkin? skin;
+  while (reader.offset < outer.end) {
+    final extension = _readHeader(reader);
+    if (extension.type != 3) {
+      reader.seek(extension.end);
+      continue;
+    }
+    while (reader.offset < extension.end) {
+      final child = _readHeader(reader);
+      if (child.type == 0x116) {
+        skin = _parseSkin(reader, child, vertexCount);
+      } else {
+        reader.seek(child.end);
+      }
+    }
+    _requireAt(reader, extension.end, 'geometry extension');
+  }
+  _requireAt(reader, outer.end, 'geometry');
   return SceneMesh(
     frames: frames,
     vertices: vertices,
@@ -313,6 +473,41 @@ SceneMesh _parseGeometry(
     triangles: triangles,
     materials: materialList.materials,
     materialSlots: materialList.slots,
+    skin: skin,
+  );
+}
+
+SceneSkin _parseSkin(BinaryReader reader, _ChunkHeader chunk, int vertexCount) {
+  final boneCount = reader.readUint8();
+  final usedBoneCount = reader.readUint8();
+  final maxWeights = reader.readUint8();
+  reader.readUint8();
+  final usedBones = List<int>.generate(
+    usedBoneCount,
+    (_) => reader.readUint8(),
+  );
+  final indices = List.generate(
+    vertexCount,
+    (_) => List<int>.generate(4, (_) => reader.readUint8()),
+  );
+  final weights = List.generate(
+    vertexCount,
+    (_) => List<double>.generate(4, (_) => reader.readFloat32()),
+  );
+  final matrices = List.generate(boneCount, (_) {
+    if (maxWeights == 0) reader.readUint32();
+    return List<double>.generate(16, (_) => reader.readFloat32());
+  });
+  // Split-skin remap data is renderer-specific. Its validated boundary is kept
+  // in the source chunk while the portable vertex weights above are exported.
+  reader.seek(chunk.end);
+  return SceneSkin(
+    boneCount: boneCount,
+    usedBones: usedBones,
+    maxWeightsPerVertex: maxWeights,
+    vertexBoneIndices: indices,
+    vertexWeights: weights,
+    inverseBindMatrices: matrices,
   );
 }
 
