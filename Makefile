@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get run run-profile run-release format analyze test policy-check check build clean doctor
+.PHONY: help setup get inventory run run-profile run-release format analyze test policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -19,6 +19,10 @@ setup: ## Подключить закреплённый Flutter SDK и уста�
 get: ## Установить Flutter-зависимости
 	$(FLUTTER) pub get
 
+inventory: ## Построить локальный JSON-манифест оригинальных файлов (GAME_DIR=... OUTPUT=...)
+	@test -n "$(GAME_DIR)" || (echo 'Укажите GAME_DIR=/путь/к/AsterixXXL' >&2; exit 2)
+	$(DART) run bin/inventory.dart "$(GAME_DIR)" $(if $(OUTPUT),--output "$(OUTPUT)",)
+
 run: ## Запустить приложение на macOS в debug
 	$(FLUTTER) run -d macos
 
@@ -29,7 +33,7 @@ run-release: ## Запустить приложение на macOS в release
 	$(FLUTTER) run -d macos --release
 
 format: ## Отформатировать Dart-код
-	$(DART) format lib test
+	$(DART) format bin lib test
 
 analyze: ## Запустить статический анализ
 	$(FLUTTER) analyze
