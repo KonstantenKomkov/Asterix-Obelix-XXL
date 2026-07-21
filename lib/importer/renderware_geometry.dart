@@ -32,6 +32,45 @@ final class SceneTriangle {
   List<int> toJson() => [a, b, c, material];
 }
 
+final class SceneMaterial {
+  const SceneMaterial({
+    required this.color,
+    required this.ambient,
+    required this.specular,
+    required this.diffuse,
+    required this.textureName,
+    required this.alphaTextureName,
+    required this.filtering,
+    required this.uAddressing,
+    required this.vAddressing,
+    required this.usesMipmaps,
+  });
+
+  final int color;
+  final double ambient;
+  final double specular;
+  final double diffuse;
+  final String? textureName;
+  final String? alphaTextureName;
+  final int? filtering;
+  final int? uAddressing;
+  final int? vAddressing;
+  final bool usesMipmaps;
+
+  Map<String, Object> toJson() => {
+    'color': color,
+    'ambient': ambient,
+    'specular': specular,
+    'diffuse': diffuse,
+    if (textureName case final value?) 'texture': value,
+    if (alphaTextureName case final value?) 'alphaTexture': value,
+    if (filtering case final value?) 'filtering': value,
+    if (uAddressing case final value?) 'uAddressing': value,
+    if (vAddressing case final value?) 'vAddressing': value,
+    'usesMipmaps': usesMipmaps,
+  };
+}
+
 final class SceneMesh {
   const SceneMesh({
     required this.frames,
@@ -39,6 +78,8 @@ final class SceneMesh {
     required this.normals,
     required this.uvSets,
     required this.triangles,
+    required this.materials,
+    required this.materialSlots,
   });
 
   final List<SceneFrame> frames;
@@ -46,6 +87,8 @@ final class SceneMesh {
   final List<List<double>> normals;
   final List<List<List<double>>> uvSets;
   final List<SceneTriangle> triangles;
+  final List<SceneMaterial> materials;
+  final List<int> materialSlots;
 
   Map<String, Object> summary() => {
     'frameCount': frames.length,
@@ -53,6 +96,8 @@ final class SceneMesh {
     'normalCount': normals.length,
     'uvSetCount': uvSets.length,
     'triangleCount': triangles.length,
+    'materialCount': materials.length,
+    'materialSlotCount': materialSlots.length,
   };
 
   Map<String, Object> toJson() => {
@@ -61,6 +106,8 @@ final class SceneMesh {
     'normals': normals,
     'uvSets': uvSets,
     'triangles': triangles.map((triangle) => triangle.toJson()).toList(),
+    'materials': materials.map((material) => material.toJson()).toList(),
+    'materialSlots': materialSlots,
   };
 }
 
@@ -247,6 +294,16 @@ SceneMesh _parseGeometry(
         )
       : <List<double>>[];
   _requireAt(reader, structure.end, 'geometry struct');
+  final materialList = _parseMaterialList(reader);
+  for (var index = 0; index < triangles.length; index++) {
+    if (triangles[index].material >= materialList.slots.length) {
+      _fail(reader, 'Triangle material ID is outside the material slots.', {
+        'triangle': index,
+        'materialId': triangles[index].material,
+        'slotCount': materialList.slots.length,
+      });
+    }
+  }
   _skipChunksTo(reader, outer.end);
   return SceneMesh(
     frames: frames,
@@ -254,7 +311,86 @@ SceneMesh _parseGeometry(
     normals: normals,
     uvSets: uvSets,
     triangles: triangles,
+    materials: materialList.materials,
+    materialSlots: materialList.slots,
   );
+}
+
+_MaterialList _parseMaterialList(BinaryReader reader) {
+  final outer = _expectHeader(reader, 8);
+  final structure = _expectHeader(reader, _rwStruct);
+  final slotCount = reader.readUint32();
+  final slots = List<int>.generate(slotCount, (_) => reader.readUint32());
+  _requireAt(reader, structure.end, 'material-list struct');
+  final materials = <SceneMaterial>[];
+  final resolvedSlots = <int>[];
+  for (final slot in slots) {
+    if (slot != 0xFFFFFFFF) {
+      if (slot >= resolvedSlots.length) {
+        _fail(reader, 'Material slot references an unknown material.', {
+          'reference': slot,
+          'slotCount': resolvedSlots.length,
+        });
+      }
+      resolvedSlots.add(resolvedSlots[slot]);
+      continue;
+    }
+    final materialChunk = _expectHeader(reader, 7);
+    final materialStruct = _expectHeader(reader, _rwStruct);
+    reader.readUint32(); // material flags
+    final color = reader.readUint32();
+    reader.readUint32(); // unused
+    final textured = reader.readUint32() != 0;
+    final ambient = reader.readFloat32();
+    final specular = reader.readFloat32();
+    final diffuse = reader.readFloat32();
+    _requireAt(reader, materialStruct.end, 'material struct');
+
+    String? textureName;
+    String? alphaTextureName;
+    int? filtering;
+    int? uAddressing;
+    int? vAddressing;
+    var usesMipmaps = false;
+    if (textured) {
+      final textureChunk = _expectHeader(reader, 6);
+      final textureStruct = _expectHeader(reader, _rwStruct);
+      filtering = reader.readUint8();
+      final addressing = reader.readUint8();
+      uAddressing = addressing & 15;
+      vAddressing = addressing >> 4;
+      usesMipmaps = (reader.readUint16() & 1) != 0;
+      _requireAt(reader, textureStruct.end, 'texture struct');
+      textureName = _readRwString(reader);
+      alphaTextureName = _readRwString(reader);
+      _skipChunksTo(reader, textureChunk.end);
+    }
+    _skipChunksTo(reader, materialChunk.end);
+    materials.add(
+      SceneMaterial(
+        color: color,
+        ambient: ambient,
+        specular: specular,
+        diffuse: diffuse,
+        textureName: textureName,
+        alphaTextureName: alphaTextureName,
+        filtering: filtering,
+        uAddressing: uAddressing,
+        vAddressing: vAddressing,
+        usesMipmaps: usesMipmaps,
+      ),
+    );
+    resolvedSlots.add(materials.length - 1);
+  }
+  _requireAt(reader, outer.end, 'material list');
+  return _MaterialList(materials: materials, slots: resolvedSlots);
+}
+
+String _readRwString(BinaryReader reader) {
+  final chunk = _expectHeader(reader, 2);
+  final bytes = reader.readBytes(chunk.end - reader.offset);
+  final zero = bytes.indexOf(0);
+  return String.fromCharCodes(zero < 0 ? bytes : bytes.sublist(0, zero));
 }
 
 _ChunkHeader _readHeader(BinaryReader reader) {
@@ -327,4 +463,11 @@ final class _ChunkHeader {
   final int version;
   final int start;
   final int end;
+}
+
+final class _MaterialList {
+  const _MaterialList({required this.materials, required this.slots});
+
+  final List<SceneMaterial> materials;
+  final List<int> slots;
 }

@@ -4,3 +4,4 @@ export 'kwn_structure.dart';
 export 'renderware_geometry.dart';
 export 'scene_nodes.dart';
 export 'synthetic_container.dart';
+export 'texture_dictionary.dart';

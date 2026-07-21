@@ -79,3 +79,13 @@
 Пять sectors Gaul дали 663 mesh, 60 scene nodes, 131 469 вершин и 149 038 треугольников. Контрольный `STR01_00` экспортирован одной командой во внешний JSON: 381 mesh, 27 nodes, 49 852 вершины и 55 312 треугольников; автоматическая проверка подтвердила counts.
 
 Реализация и ограничения описаны в [спецификации scene geometry](../formats/scene_geometry.md). Тесты используют синтетическую геометрию и отдельно проверяют vertices, indices, UV, frame hierarchy, node transform/references, выход индекса за границы и повреждённые chunks. Производные данные оригинальной игры остаются вне Git.
+
+## П. 12 — Извлечение текстур и материалов
+
+**Выполнено:** 21 июля 2026.
+
+RenderWare material list теперь связывает triangle material IDs с цветом, коэффициентами освещения, sampler settings и texture names. Из sector `CTextureDictionary` напрямую извлекаются размеры, pitch, 4/8-bit palettes, pixels и alpha; RGBA PNG создаётся без внешнего конвертера или ручной правки.
+
+Пять Gaul sectors содержат 131 texture entry с 85 уникальными именами. Контрольный `STR01_00` дал 52 валидных PNG; `tr_tromp_maiso_g01_p0` проверен как RGBA 64×64. В sector-файлах хранится только base mip, а флаг mipmaps переносится в manifest для последующей генерации pipeline.
+
+Формат, material binding и ограничение защищённого общего level dictionary описаны в [спецификации текстур и материалов](../formats/textures_materials.md). Ссылки на отсутствующие в sector dictionaries level/global textures сохраняются по имени и явно помечаются внешними. Тесты проверяют material/texture binding, palette alpha, PNG signature и ошибки границ; оригинальные и производные ресурсы остаются вне Git.

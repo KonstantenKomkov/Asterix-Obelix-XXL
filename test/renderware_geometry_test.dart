@@ -23,6 +23,11 @@ void main() {
     expect(mesh.triangles.single.a, 0);
     expect(mesh.triangles.single.b, 1);
     expect(mesh.triangles.single.c, 2);
+    expect(mesh.materials, hasLength(1));
+    expect(mesh.materials.single.textureName, 'fixture_tex');
+    expect(mesh.materials.single.color, 0x80402010);
+    expect(mesh.materials.single.usesMipmaps, isTrue);
+    expect(mesh.materialSlots, [0, 0]);
   });
 
   test('rejects triangle indices outside the vertex array', () {
@@ -62,7 +67,7 @@ Uint8List _staticGeometryPayload({int lastIndex = 2}) {
   }
   _u16(geometryStruct, 0);
   _u16(geometryStruct, 1);
-  _u16(geometryStruct, 0);
+  _u16(geometryStruct, 1);
   _u16(geometryStruct, lastIndex);
   for (final value in <double>[0, 0, 0, 1]) {
     _f32(geometryStruct, value);
@@ -72,9 +77,40 @@ Uint8List _staticGeometryPayload({int lastIndex = 2}) {
   for (final value in <double>[0, 0, 0, 1, 0, 0, 0, 1, 0]) {
     _f32(geometryStruct, value);
   }
+  final materialStruct = BytesBuilder(copy: false);
+  _u32(materialStruct, 0);
+  _u32(materialStruct, 0x80402010);
+  _u32(materialStruct, 0);
+  _u32(materialStruct, 1);
+  _f32(materialStruct, 1);
+  _f32(materialStruct, 0);
+  _f32(materialStruct, 1);
+  final textureStruct = BytesBuilder(copy: false)
+    ..addByte(2)
+    ..addByte(0x11);
+  _u16(textureStruct, 1);
+  final texture = _chunk(6, [
+    _chunk(1, [textureStruct.takeBytes()]),
+    _rwString('fixture_tex'),
+    _rwString(''),
+    _chunk(3, const []),
+  ]);
+  final material = _chunk(7, [
+    _chunk(1, [materialStruct.takeBytes()]),
+    texture,
+    _chunk(3, const []),
+  ]);
+  final materialSlots = BytesBuilder(copy: false);
+  _u32(materialSlots, 2);
+  _u32(materialSlots, 0xFFFFFFFF);
+  _u32(materialSlots, 0);
+
   final geometry = _chunk(0xF, [
     _chunk(1, [geometryStruct.takeBytes()]),
-    _chunk(8, const []),
+    _chunk(8, [
+      _chunk(1, [materialSlots.takeBytes()]),
+      material,
+    ]),
     _chunk(3, const []),
   ]);
 
@@ -96,6 +132,14 @@ Uint8List _staticGeometryPayload({int lastIndex = 2}) {
   _u32(payload, 0); // same geometry reference
   _u32(payload, 6);
   return payload.takeBytes();
+}
+
+Uint8List _rwString(String value) {
+  final bytes = [...value.codeUnits, 0];
+  while (bytes.length % 4 != 0) {
+    bytes.add(0);
+  }
+  return _chunk(2, [Uint8List.fromList(bytes)]);
 }
 
 Uint8List _chunk(int type, List<Uint8List> parts) {
