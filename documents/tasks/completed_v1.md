@@ -244,3 +244,24 @@ JSON проверен `jq`, audio — `ffprobe`. Сценарий отклоня
 Контракт, команда и граница между proof и будущим runtime pipeline описаны в
 [документе M1](../formats/importer_proof.md). Оригинальные и производные ресурсы
 остались вне Git. Веха M1 завершена.
+
+## П. 17 — Архитектура workspace и runtime
+
+**Выполнено:** 21 июля 2026.
+
+Принят [ADR-001](../architecture/adr-001-runtime-workspace.md), фиксирующий
+односторонние границы Flutter UI/Dart orchestration, offline importer,
+версионируемого C ABI, platform-neutral C++ runtime, Metal renderer и macOS
+bridge. Определена целевая структура `engine/include`, `engine/src`,
+`engine/metal`, `engine/macos` и native tests.
+
+ADR явно назначает владельцев UI/simulation/CPU/GPU data, opaque engine handle,
+stable object IDs и allocator boundaries. Зафиксированы serial fixed-step engine
+thread, immutable double-buffered render snapshots, bounded command/event queues
+и отсутствие per-object FFI calls.
+
+Описан полный lifecycle от create/attach через resize, Retina, suspend/resume до
+detach/destroy, включая идемпотентное освобождение после частичной ошибки и hot
+restart. C ABI получает version/struct size, POD transport и status вместо
+исключений. Последующие задачи 18–22 содержат проверяемые условия реализации
+этого решения; архитектурные отступления требуют нового ADR.

@@ -18,7 +18,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 17 | **Зафиксировать архитектуру workspace:** границы Flutter/Dart, C API, C++ runtime, Metal, macOS bridge, importer и тестов | Этап 2 / M2 | P1 | M | После п. 16; ADR описывает владение данными, потоки и lifecycle |
 | 18 | **Подготовить структуру нативного ядра:** `engine/include`, `engine/src`, `engine/metal`, `engine/macos`, сборка из Xcode и тестовый target | Этап 2 / M2 | P1 | L | После п. 17; чистая сборка Flutter собирает нативный модуль на Intel и Apple Silicon |
 | 19 | **Встроить `MTKView` в Flutter-окно:** platform view и корректный resize с учётом Retina scale | Этап 2 / M2 | P1 | L | После п. 18; Metal view занимает игровую область и не ломает Flutter UI |
 | 20 | **Реализовать lifecycle рендерера:** создание ресурсов, foreground/background, resize, остановка и освобождение | Этап 2 / M2 | P1 | M | После п. 19; повторное открытие/закрытие не приводит к crash или утечке |
@@ -97,6 +96,7 @@
 - [x] П. 7 — карта файлов и контрольные состояния
 - [x] П. 8–15 — исследование форматов
 - [x] П. 16 — M1: importer proof
+- [x] П. 17 — архитектура workspace и runtime
 - [ ] П. 17–22 — M2: native core, Metal view и FFI proof
 - [ ] П. 23–31 — asset pipeline и базовый 3D-движок
 - [ ] П. 32–39 — игровые системы vertical slice
@@ -105,7 +105,9 @@
 
 ---
 
-**Последнее обновление:** 21 июля 2026 — п. 16 выполнен и M1 закрыт: `scripts/extract_slice_proof.sh` одной командой извлекает Gaul scene, PNG textures, animations/skins и PCM WAV с корневым manifest без ручной правки.
+**Последнее обновление:** 21 июля 2026 — п. 17 выполнен: ADR-001 фиксирует границы Flutter/importer/C ABI/C++/Metal/macOS, ownership, thread model, versioned transport и полный native lifecycle.
+
+**Предыдущее обновление:** 21 июля 2026 — п. 16 выполнен и M1 закрыт: `scripts/extract_slice_proof.sh` одной командой извлекает Gaul scene, PNG textures, animations/skins и PCM WAV с корневым manifest без ручной правки.
 
 **Предыдущее обновление:** 21 июля 2026 — п. 15 выполнен: все 631 RWS классифицированы как Xbox IMA ADPCM; добавлены parser, tree inspection и декодирование первого segment в PCM WAV, формат и назначение потоков описаны в `documents/formats/rws.md`.
 
