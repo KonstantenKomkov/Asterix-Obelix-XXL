@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/localization/app_strings.dart';
@@ -16,6 +18,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const _assetsChannel = MethodChannel('asterix/assets');
+  static const _configuredAssetPackagePath = String.fromEnvironment(
+    'ASTERIX_ASSET_PACKAGE',
+  );
   String _profileId = 'default';
   String _profileName = '';
   SaveGame? _save;
@@ -86,13 +92,11 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 14),
                       FilledButton.icon(
                         key: const Key('new-game-button'),
-                        onPressed: () => _open(
+                        onPressed: () => _openGame(
                           context,
-                          GamePage(
-                            profileId: _profileId,
-                            profileName: profileName,
-                            restoreSavedGame: false,
-                          ),
+                          profileId: _profileId,
+                          profileName: profileName,
+                          restoreSavedGame: false,
                         ),
                         icon: const Icon(Icons.play_arrow_rounded),
                         label: Text(strings.newGame),
@@ -102,12 +106,11 @@ class _HomePageState extends State<HomePage> {
                         key: const Key('continue-button'),
                         onPressed: _save == null
                             ? null
-                            : () => _open(
+                            : () => _openGame(
                                 context,
-                                GamePage(
-                                  profileId: _save!.profileId,
-                                  profileName: _save!.profileName,
-                                ),
+                                profileId: _save!.profileId,
+                                profileName: _save!.profileName,
+                                restoreSavedGame: true,
                               ),
                         icon: const Icon(Icons.folder_open_rounded),
                         label: Text(strings.continueGame),
@@ -190,6 +193,54 @@ class _HomePageState extends State<HomePage> {
 
   void _open(BuildContext context, Widget page) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
+  }
+
+  Future<void> _openGame(
+    BuildContext context, {
+    required String profileId,
+    required String profileName,
+    required bool restoreSavedGame,
+  }) async {
+    var packagePath = _configuredAssetPackagePath;
+    final preferences = await SharedPreferences.getInstance();
+    packagePath = packagePath.isEmpty
+        ? preferences.getString('assetPackagePath') ?? ''
+        : packagePath;
+    if (_configuredAssetPackagePath.isEmpty &&
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      packagePath =
+          await _assetsChannel.invokeMethod<String>(
+            'resolveAssetPackage',
+            packagePath,
+          ) ??
+          '';
+      if (packagePath.isNotEmpty) {
+        await preferences.setString('assetPackagePath', packagePath);
+      }
+    }
+    if (packagePath.isEmpty && defaultTargetPlatform == TargetPlatform.macOS) {
+      packagePath =
+          await _assetsChannel.invokeMethod<String>('selectAssetPackage') ?? '';
+      if (packagePath.isNotEmpty) {
+        await preferences.setString('assetPackagePath', packagePath);
+      }
+    }
+    if (!context.mounted) return;
+    if (packagePath.isEmpty && defaultTargetPlatform == TargetPlatform.macOS) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.of(context).assetPackageRequired)),
+      );
+      return;
+    }
+    _open(
+      context,
+      GamePage(
+        profileId: profileId,
+        profileName: profileName,
+        restoreSavedGame: restoreSavedGame,
+        assetPackagePath: packagePath,
+      ),
+    );
   }
 }
 

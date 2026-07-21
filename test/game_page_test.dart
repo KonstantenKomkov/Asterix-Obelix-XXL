@@ -1,4 +1,5 @@
 import 'package:asterix_xxl/feature/game/presentation/pages/game_page.dart';
+import 'package:asterix_xxl/feature/main_menu/presentation/pages/home_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,52 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets('new game resolves and remembers installed ASTPAK on macOS', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    var pickerCalls = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('asterix/assets'), (
+          call,
+        ) async {
+          if (call.method == 'resolveAssetPackage') {
+            return '/tmp/gaul-stage-1.astpak';
+          }
+          pickerCalls++;
+          return null;
+        });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          SystemChannels.platform_views,
+          (_) async => 1,
+        );
+    try {
+      await tester.pumpWidget(const MaterialApp(home: HomePage()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('new-game-button')));
+      await tester.pumpAndSettle();
+
+      expect(pickerCalls, 0);
+      expect(find.byType(AppKitView), findsOneWidget);
+      final preferences = await SharedPreferences.getInstance();
+      expect(
+        preferences.getString('assetPackagePath'),
+        '/tmp/gaul-stage-1.astpak',
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('asterix/assets'),
+            null,
+          );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    }
+  });
+
   testWidgets('macOS game page embeds Metal platform view below HUD', (
     tester,
   ) async {

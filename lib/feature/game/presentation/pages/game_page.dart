@@ -20,11 +20,13 @@ class GamePage extends StatefulWidget {
     this.profileId = 'default',
     this.profileName = '',
     this.restoreSavedGame = true,
+    this.assetPackagePath = '',
   });
 
   final String profileId;
   final String profileName;
   final bool restoreSavedGame;
+  final String assetPackagePath;
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -183,7 +185,7 @@ class _GamePageState extends State<GamePage> {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            const _EngineViewport(),
+            _EngineViewport(assetPackagePath: widget.assetPackagePath),
             _Hud(stream: _statsStream),
             _OpeningSubtitle(enabled: _subtitlesEnabled),
             Positioned(
@@ -224,10 +226,12 @@ class _GamePageState extends State<GamePage> {
 }
 
 class _EngineViewport extends StatelessWidget {
-  const _EngineViewport();
+  const _EngineViewport({required this.assetPackagePath});
+
+  final String assetPackagePath;
 
   static const viewType = 'asterix/metal-viewport';
-  static const assetPackagePath = String.fromEnvironment(
+  static const _configuredAssetPackagePath = String.fromEnvironment(
     'ASTERIX_ASSET_PACKAGE',
   );
 
@@ -238,7 +242,11 @@ class _EngineViewport extends StatelessWidget {
         key: const Key('metal-viewport'),
         viewType: viewType,
         hitTestBehavior: PlatformViewHitTestBehavior.transparent,
-        creationParams: const {'assetPackagePath': assetPackagePath},
+        creationParams: {
+          'assetPackagePath': assetPackagePath.isEmpty
+              ? _configuredAssetPackagePath
+              : assetPackagePath,
+        },
         creationParamsCodec: const StandardMessageCodec(),
       );
     }

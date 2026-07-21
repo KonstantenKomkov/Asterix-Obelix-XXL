@@ -1169,7 +1169,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
       if (sceneTexture != nil) [encoder setFragmentTexture:sceneTexture atIndex:0];
       if (!hasScene) {
-        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+        // A missing runtime package is a configuration error, not a playable
+        // proof scene. Keep the viewport empty until the menu supplies ASTPAK.
       } else {
         std::vector<asterix::scene::DrawBatch> batches;
         std::vector<AsterixMeshRange> meshRanges;

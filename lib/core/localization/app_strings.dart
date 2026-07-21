@@ -18,6 +18,9 @@ final class AppStrings {
       _ru ? 'Нативный прототип для macOS' : 'Native prototype for macOS';
   String get newGame => _ru ? 'НОВАЯ ИГРА' : 'NEW GAME';
   String get continueGame => _ru ? 'ПРОДОЛЖИТЬ' : 'CONTINUE';
+  String get assetPackageRequired => _ru
+      ? 'Пакет уровня не найден. Сначала выполните scripts/install_slice_assets.sh.'
+      : 'Level package not found. Run scripts/install_slice_assets.sh first.';
   String get settings => _ru ? 'НАСТРОЙКИ' : 'SETTINGS';
   String get profile => _ru ? 'ПРОФИЛЬ' : 'PROFILE';
   String get player => _ru ? 'Игрок' : 'Player';

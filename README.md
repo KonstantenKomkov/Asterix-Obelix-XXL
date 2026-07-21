@@ -1,16 +1,22 @@
-# asterix_xxl
+# Asterix & Obelix XXL macOS runtime
 
-A new Flutter project.
+Оригинальные игровые ресурсы не входят в репозиторий. Перед первым запуском
+соберите локальный ASTPAK из своей установленной копии игры:
 
-## Getting Started
+```sh
+./scripts/install_slice_assets.sh "/путь/к/AsterixXXL"
+```
 
-This project is a starting point for a Flutter application.
+Скрипт установит пакет в
+`~/Library/Application Support/AsterixXXL/gaul-stage-1.astpak`. После этого
+`make run` и запуск «Новой игры» находят его автоматически. Если стандартного
+пакета нет, приложение предлагает выбрать ранее собранный `.astpak` вручную.
 
-A few resources to get you started if this is your first Flutter project:
+Для локальной установки Triada в текущем окружении команда выглядит так:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```sh
+./scripts/install_slice_assets.sh "$HOME/Downloads/Asterix & Obelix XXL (Triada)/prefix/drive_c/AsterixXXL"
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Сборка требует закреплённый через FVM Flutter SDK. ASTPAK и производные игровые
+данные должны оставаться вне Git.
