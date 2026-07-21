@@ -97,6 +97,8 @@ class _EngineViewport extends StatelessWidget {
 class _Hud extends StatelessWidget {
   const _Hud();
 
+  static const _stats = EventChannel('asterix/metal-stats');
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -112,15 +114,44 @@ class _Hud extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppTheme.gold.withValues(alpha: 0.5)),
             ),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('АСТЕРИКС', style: TextStyle(fontWeight: FontWeight.w900)),
-                SizedBox(height: 8),
-                LinearProgressIndicator(value: 0.76, minHeight: 10),
-                SizedBox(height: 8),
-                Text('Шлемы:  0 / 10', style: TextStyle(color: Colors.white70)),
+                const Text(
+                  'АСТЕРИКС',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 8),
+                const LinearProgressIndicator(value: 0.76, minHeight: 10),
+                const SizedBox(height: 8),
+                const Text(
+                  'Шлемы:  0 / 10',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                const Divider(height: 20),
+                StreamBuilder<dynamic>(
+                  stream: _stats.receiveBroadcastStream(),
+                  builder: (context, snapshot) {
+                    final values = snapshot.data is Map
+                        ? Map<Object?, Object?>.from(snapshot.data as Map)
+                        : const <Object?, Object?>{};
+                    final fps = (values['fps'] as num?)?.toDouble() ?? 0;
+                    final cpu = (values['cpuMs'] as num?)?.toDouble() ?? 0;
+                    final gpu = (values['gpuMs'] as num?)?.toDouble() ?? 0;
+                    final bytes =
+                        (values['allocatedBytes'] as num?)?.toInt() ?? 0;
+                    return Text(
+                      'FPS ${fps.toStringAsFixed(1)}  CPU ${cpu.toStringAsFixed(2)} ms\n'
+                      'GPU ${gpu.toStringAsFixed(2)} ms  Metal ${(bytes / 1048576).toStringAsFixed(1)} MiB',
+                      key: const Key('renderer-stats'),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),

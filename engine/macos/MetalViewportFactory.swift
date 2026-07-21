@@ -2,25 +2,73 @@ import AppKit
 import FlutterMacOS
 import MetalKit
 
-final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory {
+final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterStreamHandler {
   static let viewType = "asterix/metal-viewport"
+  static let statsChannel = "asterix/metal-stats"
+  private weak var viewport: MetalViewportView?
+  private var eventSink: FlutterEventSink?
+  private var timer: Timer?
+
+  override init() {
+    super.init()
+  }
+
+  init(messenger: FlutterBinaryMessenger) {
+    super.init()
+    FlutterEventChannel(name: Self.statsChannel, binaryMessenger: messenger)
+      .setStreamHandler(self)
+  }
 
   func create(
     withViewIdentifier viewIdentifier: Int64,
     arguments args: Any?
   ) -> NSView {
-    MetalViewportView(frame: .zero)
+    let view = MetalViewportView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+    viewport = view
+    return view
   }
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    eventSink = events
+    timer?.invalidate()
+    timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+      guard let stats = self?.viewport?.statistics else { return }
+      self?.eventSink?(stats)
+    }
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    timer?.invalidate()
+    timer = nil
+    eventSink = nil
+    return nil
+  }
+
+  deinit { timer?.invalidate() }
 }
 
 final class MetalViewportView: MTKView {
   private var renderer: AsterixMetalRenderer?
   private var lifecycleObservers: [(NotificationCenter, NSObjectProtocol)] = []
 
+  var statistics: [String: Any] {
+    guard let renderer else { return [:] }
+    return [
+      "fps": renderer.framesPerSecond,
+      "cpuMs": renderer.cpuFrameTimeMilliseconds,
+      "gpuMs": renderer.gpuFrameTimeMilliseconds,
+      "allocatedBytes": renderer.allocatedMemoryBytes,
+      "frameCount": renderer.frameCount,
+      "sceneReady": renderer.isSceneReady,
+    ]
+  }
+
   override init(frame frameRect: NSRect, device: MTLDevice? = MTLCreateSystemDefaultDevice()) {
     super.init(frame: frameRect, device: device)
     autoresizingMask = [.width, .height]
     autoResizeDrawable = false
+    preferredFramesPerSecond = 60
     framebufferOnly = true
     colorPixelFormat = .bgra8Unorm
     clearColor = MTLClearColor(red: 0.035, green: 0.075, blue: 0.12, alpha: 1)
@@ -53,6 +101,10 @@ final class MetalViewportView: MTKView {
       renderer?.suspend()
     } else {
       renderer?.resume()
+    }
+    DispatchQueue.main.async { [weak self] in
+      guard let self, self.window != nil, NSApp.isActive else { return }
+      self.renderer?.resume()
     }
   }
 

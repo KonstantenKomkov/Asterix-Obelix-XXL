@@ -356,3 +356,30 @@ enqueue/drain и `NativeFinalizer`. Runner экспортирует ABI symbols 
 events, atomic queue full и наблюдаемое event overflow. Также прошли native
 XCTest, Xcode static analysis, Runner XCTest, Flutter release build, полный
 `make check` и resource policy; игровые ресурсы не добавлялись.
+
+## П. 22 — Тестовая Metal-сцена и Flutter HUD
+
+**Выполнено:** 21 июля 2026.
+
+`AsterixMetalRenderer` теперь выводит вращающийся цветной треугольник через
+перспективную камеру с FOV 70° и отдельным `Depth32Float` attachment. Aspect
+ratio берётся из физического Retina drawable; pipeline, vertex buffer и depth
+resources освобождаются вместе с renderer lifecycle.
+
+Renderer публикует сглаженный FPS, CPU submission time, GPU execution time,
+число кадров и Metal allocated memory. `MetalViewportFactory` отправляет
+агрегированный snapshot в Flutter HUD четыре раза в секунду через EventChannel,
+без покадровых Dart→native вызовов.
+
+Profile-проверка на доступном M2 validation baseline (MacBook Pro, Apple M3 Max,
+viewport 800×600 logical / 1600×1200 physical) дала стабильные 59,9–60,0 FPS;
+контрольный snapshot — CPU 0,28 ms, GPU 0,06 ms и 64,8 MiB Metal allocation.
+Методика и границы результата зафиксированы в
+[документе M2](../architecture/metal_scene_proof.md).
+
+Review выявил и устранил критическую ошибку инициализации: одноаргументный
+унаследованный `MTKView.init(frame:)` оставлял `CAMetalLayer.device` пустым.
+Фабрика теперь явно передаёт `MTLCreateSystemDefaultDevice()`, а Runner XCTest
+проверяет device и готовность scene pipeline. Прошли `make check`, Runner XCTest,
+profile host verification и resource policy; оригинальные игровые ресурсы не
+добавлялись.

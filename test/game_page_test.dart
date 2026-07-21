@@ -26,6 +26,8 @@ void main() {
       expect(find.byType(AppKitView), findsOneWidget);
       expect(find.byKey(const Key('metal-viewport')), findsOneWidget);
       expect(find.text('АСТЕРИКС'), findsOneWidget);
+      expect(find.byKey(const Key('renderer-stats')), findsOneWidget);
+      expect(find.textContaining('FPS 0.0'), findsOneWidget);
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }

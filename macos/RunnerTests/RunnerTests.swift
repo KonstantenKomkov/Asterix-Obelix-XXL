@@ -43,6 +43,7 @@ class RunnerTests: XCTestCase {
 
   @MainActor
   func testFactoryCreatesMetalViewport() {
+    let systemDevice = MTLCreateSystemDefaultDevice()
     let factory = MetalViewportFactory()
     let view = factory.create(withViewIdentifier: 7, arguments: nil)
 
@@ -51,6 +52,12 @@ class RunnerTests: XCTestCase {
     }
     XCTAssertEqual(metalView.autoResizeDrawable, false)
     XCTAssertEqual(metalView.colorPixelFormat, .bgra8Unorm)
+    XCTAssertEqual(metalView.preferredFramesPerSecond, 60)
+    XCTAssertEqual(metalView.statistics["frameCount"] as? UInt64, 0)
+    XCTAssertEqual(metalView.device == nil, systemDevice == nil)
+    if systemDevice != nil {
+      XCTAssertEqual(metalView.statistics["sceneReady"] as? Bool, true)
+    }
   }
 
   func testMetalDrawableSizeUsesRetinaScale() {

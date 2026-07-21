@@ -9,8 +9,11 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
-    flutterViewController.registrar(forPlugin: "AsterixMetalViewport")
-      .register(MetalViewportFactory(), withId: MetalViewportFactory.viewType)
+    let registrar = flutterViewController.registrar(forPlugin: "AsterixMetalViewport")
+    registrar.register(
+      MetalViewportFactory(messenger: registrar.messenger),
+      withId: MetalViewportFactory.viewType
+    )
 
     super.awakeFromNib()
   }

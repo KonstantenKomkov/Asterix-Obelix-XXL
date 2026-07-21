@@ -2,7 +2,7 @@
 
 Задачи сформированы из [плана переписывания](../flutter_macos_rewrite_plan.md). Выполненные пункты следует переносить в [completed_v1.md](completed_v1.md).
 
-**Статус:** выполняется. Flutter macOS shell содержит нативный `MTKView`, lifecycle renderer и версионируемый Dart FFI transport; тестовая 3D-сцена ещё не реализована.
+**Статус:** выполняется. Веха M2 закрыта: Flutter macOS shell отображает тестовую Metal-сцену с depth buffer и live HUD; следующий этап — версионируемый runtime-формат ресурсов.
 
 **Цель итерации:** пройти путь от прямого импорта исходных игровых файлов и фиксации эталонного поведения до полностью проходимого вертикального среза одного уровня. Видео не используется как источник моделей, сцен, текстур, анимаций или звука.
 
@@ -18,7 +18,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 22 | **Вывести тестовую Metal-сцену и Flutter HUD:** камера, треугольник/куб, frame timing и счётчики памяти | Этап 2 / M2 | P1 | M | После п. 19–21; стабильные 60 FPS на выбранном минимальном Mac |
 | 23 | **Реализовать версионируемый формат сборки ресурсов:** glTF 2.0 либо собственный контейнер, manifest schema и устойчивые object IDs | Этап 3 | P1 | L | После п. 16–17; решение и версия формата документированы |
 | 24 | **Собрать воспроизводимый asset pipeline:** модели/анимации, Metal-текстуры с mipmaps, аудио и scene manifest | Этап 3 | P1 | XL | После п. 23; чистая сборка создаёт пакет ресурсов среза одной командой |
 | 25 | **Добавить валидацию, кеш и инкрементальную сборку:** проверка ссылок/диапазонов, понятный отчёт ошибок, пересборка только изменённых входов | Этап 3 | P1 | L | После п. 24; повреждённая фикстура завершается контролируемой ошибкой |
@@ -97,7 +96,7 @@
 - [x] П. 19 — MTKView platform view и Retina-resize
 - [x] П. 20 — lifecycle Metal renderer
 - [x] П. 21 — versioned C ABI и Dart FFI transport
-- [ ] П. 22 — M2: Metal scene proof и Flutter HUD
+- [x] П. 22 — M2: Metal scene proof и Flutter HUD
 - [ ] П. 23–31 — asset pipeline и базовый 3D-движок
 - [ ] П. 32–39 — игровые системы vertical slice
 - [ ] П. 40–43 — аудио, presentation, приёмка M4 и решение о продолжении
@@ -105,7 +104,9 @@
 
 ---
 
-**Последнее обновление:** 21 июля 2026 — п. 21 выполнен: ABI v1 связывает Dart и C++ через batch commands, bounded SPSC command/event queues, double-buffered UI snapshot и generated FFI bindings с реальным integration-тестом.
+**Последнее обновление:** 21 июля 2026 — п. 22 выполнен и M2 закрыт: перспективная Metal-сцена с depth buffer отображается вместе с Flutter HUD; profile-проверка подтвердила стабильные 59,9–60,0 FPS и live CPU/GPU/memory counters.
+
+**Предыдущее обновление:** 21 июля 2026 — п. 21 выполнен: ABI v1 связывает Dart и C++ через batch commands, bounded SPSC command/event queues, double-buffered UI snapshot и generated FFI bindings с реальным integration-тестом.
 
 **Предыдущее обновление:** 21 июля 2026 — п. 20 выполнен: Objective-C++ renderer управляет command queue, resize, suspend/resume, sleep/wake, occlusion, ожиданием in-flight GPU work и идемпотентным stop/release.
 
