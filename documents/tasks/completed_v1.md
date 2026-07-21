@@ -91,6 +91,27 @@ far distance, position/look-at и неизвестные параметры clas
 
 Локальные видео, camera probe и извлечённые payload остаются вне Git.
 
+## П. 6 — Каталог контента Gaul
+
+**Выполнено:** 21 июля 2026.
+
+Создан [каталог контента `LVL001`](../gameplay/content_catalog.md), построенный
+прямым чтением inventory оригинальной PC-копии, protected-level probe,
+sector geometry/textures/collision и class metadata. Каталог связывает level,
+пять sectors, locale packs и 116 level-local RWS с исходными путями.
+
+Для персонажей, противников, интерактивов и checkpoint приведены точные
+`(category, classId)` и object counts: `CKGrpTrio`, 11 enemy squads, 18 basic
+enemy hooks, 60 crate hooks, 90 bonus hooks, один checkpoint hook/group и
+другие механизмы. Отдельно перечислены четыре `CKCinematicScene`, 14 scene data
+и отсутствие standalone video containers.
+
+Review отделяет сериализованные hooks/groups/components от фактического числа
+spawn-объектов. Неподтверждённые личности NPC, обязательность механизмов,
+назначение RWS и object-to-sector/event mapping явно оставлены неизвестными, а
+не восстановлены по визуальному сходству. Оригинальные файлы и полные машинные
+манифесты остаются вне Git.
+
 ## П. 8 — Инвентаризация оригинальных файлов
 
 **Выполнено:** 21 июля 2026.
