@@ -15,6 +15,10 @@ final _kindPattern = RegExp(r'^[a-z][a-z0-9-]{0,31}$');
 final _idPattern = RegExp(r'^astx:[a-z][a-z0-9-]{0,31}:[0-9a-f]{32}$');
 final _sha256Pattern = RegExp(r'^[0-9a-f]{64}$');
 
+/// Encodes JSON with recursively sorted object keys for reproducible assets.
+Uint8List encodeCanonicalJson(Object? value) =>
+    Uint8List.fromList(utf8.encode(_canonicalJson(value)));
+
 enum AssetPackageErrorCode {
   invalidInput,
   truncatedInput,
@@ -219,9 +223,7 @@ final class AsterixAssetPackageBuilder {
       ],
       'resources': resourceEntries,
     };
-    final manifestBytes = Uint8List.fromList(
-      utf8.encode(_canonicalJson(manifest)),
-    );
+    final manifestBytes = encodeCanonicalJson(manifest);
     final payloadOffset = _align(
       asterixPackageHeaderSize + manifestBytes.length,
       asterixPackagePayloadAlignment,
