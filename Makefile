@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-characters-validate animation-world-annotations animation-world-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-characters-validate animation-world-annotations animation-world-validate animation-cinematic-annotations animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -54,6 +54,14 @@ animation-world-annotations: ## Построить world/UI/FX-аннотаци�
 animation-world-validate: ## Проверить все world/UI/FX dictionaries (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/catalog.json' >&2; exit 2)
 	$(DART) run bin/animation_catalog.dart validate-world-dictionaries "$(INPUT)"
+
+animation-cinematic-annotations: ## Построить cinematic-аннотации (INPUT=... OUTPUT=...)
+	@test -n "$(INPUT)" -a -n "$(OUTPUT)" || (echo 'Укажите INPUT=... OUTPUT=...' >&2; exit 2)
+	$(DART) run bin/animation_cinematic_annotations.dart "$(INPUT)" "$(OUTPUT)"
+
+animation-cinematics-validate: ## Проверить все cinematic dictionaries (INPUT=...)
+	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/catalog.json' >&2; exit 2)
+	$(DART) run bin/animation_catalog.dart validate-cinematic-dictionaries "$(INPUT)"
 
 animation-review: ## Создать HTML для просмотра clips (CATALOG=... ANIMATIONS=... OUTPUT=...)
 	@test -n "$(CATALOG)" -a -n "$(ANIMATIONS)" -a -n "$(OUTPUT)" || (echo 'Укажите CATALOG=... ANIMATIONS=... OUTPUT=...' >&2; exit 2)

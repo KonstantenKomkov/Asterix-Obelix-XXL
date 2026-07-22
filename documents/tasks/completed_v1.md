@@ -1,5 +1,35 @@
 # Выполненные задачи первой итерации
 
+## П. 62.6 — Семантический каталог cinematic dictionaries и shared contexts
+
+**Выполнено:** 22 июля 2026.
+
+Разобраны все 14 dedicated cinematic dictionaries LVL01 (`3`, `5–16`, `18`):
+63 заполненных slots и 44 уникальных clips. Каждый slot получил отдельный
+context с actor/prop profile, `CKCinematicSceneData` owner, scene-data timeline
+membership, scripted action, playback, transitions и root-motion policy.
+Dictionary `0`, дополнительно заимствованный scene data 10, сохранён как
+gameplay dictionary Идефикса; его scene-specific роли представлены dedicated
+dictionaries `8` и `18` и не подменяют владельца gameplay slots.
+
+Shared clips Астерикса, Обеликса, Идефикса и animated-character dictionaries
+сохраняют все исходные gameplay/scripted contexts и получают отдельные
+cinematic contexts для точных dictionary slots. Конкретные сюжетные названия не
+угадывались при отсутствующем event-to-scene mapping: timeline evidence
+ограничено типизированной ссылкой scene-data owner и фактическим membership.
+Импортированные payload не имеют отдельного authored event track, поэтому
+`events: []` сохранён без предположительных cues.
+
+Добавлены воспроизводимый генератор cinematic annotations, версионированный
+scope и отдельная команда проверки. Локальные производные артефакты вне Git:
+`animation-semantics-cinematics-task62.6.json` (SHA-256
+`c3d924f2c3efb6ed85b2e6e38a572e98cdf16ad153f062a0af358ee93cc36d42`) и
+`animation-catalog-cinematics-task62.6.json` (SHA-256
+`3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`). Scoped
+и полный валидаторы принимают результат; полный каталог уже содержит 345 confirmed clips, но
+формальная проверка всех 518 структурных slots остаётся п. 62.7. Оригинальные
+ресурсы и производные игровые данные в Git не добавлялись.
+
 ## П. 62.5 — Семантический каталог анимаций мира, UI и FX
 
 **Выполнено:** 22 июля 2026.

@@ -21,7 +21,6 @@
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 | 60 | Откалибровать именно бег Астерикса по эталонному прохождению оригинала | Gameplay fidelity | P0 | M | После п. 5 и 56; отдельно идентифицированы походка и бег оригинала, при штатном полном вводе выбираются беговой клип и соответствующая ему скорость, а не ускоренная ходьба; на зафиксированном прямом маршруте измерены скорость и время прохождения, `run_speed`, пороги gait, acceleration/deceleration, animation rate и диагональная нормализация настроены в согласованном масштабе мира; расхождение дистанции, времени и cadence укладывается в документированный допуск и покрыто fixed-tick и visual regression-тестами |
 | 61 | Подключить gameplay-камеру к фактическому перемещению игрока в Metal render loop | Gameplay bugfix | P0 | M | После п. 34 и 56; каждый fixed tick камера получает актуальную позицию капсулы, render использует интерполированный camera snapshot для view/projection, frustum/culling и audio listener; при движении во всех направлениях игрок остаётся в заданной dead zone без рывков и рассинхронизации, follow/collision поведение покрыто regression-тестом |
-| 62.6 | Разобрать cinematic dictionaries и все shared contexts | Animation inventory — scripted | P1 | XL | После п. 62.2–62.5; каждый cinematic slot получил actor/context/action и timeline evidence, а clips, общие с gameplay dictionaries, имеют отдельные semantic contexts без потери владельца или назначения |
 | 62.7 | Провести финальную машинную приёмку семантического каталога | Animation inventory acceptance | P0 | M | После п. 62.2–62.6; валидатор принимает ровно 345 clips и все 518 dictionary slots, каждый membership покрыт ровно одним подтверждённым context, `unreviewed`/`provisional`/необъяснённых значений нет, итог и ограничения документированы |
 | 63 | Реализовать data-driven реестр привязок animation clip → gameplay-событие/действие | Animation architecture | P0 | L | После п. 62.7; hardcoded номера clips удалены из renderer/state machines, привязки загружаются из versioned manifest по actor, skin/costume, action/event, варианту и контексту; resolver валидирует совместимость skeleton, обязательные states, loop policy, приоритеты, fallback и переходы, а неизвестная или неоднозначная привязка даёт диагностируемую ошибку, а не случайную позу |
 | 64 | Привязать полный набор анимаций Астерикса и управляемых героев ко всем действиям | Player animation graph | P0 | XL | После п. 60, 62 и 63; idle-варианты, walk/run и их старты/остановки/развороты, прыжки/падение/приземление, атаки и combo, hurt/knockback/death/recovery, interactions, contextual и costume-specific действия имеют подтверждённые clips и явные переходы; скорость выбирает правильный gait, gameplay events синхронизированы с фазами клипа, а полный граф пройден автоматическими state-transition и visual regression-тестами |
@@ -117,7 +116,7 @@
 - [x] П. 62.3 — анимации Обеликса и Идефикса
 - [x] П. 62.4 — анимации врагов, NPC и персонажей
 - [x] П. 62.5 — анимации объектов, механизмов, UI и FX
-- [ ] П. 62.6 — cinematic dictionaries и shared contexts
+- [x] П. 62.6 — cinematic dictionaries и shared contexts
 - [ ] П. 62.7 — финальная приёмка 345 clips / 518 slots
 - [ ] П. 63 — data-driven реестр привязок анимаций
 - [ ] П. 64 — полный animation graph управляемых героев
@@ -132,7 +131,9 @@
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 62.5 выполнен: подтверждены 13 world/UI/FX dictionaries, 46 slots и 45 уникальных clips mechanisms, shops, activator, turtles, checkpoint, boars, interface и lightning; отдельный scoped validator принимает полный world-каталог без cinematic dictionaries.
+**Последнее обновление:** 22 июля 2026 — п. 62.6 выполнен: подтверждены 14 dedicated cinematic dictionaries, 63 slots и 44 уникальных clips; каждый scene-data timeline membership получил actor/context/action evidence, а shared hero/animated-character clips сохранили отдельные semantic contexts.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 62.5 выполнен: подтверждены 13 world/UI/FX dictionaries, 46 slots и 45 уникальных clips mechanisms, shops, activator, turtles, checkpoint, boars, interface и lightning; отдельный scoped validator принимает полный world-каталог без cinematic dictionaries.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 62.4 выполнен: подтверждены все 25 character dictionaries, 92 уникальных clips и 109 contexts basic enemies, leaders, NPC и animated characters; отдельный scoped validator принимает полный character-каталог без world dictionaries.
 

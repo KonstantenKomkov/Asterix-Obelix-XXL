@@ -5,6 +5,16 @@ import 'package:asterix_xxl/tooling/animation_semantic_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('cinematic scope contains every dedicated scene-data dictionary', () {
+    expect(
+      cinematicAnimationDictionaryIds,
+      equals({3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18}),
+    );
+    expect(cinematicAnimationDictionaryIds, isNot(contains(0)));
+    expect(cinematicAnimationDictionaryIds, isNot(contains(2)));
+    expect(cinematicAnimationDictionaryIds, hasLength(14));
+  });
+
   test('world scope contains mechanisms, fauna, interface and FX only', () {
     expect(
       worldAnimationDictionaryIds,

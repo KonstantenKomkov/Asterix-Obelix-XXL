@@ -192,3 +192,32 @@ make animation-world-validate \
 event track; поэтому `events: []` является подтверждённым отсутствием authored
 events, а будущие gameplay/VFX cues должны быть добавлены отдельным versioned
 track в п. 68.
+
+Cinematic-scope состоит из 14 dedicated dictionaries `3`, `5–16` и `18`,
+связанных типизированным полем `CKCinematicSceneData.animDict`. Дополнительная
+ссылка scene data 10 на dictionary `0` заимствует gameplay dictionary Идефикса и
+не меняет владельца его slots; scene-specific действия Идефикса представлены
+отдельными dictionaries `8` и `18`. Dictionaries `7`, `9` и `10` одновременно
+используются animated-character hooks, поэтому их contexts сохраняют обе
+структурные роли через точного владельца каждого dictionary membership.
+
+Воспроизводимая сборка 63 cinematic slots / 44 уникальных clips выполняется так:
+
+```sh
+make animation-cinematic-annotations \
+  INPUT="$HOME/asterix-reference/animation-catalog-world-task62.5.json" \
+  OUTPUT="$HOME/asterix-reference/animation-semantics-cinematics-task62.6.json"
+fvm dart run bin/animation_catalog.dart apply-annotations \
+  "$HOME/asterix-reference/animation-catalog-world-task62.5.json" \
+  "$HOME/asterix-reference/animation-semantics-cinematics-task62.6.json" \
+  "$HOME/asterix-reference/animation-catalog-cinematics-task62.6.json"
+make animation-cinematics-validate \
+  INPUT="$HOME/asterix-reference/animation-catalog-cinematics-task62.6.json"
+```
+
+Каждый cinematic context фиксирует actor/prop profile, scene-data owner,
+dictionary slot как timeline membership, действие, playback, transitions и
+root-motion policy. Имена конкретных сюжетных сцен не угадываются без
+event-to-scene mapping: устойчивое назначение выражено через scene data object
+и timeline slot. Shared gameplay clips получают отдельное cinematic действие,
+не теряя contexts hero dictionaries, а authored events не выдумываются.

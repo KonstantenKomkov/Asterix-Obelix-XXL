@@ -62,6 +62,29 @@ const worldAnimationDictionaryIds = <int>{
   51,
 };
 
+/// Dedicated animation dictionaries owned by the 14 CKCinematicSceneData
+/// objects in XXL1 LVL01. Scene data 10 also borrows Idefix gameplay dictionary
+/// 0; that dictionary remains in the hero scope, while its actual scene slots
+/// are represented by dedicated dictionaries 8 and 18. Dictionaries 7, 9 and
+/// 10 are shared with animated-character hooks and remain in this scope so a
+/// scripted clip cannot lose one of its scene-specific meanings.
+const cinematicAnimationDictionaryIds = <int>{
+  3,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  18,
+};
+
 /// Builds the objective part of the semantic catalog from importer output.
 /// Human conclusions live in a separate annotations file and are never
 /// guessed from a clip number.
