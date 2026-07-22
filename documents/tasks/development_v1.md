@@ -19,6 +19,7 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
+| 70 | **Исключить проникновение gameplay-камеры в геометрию при следовании:** заменить точечный segment test на проверку объёма камеры и безопасного пути между fixed-tick/render snapshots | Gameplay camera | P0 | M | После п. 61; camera collision учитывает near plane/радиус и sweep при lateral follow, углах, тонких препятствиях и интерполяции; камера не оказывается в render geometry, после потери контакта плавно возвращается на desired distance; native regressions воспроизводят все сценарии |
 
 ---
 
@@ -115,13 +116,16 @@
 - [x] П. 67 — scripted/cinematic анимации
 - [x] П. 68 — animation events и синхронизация gameplay
 - [x] П. 69 — сквозная приёмка полноты всех привязок
+- [ ] П. 70 — collision-safe следование gameplay-камеры
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 61 выполнен: fixed-tick камера следует за фактической позицией капсулы, а единый интерполированный snapshot используется Metal view/projection, frustum/culling/LOD и audio listener; dead-zone и collision follow покрыты regressions.
+**Последнее обновление:** 22 июля 2026 — добавлен п. 70: текущий collision avoidance трассирует только точечный отрезок target → candidate и не гарантирует зазор для near plane/объёма камеры или безопасность траектории между snapshots, из-за чего при lateral follow, в углах и во время render interpolation камера может уходить в геометрию.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 61 выполнен: fixed-tick камера следует за фактической позицией капсулы, а единый интерполированный snapshot используется Metal view/projection, frustum/culling/LOD и audio listener; dead-zone и collision follow покрыты regressions.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 69 выполнен: сквозной acceptance gate сопоставляет 345 clips, 52 dictionaries / 518 slots, 408 bindings и достижимые hero/character/world/cinematic runtime paths; unbound, unexplained, unreachable и unknown clips отсутствуют, три representative sequences зафиксированы после визуальной сверки с локальным оригиналом.
 
