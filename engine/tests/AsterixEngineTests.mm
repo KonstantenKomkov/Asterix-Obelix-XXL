@@ -463,6 +463,97 @@
   XCTAssertEqual(player.snapshot().state,player::State::idle);
 }
 
+- (void)testLocomotionPlaybackTracksCapsuleSpeedDirectionAndBlendsToIdle {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+  constexpr float dt=1.0f/60.0f;
+
+  player.update(dt,{1,0,false,false});
+  const auto started=player.snapshot();
+  XCTAssertEqual(started.state,player::State::run);
+  XCTAssertGreaterThan(started.horizontal_speed,0);
+  XCTAssertGreaterThan(started.locomotion_seconds,0);
+  XCTAssertEqualWithAccuracy(started.idle_animation_seconds,dt,.0001f);
+  XCTAssertGreaterThan(started.locomotion_blend,0);
+  XCTAssertLessThan(started.locomotion_blend,1);
+  XCTAssertEqualWithAccuracy(started.facing_radians,
+                             3.14159265358979323846f/2,.0001f);
+
+  for(int tick=0;tick<20;++tick)player.update(dt,{1,0,false,false});
+  const auto running=player.snapshot();
+  XCTAssertEqualWithAccuracy(running.horizontal_speed,player.config().run_speed,
+                             .0001f);
+  XCTAssertEqualWithAccuracy(running.locomotion_blend,1,.0001f);
+  const float phaseBeforeRelease=running.locomotion_seconds;
+
+  for(int tick=0;tick<20;++tick)player.update(dt,{});
+  const auto idle=player.snapshot();
+  XCTAssertEqual(idle.state,player::State::idle);
+  XCTAssertEqualWithAccuracy(idle.horizontal_speed,0,.0001f);
+  XCTAssertEqualWithAccuracy(idle.locomotion_blend,0,.0001f);
+  XCTAssertGreaterThan(idle.locomotion_seconds,phaseBeforeRelease);
+  XCTAssertEqualWithAccuracy(idle.idle_animation_seconds,41*dt,.0001f);
+  XCTAssertEqualWithAccuracy(idle.facing_radians,running.facing_radians,.0001f);
+}
+
+- (void)testLocomotionPoseBlendVisualRegressionIsContinuous {
+  using namespace asterix::animation;
+  Transform idleTransform;
+  Transform runTransform=idleTransform; runTransform.translation={2,0,0};
+  Track idleTrack; idleTrack.keys={{0,idleTransform}};
+  Track runTrack; runTrack.keys={{0,idleTransform},{1,runTransform}};
+  Clip idle; idle.duration=1; idle.tracks={idleTrack};
+  Clip run; run.duration=1; run.tracks={runTrack};
+  const std::vector<Joint> joints={{-1}};
+  const VertexBinding binding{};
+  const std::array<float,3> vertex={0,0,0};
+
+  const auto idlePose=skinPosition(vertex,binding,
+      blendedSkinningPalette(idle,0,run,.5f,joints,0));
+  const auto enteringPose=skinPosition(vertex,binding,
+      blendedSkinningPalette(idle,0,run,.5f,joints,.25f));
+  const auto runningPose=skinPosition(vertex,binding,
+      blendedSkinningPalette(idle,0,run,.5f,joints,1));
+  const auto leavingPose=skinPosition(vertex,binding,
+      blendedSkinningPalette(idle,0,run,.5f,joints,.75f));
+  XCTAssertEqualWithAccuracy(idlePose[0],0,.0001f);
+  XCTAssertEqualWithAccuracy(enteringPose[0],.25f,.0001f);
+  XCTAssertEqualWithAccuracy(runningPose[0],1,.0001f);
+  XCTAssertEqualWithAccuracy(leavingPose[0],.75f,.0001f);
+  XCTAssertLessThan(std::abs(enteringPose[0]-idlePose[0]),.3f);
+  XCTAssertLessThan(std::abs(runningPose[0]-leavingPose[0]),.3f);
+}
+
+- (void)testLocomotionPlaybackUsesCollisionLimitedCapsuleDisplacement {
+  using namespace asterix;
+  collision::World world({{{-5,0,-5},{5,0,-5},{-5,0,5},1},
+                          {{5,0,-5},{5,0,5},{-5,0,5},1},
+                          {{1,0,-2},{1,3,-2},{1,0,2},2},
+                          {{1,3,-2},{1,3,2},{1,0,2},2}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+  constexpr float dt=1.0f/60.0f;
+  for(int tick=0;tick<119;++tick)player.update(dt,{1,0,false,false});
+  const float previousPhase=player.snapshot().locomotion_seconds;
+  player.update(dt,{1,0,false,false});
+  XCTAssertLessThan(player.snapshot().body.position.x,1);
+  XCTAssertLessThan(player.snapshot().horizontal_speed,player.config().run_speed);
+  XCTAssertEqualWithAccuracy(
+      player.snapshot().locomotion_seconds-previousPhase,
+      dt*player.snapshot().horizontal_speed/player.config().run_speed,.0001f);
+}
+
 - (void)testPlayerAttackHurtInvulnerabilityAndDeathTransitions {
   using namespace asterix;
   collision::World world({{{-5,0,-5},{5,0,-5},{-5,0,5},1},

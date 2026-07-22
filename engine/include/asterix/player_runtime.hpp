@@ -51,6 +51,11 @@ struct Snapshot {
   std::int32_t health = 3;
   float state_seconds = 0;
   float invulnerability_seconds = 0;
+  float horizontal_speed = 0;
+  float idle_animation_seconds = 0;
+  float locomotion_seconds = 0;
+  float locomotion_blend = 0;
+  float facing_radians = 0;
 };
 
 class Runtime {
@@ -82,6 +87,9 @@ class Runtime {
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
     air_jump_available_=false; jump_control_active_=false;
     jump_cut_active_=false; jump_control_elapsed_=0;
+    snapshot_.horizontal_speed=0; snapshot_.idle_animation_seconds=0;
+    snapshot_.locomotion_seconds=0;
+    snapshot_.locomotion_blend=0;
     enter(State::idle);
   }
   bool restore(collision::Vec3 position,collision::Vec3 checkpoint,
@@ -93,6 +101,9 @@ class Runtime {
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
     air_jump_available_=false; jump_control_active_=false;
     jump_cut_active_=false; jump_control_elapsed_=0;
+    snapshot_.horizontal_speed=0; snapshot_.idle_animation_seconds=0;
+    snapshot_.locomotion_seconds=0;
+    snapshot_.locomotion_blend=0;
     enter(health==0?State::death:State::idle); return true;
   }
 
@@ -116,6 +127,7 @@ class Runtime {
       throw std::invalid_argument("player dt is invalid");
     }
     snapshot_.state_seconds += dt;
+    snapshot_.idle_animation_seconds += dt;
     snapshot_.invulnerability_seconds =
         std::max(0.0f, snapshot_.invulnerability_seconds - dt);
 
@@ -183,7 +195,21 @@ class Runtime {
       jump_cut_active_ = false;
     }
 
+    const collision::Vec3 previousPosition = snapshot_.body.position;
     snapshot_.body = controller_.move(snapshot_.body, horizontal_velocity_, dt);
+    const float movedX = snapshot_.body.position.x - previousPosition.x;
+    const float movedZ = snapshot_.body.position.z - previousPosition.z;
+    snapshot_.horizontal_speed = std::sqrt(movedX * movedX + movedZ * movedZ) / dt;
+    if (snapshot_.horizontal_speed > .01f) {
+      snapshot_.facing_radians = std::atan2(movedX, movedZ);
+      snapshot_.locomotion_seconds +=
+          dt * snapshot_.horizontal_speed / config_.run_speed;
+    }
+    const float locomotionTarget = snapshot_.body.grounded &&
+            snapshot_.horizontal_speed > .05f
+        ? 1.0f : 0.0f;
+    snapshot_.locomotion_blend = approach(
+        snapshot_.locomotion_blend, locomotionTarget, dt / .12f);
     if (snapshot_.body.grounded) {
       air_jump_available_ = true;
       jump_control_active_ = false;
@@ -196,8 +222,7 @@ class Runtime {
       // Keep the one-shot animation authoritative until its configured end.
     } else if (!snapshot_.body.grounded) {
       enterIfChanged(snapshot_.body.velocity.y > 0 ? State::jump : State::fall);
-    } else if (std::sqrt(horizontal_velocity_.x * horizontal_velocity_.x +
-                         horizontal_velocity_.z * horizontal_velocity_.z) > .05f) {
+    } else if (snapshot_.horizontal_speed > .05f) {
       enterIfChanged(State::run);
     } else {
       enterIfChanged(State::idle);

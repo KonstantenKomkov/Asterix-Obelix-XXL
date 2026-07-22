@@ -28,6 +28,12 @@ Metal buffer binding только на draw Астерикса. Статичес
 рисуется и остаётся безопасный player marker — повреждённая геометрия и T-pose
 не считаются допустимым fallback.
 
+Для `idle↔run` локальные joint transforms смешиваются до вычисления hierarchy и
+inverse bind palette. Вес приходит из fixed-tick player snapshot, idle phase не
+сбрасывается при начале движения, run phase зависит от фактической скорости, а
+вся palette поворачивается по последнему ненулевому вектору движения. Это
+сохраняет непрерывную позу при разгоне, остановке и повторном старте.
+
 Четвёртые lanes исходного RenderWare `RwMatrix` содержат flags/padding, поэтому
 inverse-bind loader принудительно восстанавливает homogeneous значения
 `[3,7,11]=0`, `[15]=1`; иначе служебные биты превращаются в огромные float и
@@ -51,6 +57,8 @@ alpha cutout, стандартное source-alpha blending и линейный d
 
 Native XCTest покрывает mid-clip sampling, RenderWare chain reconstruction,
 HAnim hierarchy, parent-child palette, skin position и границы fog.
+Locomotion regressions отдельно проверяют fixed-tick связь скорости/фазы/yaw и
+визуальную непрерывность representative skinned vertex на `idle→run→idle`.
 `flutter build macos --debug` компилирует runtime Metal source и
 проверяет совпадение CPU/Metal vertex layouts. Полная проверка выполняется через
 `make check`, `make native-test` и `make policy-check`.

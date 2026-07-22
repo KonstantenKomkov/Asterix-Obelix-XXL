@@ -152,6 +152,33 @@ inline std::vector<Matrix4> skinningPalette(const Clip& clip,
   return palette;
 }
 
+inline std::vector<Matrix4> blendedSkinningPalette(
+    const Clip& from, float from_time, const Clip& to, float to_time,
+    const std::vector<Joint>& joints, float weight) {
+  if (from.tracks.size() != joints.size() || to.tracks.size() != joints.size())
+    throw std::invalid_argument("animation track and joint counts differ");
+  const auto sampleTime = [](const Clip& clip, float requested) {
+    if (clip.duration <= 0) return requested;
+    return clip.looping ? std::fmod(std::max(0.0f, requested), clip.duration)
+                        : std::clamp(requested, 0.0f, clip.duration);
+  };
+  const float a_time = sampleTime(from, from_time);
+  const float b_time = sampleTime(to, to_time);
+  weight = std::clamp(weight, 0.0f, 1.0f);
+  std::vector<Matrix4> world(joints.size()), palette(joints.size());
+  for (std::size_t i = 0; i < joints.size(); ++i) {
+    if (joints[i].parent >= static_cast<int>(i) || joints[i].parent < -1)
+      throw std::invalid_argument("skeleton parents must precede children");
+    const Matrix4 local = matrix(interpolate(
+        sampleTrack(from.tracks[i], a_time),
+        sampleTrack(to.tracks[i], b_time), weight));
+    world[i] = joints[i].parent < 0
+        ? local : scene::multiply(world[joints[i].parent], local);
+    palette[i] = scene::multiply(world[i], joints[i].inverse_bind);
+  }
+  return palette;
+}
+
 inline std::array<float, 3> skinPosition(const std::array<float, 3>& position,
                                          const VertexBinding& binding,
                                          const std::vector<Matrix4>& palette) {

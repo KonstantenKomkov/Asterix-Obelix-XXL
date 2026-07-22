@@ -1424,11 +1424,24 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         const std::size_t state=(std::size_t)snapshot.state;
         if(state<_playerClips.size()&&_playerClipAvailable[state]) {
           try {
-            const auto palette=asterix::animation::skinningPalette(
-                _playerClips[state],_playerJoints,snapshot.state_seconds);
+            const bool locomotion = snapshot.state==asterix::player::State::idle||
+                snapshot.state==asterix::player::State::run;
+            const auto palette=locomotion
+                ? asterix::animation::blendedSkinningPalette(
+                    _playerClips[(std::size_t)asterix::player::State::idle],
+                    snapshot.idle_animation_seconds,
+                    _playerClips[(std::size_t)asterix::player::State::run],
+                    snapshot.locomotion_seconds,_playerJoints,
+                    snapshot.locomotion_blend)
+                : asterix::animation::skinningPalette(
+                    _playerClips[state],_playerJoints,snapshot.state_seconds);
             playerBones.clear(); playerBones.reserve(palette.size());
+            const float yaw=snapshot.facing_radians;
+            const matrix_float4x4 facing=(matrix_float4x4){{
+                {cosf(yaw),0,-sinf(yaw),0},{0,1,0,0},
+                {sinf(yaw),0,cosf(yaw),0},{0,0,0,1}}};
             for(const auto& matrix:palette) {
-              auto metal=AsterixMetalMatrix(matrix);
+              auto metal=simd_mul(facing,AsterixMetalMatrix(matrix));
               metal.columns[3].xyz+=(vector_float3){snapshot.body.position.x,
                                                     snapshot.body.position.y,
                                                     snapshot.body.position.z};
