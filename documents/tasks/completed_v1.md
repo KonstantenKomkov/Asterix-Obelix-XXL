@@ -1,5 +1,33 @@
 # Выполненные задачи первой итерации
 
+## П. 64 — Полный animation graph управляемых героев
+
+**Выполнено:** 22 июля 2026.
+
+Versioned binding manifest расширен до полного actor-local graph всех 183
+подтверждённых hero clips LVL01: 90 Астерикса, 71 Обеликса и 22 Идефикса.
+Locomotion, directional transitions, jump/fall/landing, attack/combo,
+hurt/launch/tumble/recovery/death, interactions, ledge и water/swim actions
+получили точные actor, skin, costume, action, variant, playback, root-motion и
+transition bindings. Исходный каталог подтверждает только costume `default`,
+поэтому неподтверждённые costume-specific fallback не создавались.
+
+Добавлены `graphVersion`, actor entry states, полный required-action audit,
+проверка actor-local переходов и достижимости каждого действия. Runtime
+детерминированно выбирает clip variant и публикует нормализованные фазы
+cycle/contact, windup/impact/recovery, reaction/recovery и commit/complete;
+полный versioned event-track transport остаётся отдельным п. 68. Семь прежних
+алиасов Астерикса сохранены для Metal renderer и указывают на те же
+подтверждённые clips без clip IDs в коде.
+
+Автоматические regressions фиксируют 183 уникальных clips, размеры graph
+90/71/22, полную достижимость, детерминированный выбор, phase crossings,
+переходы idle → run → death и совместимость representative pose sequences с
+58/58/31-node skeleton palettes. Пройдены resource policy, native FFI build,
+`flutter analyze` и все 82 Flutter tests. Отдельное diff review исправило
+первоначально слишком узкие locomotion transitions и добавило reachability
+gate. Оригинальные ресурсы и локальные review-артефакты в Git не добавлялись.
+
 ## П. 60 — Эталонная скорость бега Астерикса
 
 **Выполнено:** 22 июля 2026.

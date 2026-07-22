@@ -30,6 +30,13 @@ final class AnimationBindingRegistry {
   final Map<String, Object?> manifest;
   final List<Map<String, Object?>> bindings;
 
+  Iterable<String> actors() =>
+      bindings.map((binding) => binding['actor']! as String).toSet();
+
+  List<Map<String, Object?>> heroBindings(String actor) => bindings
+      .where((binding) => binding['actor'] == actor)
+      .toList(growable: false);
+
   static AnimationBindingRegistry parse(Object? value) {
     if (value is! Map<String, Object?> || value['schemaVersion'] != 1) {
       throw const AnimationBindingException('schemaVersion must equal 1');
@@ -86,6 +93,24 @@ final class AnimationBindingRegistry {
           'bindings[$index] has invalid field types',
         );
       }
+      final phases = raw['phases'];
+      if (phases != null) {
+        if (phases is! Map<String, Object?> || phases.isEmpty) {
+          throw AnimationBindingException(
+            'bindings[$index].phases must be a non-empty object',
+          );
+        }
+        var previous = 0.0;
+        for (final phase in phases.entries) {
+          final value = phase.value;
+          if (value is! num || value < previous || value < 0 || value > 1) {
+            throw AnimationBindingException(
+              'bindings[$index].phases must be ordered in [0, 1]',
+            );
+          }
+          previous = value.toDouble();
+        }
+      }
       final variant = raw['variant'];
       if (variant != null && variant is! String) {
         throw AnimationBindingException(
@@ -105,9 +130,13 @@ final class AnimationBindingRegistry {
       }
       bindings.add(Map<String, Object?>.from(raw));
     }
-    final actions = bindings.map((binding) => binding['action']).toSet();
     for (var index = 0; index < bindings.length; index++) {
       final transitions = bindings[index]['transitions']! as List;
+      final actor = bindings[index]['actor'];
+      final actions = bindings
+          .where((binding) => binding['actor'] == actor)
+          .map((binding) => binding['action'])
+          .toSet();
       if (transitions.any(
         (value) => value is! String || !actions.contains(value),
       )) {
@@ -134,6 +163,42 @@ final class AnimationBindingRegistry {
             )) {
           throw AnimationBindingException(
             'required state ${entry.key}.$state is not bound',
+          );
+        }
+      }
+    }
+    if (value['graphVersion'] != null) {
+      if (value['graphVersion'] != 1 ||
+          value['entryStates'] is! Map<String, Object?>) {
+        throw const AnimationBindingException(
+          'graphVersion 1 requires entryStates',
+        );
+      }
+      final entryStates = value['entryStates']! as Map<String, Object?>;
+      for (final actor in requiredStates.keys) {
+        final entry = entryStates[actor];
+        if (entry is! String) {
+          throw AnimationBindingException('entryStates.$actor is required');
+        }
+        final reachable = <String>{entry};
+        final pending = <String>[entry];
+        while (pending.isNotEmpty) {
+          final action = pending.removeLast();
+          for (final binding in bindings.where(
+            (candidate) =>
+                candidate['actor'] == actor && candidate['action'] == action,
+          )) {
+            for (final target in binding['transitions']! as List) {
+              if (reachable.add(target! as String)) pending.add(target);
+            }
+          }
+        }
+        final missing = (requiredStates[actor]! as List)
+            .where((action) => !reachable.contains(action))
+            .toList();
+        if (missing.isNotEmpty) {
+          throw AnimationBindingException(
+            'hero graph $actor has unreachable actions: ${missing.join(', ')}',
           );
         }
       }
@@ -187,5 +252,60 @@ final class AnimationBindingRegistry {
       );
     }
     return matches.single;
+  }
+
+  Map<String, Object?> select({
+    required String actor,
+    required int skin,
+    required String costume,
+    required String action,
+    String context = 'gameplay',
+    int selector = 0,
+  }) {
+    final matches =
+        bindings
+            .where(
+              (binding) =>
+                  binding['actor'] == actor &&
+                  binding['skin'] == skin &&
+                  binding['costume'] == costume &&
+                  binding['action'] == action &&
+                  binding['context'] == context,
+            )
+            .toList()
+          ..sort(
+            (a, b) => (a['variant']?.toString() ?? '').compareTo(
+              b['variant']?.toString() ?? '',
+            ),
+          );
+    if (matches.isEmpty) {
+      throw AnimationBindingException('unknown binding $actor/$action');
+    }
+    return matches[selector.abs() % matches.length];
+  }
+
+  bool allowsTransition(Map<String, Object?> from, Map<String, Object?> to) =>
+      from['actor'] == to['actor'] &&
+      (from['transitions']! as List).contains(to['action']);
+
+  List<String> phasesCrossed(
+    Map<String, Object?> binding,
+    double from,
+    double to,
+  ) {
+    if (from < 0 || to < from || to > 1) {
+      throw const AnimationBindingException(
+        'phase interval must be ordered in [0, 1]',
+      );
+    }
+    final phases = binding['phases'];
+    if (phases is! Map<String, Object?>) return const [];
+    return phases.entries
+        .where((entry) {
+          final value = (entry.value! as num).toDouble();
+          return value > from && value <= to;
+        })
+        .map((entry) => entry.key)
+        .toList(growable: false);
   }
 }

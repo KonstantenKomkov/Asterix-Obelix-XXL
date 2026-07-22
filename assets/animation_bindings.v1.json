@@ -1,13 +1,5593 @@
 {
   "schemaVersion": 1,
-  "requiredStates": {"asterix": ["idle", "run", "jump", "fall", "attack", "hurt", "death"]},
+  "graphVersion": 1,
+  "entryStates": {
+    "asterix": "locomotion.idle",
+    "obelix": "locomotion.idle",
+    "idefix": "locomotion.idle"
+  },
+  "requiredStates": {
+    "asterix": [
+      "combat.attack",
+      "combat.attack-combo",
+      "combat.attack-variant",
+      "combat.contextual-attack",
+      "damage.death",
+      "damage.hurt",
+      "damage.land-or-recover",
+      "damage.launch",
+      "damage.recovery",
+      "damage.tumble",
+      "interaction.contextual",
+      "locomotion.airborne",
+      "locomotion.directional-transition",
+      "locomotion.fall",
+      "locomotion.idle",
+      "locomotion.idle-variant",
+      "locomotion.jump",
+      "locomotion.move-directional",
+      "locomotion.run",
+      "locomotion.transition",
+      "traversal.ledge-climb",
+      "traversal.ledge-drop",
+      "traversal.ledge-grab-or-shift",
+      "traversal.ledge-hang",
+      "traversal.swim-directional",
+      "traversal.swim-transition",
+      "traversal.water-transition"
+    ],
+    "idefix": [
+      "combat.attack-combo",
+      "combat.attack-variant",
+      "damage.death",
+      "interaction.contextual",
+      "locomotion.directional-transition",
+      "locomotion.idle",
+      "locomotion.move-directional",
+      "locomotion.run",
+      "locomotion.transition",
+      "traversal.swim-directional",
+      "traversal.swim-transition"
+    ],
+    "obelix": [
+      "combat.attack",
+      "combat.attack-combo",
+      "combat.attack-variant",
+      "combat.contextual-attack",
+      "damage.airborne-stun",
+      "damage.death",
+      "damage.hurt",
+      "damage.land-or-recover",
+      "damage.launch",
+      "damage.recovery",
+      "damage.tumble",
+      "interaction.contextual",
+      "locomotion.airborne",
+      "locomotion.directional-transition",
+      "locomotion.idle",
+      "locomotion.idle-variant",
+      "locomotion.move-directional",
+      "locomotion.run",
+      "locomotion.transition",
+      "traversal.ledge-drop",
+      "traversal.swim-directional",
+      "traversal.swim-transition",
+      "traversal.water-transition"
+    ]
+  },
   "bindings": [
-    {"actor":"asterix","skin":4,"costume":"default","action":"idle","context":"gameplay","variant":null,"clip":"0053.animation.json","loop":true,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["run","jump","fall","attack","hurt","death"]},
-    {"actor":"asterix","skin":4,"costume":"default","action":"run","context":"gameplay","variant":null,"clip":"0035.animation.json","loop":true,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["idle","jump","fall","attack","hurt","death"]},
-    {"actor":"asterix","skin":4,"costume":"default","action":"jump","context":"gameplay","variant":null,"clip":"0031.animation.json","loop":false,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["fall","attack","hurt","death"]},
-    {"actor":"asterix","skin":4,"costume":"default","action":"fall","context":"gameplay","variant":null,"clip":"0039.animation.json","loop":false,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["idle","run","jump","attack","hurt","death"]},
-    {"actor":"asterix","skin":4,"costume":"default","action":"attack","context":"gameplay","variant":null,"clip":"0000.animation.json","loop":false,"priority":10,"fallback":false,"skeletonNodes":58,"transitions":["idle","run","fall","hurt","death"]},
-    {"actor":"asterix","skin":4,"costume":"default","action":"hurt","context":"gameplay","variant":null,"clip":"0009.animation.json","loop":false,"priority":20,"fallback":false,"skeletonNodes":58,"transitions":["idle","run","fall","death"]},
-    {"actor":"asterix","skin":4,"costume":"default","action":"death","context":"gameplay","variant":null,"clip":"0033.animation.json","loop":false,"priority":30,"fallback":false,"skeletonNodes":58,"transitions":[]}
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "idle",
+      "context": "gameplay",
+      "variant": null,
+      "clip": "0053.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "run",
+        "jump",
+        "fall",
+        "attack",
+        "hurt",
+        "death"
+      ],
+      "phases": {
+        "cycle": 1.0
+      }
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "run",
+      "context": "gameplay",
+      "variant": null,
+      "clip": "0035.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "idle",
+        "jump",
+        "fall",
+        "attack",
+        "hurt",
+        "death"
+      ],
+      "phases": {
+        "cycle": 1.0
+      }
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "jump",
+      "context": "gameplay",
+      "variant": null,
+      "clip": "0031.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "fall",
+        "attack",
+        "hurt",
+        "death"
+      ],
+      "phases": {
+        "complete": 1.0
+      }
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "fall",
+      "context": "gameplay",
+      "variant": null,
+      "clip": "0039.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "idle",
+        "run",
+        "jump",
+        "attack",
+        "hurt",
+        "death"
+      ],
+      "phases": {
+        "complete": 1.0
+      }
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "attack",
+      "context": "gameplay",
+      "variant": null,
+      "clip": "0000.animation.json",
+      "loop": false,
+      "priority": 10,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "idle",
+        "run",
+        "fall",
+        "hurt",
+        "death"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      }
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "hurt",
+      "context": "gameplay",
+      "variant": null,
+      "clip": "0009.animation.json",
+      "loop": false,
+      "priority": 20,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "idle",
+        "run",
+        "fall",
+        "death"
+      ],
+      "phases": {
+        "complete": 1.0
+      }
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "death",
+      "context": "gameplay",
+      "variant": null,
+      "clip": "0033.animation.json",
+      "loop": false,
+      "priority": 30,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      }
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "clip-0000",
+      "clip": "0000.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-93"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0001",
+      "clip": "0001.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-92"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0002",
+      "clip": "0002.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-91"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0003",
+      "clip": "0003.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-94"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0004",
+      "clip": "0004.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-96"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0005",
+      "clip": "0005.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-95"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "damage.launch",
+      "context": "gameplay",
+      "variant": "clip-0006",
+      "clip": "0006.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-57"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "damage.tumble",
+      "context": "gameplay",
+      "variant": "clip-0007",
+      "clip": "0007.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-60",
+        "hero-slot-61"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "damage.tumble",
+      "context": "gameplay",
+      "variant": "clip-0008",
+      "clip": "0008.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-62"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "damage.hurt",
+      "context": "gameplay",
+      "variant": "clip-0009",
+      "clip": "0009.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-58"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "damage.land-or-recover",
+      "context": "gameplay",
+      "variant": "clip-0010",
+      "clip": "0010.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-59"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "damage.recovery",
+      "context": "gameplay",
+      "variant": "clip-0011",
+      "clip": "0011.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-63"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.ledge-hang",
+      "context": "gameplay",
+      "variant": "clip-0012",
+      "clip": "0012.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-69"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.ledge-grab-or-shift",
+      "context": "gameplay",
+      "variant": "clip-0013",
+      "clip": "0013.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-67"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.ledge-climb",
+      "context": "gameplay",
+      "variant": "clip-0014",
+      "clip": "0014.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-68"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.ledge-drop",
+      "context": "gameplay",
+      "variant": "clip-0015",
+      "clip": "0015.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-66"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0016",
+      "clip": "0016.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-42"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0017",
+      "clip": "0017.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-43"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0018",
+      "clip": "0018.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-44"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0019",
+      "clip": "0019.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-46"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0020",
+      "clip": "0020.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-47"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0021",
+      "clip": "0021.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-48"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0022",
+      "clip": "0022.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-53"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0023",
+      "clip": "0023.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-7",
+        "hero-slot-108"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0024",
+      "clip": "0024.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-4",
+        "hero-slot-105"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0025",
+      "clip": "0025.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-3"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0026",
+      "clip": "0026.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-30"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0027",
+      "clip": "0027.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-29"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0028",
+      "clip": "0028.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-49"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0029",
+      "clip": "0029.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-50"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0030",
+      "clip": "0030.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-51"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.jump",
+      "context": "gameplay",
+      "variant": "clip-0031",
+      "clip": "0031.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-101"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0032",
+      "clip": "0032.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-6",
+        "hero-slot-107"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "damage.death",
+      "context": "gameplay",
+      "variant": "clip-0033",
+      "clip": "0033.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-1",
+        "hero-slot-102"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0034",
+      "clip": "0034.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-5",
+        "hero-slot-106"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.run",
+      "context": "gameplay",
+      "variant": "clip-0035",
+      "clip": "0035.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-2",
+        "hero-slot-13"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0036",
+      "clip": "0036.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-88"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0037",
+      "clip": "0037.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-87"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.airborne",
+      "context": "gameplay",
+      "variant": "clip-0038",
+      "clip": "0038.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-31"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.fall",
+      "context": "gameplay",
+      "variant": "clip-0039",
+      "clip": "0039.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-35"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.airborne",
+      "context": "gameplay",
+      "variant": "clip-0040",
+      "clip": "0040.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-32"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0041",
+      "clip": "0041.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-20"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0042",
+      "clip": "0042.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-17",
+        "hero-slot-18",
+        "hero-slot-86"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0043",
+      "clip": "0043.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-26"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0044",
+      "clip": "0044.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-23",
+        "hero-slot-24",
+        "hero-slot-73"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0045",
+      "clip": "0045.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-21"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "clip-0046",
+      "clip": "0046.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-15"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0047",
+      "clip": "0047.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-27"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0048",
+      "clip": "0048.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-22"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0049",
+      "clip": "0049.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-19"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0050",
+      "clip": "0050.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-16"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0051",
+      "clip": "0051.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-28"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0052",
+      "clip": "0052.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-25",
+        "hero-slot-56"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "clip-0053",
+      "clip": "0053.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-8"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0054",
+      "clip": "0054.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-9"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0055",
+      "clip": "0055.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-10"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0056",
+      "clip": "0056.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-11"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0057",
+      "clip": "0057.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-12"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "clip-0058",
+      "clip": "0058.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.fall",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.jump",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-climb",
+        "traversal.ledge-drop",
+        "traversal.ledge-grab-or-shift",
+        "traversal.ledge-hang",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-0"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0059",
+      "clip": "0059.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-33"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "clip-0060",
+      "clip": "0060.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-14"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0061",
+      "clip": "0061.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-104"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0062",
+      "clip": "0062.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-89"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0063",
+      "clip": "0063.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-103"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.airborne",
+      "context": "gameplay",
+      "variant": "clip-0064",
+      "clip": "0064.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-36"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0065",
+      "clip": "0065.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-55"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0066",
+      "clip": "0066.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-90"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0067",
+      "clip": "0067.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-34"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0068",
+      "clip": "0068.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-100"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0069",
+      "clip": "0069.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-45"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0070",
+      "clip": "0070.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-37"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0071",
+      "clip": "0071.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-38"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0072",
+      "clip": "0072.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-39"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0073",
+      "clip": "0073.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-40"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0074",
+      "clip": "0074.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-41"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0082",
+      "clip": "0082.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-99"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0083",
+      "clip": "0083.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-72"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0084",
+      "clip": "0084.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-71"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0085",
+      "clip": "0085.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-75",
+        "hero-slot-78",
+        "hero-slot-81"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0086",
+      "clip": "0086.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-76",
+        "hero-slot-79",
+        "hero-slot-82"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0087",
+      "clip": "0087.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-77",
+        "hero-slot-80",
+        "hero-slot-83"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.swim-transition",
+      "context": "gameplay",
+      "variant": "clip-0088",
+      "clip": "0088.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-84"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.swim-transition",
+      "context": "gameplay",
+      "variant": "clip-0089",
+      "clip": "0089.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-85"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0090",
+      "clip": "0090.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-52"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0091",
+      "clip": "0091.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-54"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0092",
+      "clip": "0092.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-70"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0093",
+      "clip": "0093.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-74"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0095",
+      "clip": "0095.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-109"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0096",
+      "clip": "0096.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-97"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "asterix",
+      "skin": 4,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0097",
+      "clip": "0097.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-98"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.launch",
+      "context": "gameplay",
+      "variant": "clip-0098",
+      "clip": "0098.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-57"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.tumble",
+      "context": "gameplay",
+      "variant": "clip-0099",
+      "clip": "0099.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-60"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.tumble",
+      "context": "gameplay",
+      "variant": "clip-0100",
+      "clip": "0100.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-62"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.hurt",
+      "context": "gameplay",
+      "variant": "clip-0101",
+      "clip": "0101.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-58"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.land-or-recover",
+      "context": "gameplay",
+      "variant": "clip-0102",
+      "clip": "0102.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-59"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.recovery",
+      "context": "gameplay",
+      "variant": "clip-0103",
+      "clip": "0103.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-63"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.airborne-stun",
+      "context": "gameplay",
+      "variant": "clip-0104",
+      "clip": "0104.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-65"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.recovery",
+      "context": "gameplay",
+      "variant": "clip-0105",
+      "clip": "0105.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-64"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.ledge-drop",
+      "context": "gameplay",
+      "variant": "clip-0106",
+      "clip": "0106.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-66"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0107",
+      "clip": "0107.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-42"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0108",
+      "clip": "0108.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-43"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0109",
+      "clip": "0109.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-44"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0110",
+      "clip": "0110.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-46"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0111",
+      "clip": "0111.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-47"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0112",
+      "clip": "0112.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-48"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0113",
+      "clip": "0113.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-53"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0114",
+      "clip": "0114.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-7"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0115",
+      "clip": "0115.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-4"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0116",
+      "clip": "0116.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-3"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0117",
+      "clip": "0117.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-30"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0118",
+      "clip": "0118.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-29"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0119",
+      "clip": "0119.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-49"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0120",
+      "clip": "0120.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-50"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0121",
+      "clip": "0121.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-51"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0122",
+      "clip": "0122.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-6"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "damage.death",
+      "context": "gameplay",
+      "variant": "clip-0123",
+      "clip": "0123.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-1"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0124",
+      "clip": "0124.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-5"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.run",
+      "context": "gameplay",
+      "variant": "clip-0125",
+      "clip": "0125.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-2"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0126",
+      "clip": "0126.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-88"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0127",
+      "clip": "0127.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-87"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.airborne",
+      "context": "gameplay",
+      "variant": "clip-0128",
+      "clip": "0128.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-32"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.airborne",
+      "context": "gameplay",
+      "variant": "clip-0129",
+      "clip": "0129.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-31"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0130",
+      "clip": "0130.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-20"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0131",
+      "clip": "0131.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-17"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "clip-0132",
+      "clip": "0132.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-14"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0133",
+      "clip": "0133.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-26"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0134",
+      "clip": "0134.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-23"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0135",
+      "clip": "0135.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-21"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0136",
+      "clip": "0136.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-18"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "clip-0137",
+      "clip": "0137.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-15"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0138",
+      "clip": "0138.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-27"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0139",
+      "clip": "0139.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-24"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "clip-0140",
+      "clip": "0140.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-8"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0141",
+      "clip": "0141.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-9"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0142",
+      "clip": "0142.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-10"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0143",
+      "clip": "0143.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-11"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.idle-variant",
+      "context": "gameplay",
+      "variant": "clip-0144",
+      "clip": "0144.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-12"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "clip-0145",
+      "clip": "0145.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "combat.attack",
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "combat.contextual-attack",
+        "damage.airborne-stun",
+        "damage.death",
+        "damage.hurt",
+        "damage.land-or-recover",
+        "damage.launch",
+        "damage.recovery",
+        "damage.tumble",
+        "interaction.contextual",
+        "locomotion.airborne",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.idle-variant",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.ledge-drop",
+        "traversal.swim-directional",
+        "traversal.swim-transition",
+        "traversal.water-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-0"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0146",
+      "clip": "0146.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-34"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0147",
+      "clip": "0147.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-33"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0148",
+      "clip": "0148.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-89"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0149",
+      "clip": "0149.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-55"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0150",
+      "clip": "0150.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-71"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "clip-0151",
+      "clip": "0151.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-93"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0152",
+      "clip": "0152.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-90"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0153",
+      "clip": "0153.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-91"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0154",
+      "clip": "0154.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-92"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0155",
+      "clip": "0155.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-45"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0163",
+      "clip": "0163.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-41"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0164",
+      "clip": "0164.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-72"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0165",
+      "clip": "0165.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-70"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0166",
+      "clip": "0166.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-81"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.swim-transition",
+      "context": "gameplay",
+      "variant": "clip-0167",
+      "clip": "0167.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-85"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.swim-transition",
+      "context": "gameplay",
+      "variant": "clip-0168",
+      "clip": "0168.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-84"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0169",
+      "clip": "0169.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-77"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0170",
+      "clip": "0170.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-76"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0171",
+      "clip": "0171.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-75"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0172",
+      "clip": "0172.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-86"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "traversal.water-transition",
+      "context": "gameplay",
+      "variant": "clip-0173",
+      "clip": "0173.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-74"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0174",
+      "clip": "0174.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-54"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "action": "combat.contextual-attack",
+      "context": "gameplay",
+      "variant": "clip-0175",
+      "clip": "0175.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death",
+        "damage.hurt"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-52"
+      ],
+      "rootMotion": "embedded"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "clip-0176",
+      "clip": "0176.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "damage.death",
+        "interaction.contextual",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.swim-directional",
+        "traversal.swim-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-0"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "traversal.swim-transition",
+      "context": "gameplay",
+      "variant": "clip-0177",
+      "clip": "0177.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-84"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "combat.attack-variant",
+      "context": "gameplay",
+      "variant": "clip-0178",
+      "clip": "0178.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-92"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "damage.death",
+      "context": "gameplay",
+      "variant": "clip-0179",
+      "clip": "0179.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "reaction": 0.15,
+        "recovery": 0.75,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-1"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0180",
+      "clip": "0180.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "damage.death",
+        "interaction.contextual",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.swim-directional",
+        "traversal.swim-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-4"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0181",
+      "clip": "0181.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-29"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.directional-transition",
+      "context": "gameplay",
+      "variant": "clip-0182",
+      "clip": "0182.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-30"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "traversal.swim-directional",
+      "context": "gameplay",
+      "variant": "clip-0183",
+      "clip": "0183.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-75"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "clip-0184",
+      "clip": "0184.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "damage.death",
+        "interaction.contextual",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.swim-directional",
+        "traversal.swim-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-8"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.move-directional",
+      "context": "gameplay",
+      "variant": "clip-0185",
+      "clip": "0185.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "damage.death",
+        "interaction.contextual",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.swim-directional",
+        "traversal.swim-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-3"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "traversal.swim-transition",
+      "context": "gameplay",
+      "variant": "clip-0186",
+      "clip": "0186.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-85"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.run",
+      "context": "gameplay",
+      "variant": "clip-0187",
+      "clip": "0187.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "combat.attack-combo",
+        "combat.attack-variant",
+        "damage.death",
+        "interaction.contextual",
+        "locomotion.directional-transition",
+        "locomotion.idle",
+        "locomotion.move-directional",
+        "locomotion.run",
+        "locomotion.transition",
+        "traversal.swim-directional",
+        "traversal.swim-transition"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-2"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0188",
+      "clip": "0188.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-20"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0189",
+      "clip": "0189.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-17"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "clip-0190",
+      "clip": "0190.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-14"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0191",
+      "clip": "0191.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-23"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0192",
+      "clip": "0192.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-21"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "clip-0193",
+      "clip": "0193.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-15"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "combat.attack-combo",
+      "context": "gameplay",
+      "variant": "clip-0194",
+      "clip": "0194.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.5,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-27"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0195",
+      "clip": "0195.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-90"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0196",
+      "clip": "0196.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-87"
+      ],
+      "rootMotion": "none"
+    },
+    {
+      "actor": "idefix",
+      "skin": 0,
+      "costume": "default",
+      "action": "interaction.contextual",
+      "context": "gameplay",
+      "variant": "clip-0197",
+      "clip": "0197.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "locomotion.idle",
+        "locomotion.run",
+        "damage.death"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "hero-slot-88"
+      ],
+      "rootMotion": "none"
+    }
   ]
 }
