@@ -1,5 +1,32 @@
 # Выполненные задачи первой итерации
 
+## П. 62.5 — Семантический каталог анимаций мира, UI и FX
+
+**Выполнено:** 22 июля 2026.
+
+Разобраны все 13 world-scope dictionaries LVL01: machinegun, два shop,
+activator, mechanism component, три square turtle, checkpoint, wild boar,
+lightning FX и два interface dictionaries. Подтверждены 46 заполненных slots,
+45 уникальных clips и отдельный semantic context для каждого slot, включая два
+контекста общего shop clip `0321`.
+
+Для каждого context зафиксированы owner, skin profile, world action/event,
+playback policy, transitions, root-motion policy и evidence типизированной
+owner reference, slot membership, pose review и transform analysis. Проверка
+импортированных payload подтвердила отсутствие отдельного authored event track;
+это представлено явным `events: []`, а не предположительными gameplay cues.
+
+Добавлены воспроизводимый генератор world annotations, версионированный набор
+world dictionary IDs и отдельная команда scoped validation. Локальный каталог
+`$HOME/asterix-reference/animation-catalog-world-task62.5.json` проходит
+проверку всех world/UI/FX dictionaries, не требуя преждевременной классификации
+cinematic dictionaries п. 62.6. Оригинальные ресурсы и производные игровые
+данные в Git не добавлялись.
+
+Ограничение: конкретные runtime cues и синхронизация gameplay/VFX будут
+оформлены отдельными versioned event tracks в п. 68; cinematic/shared contexts
+остаются в scope п. 62.6.
+
 ## П. 62.4 — Семантический каталог анимаций персонажей
 
 **Выполнено:** 22 июля 2026.

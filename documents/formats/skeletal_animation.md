@@ -165,3 +165,30 @@ cinematic timeline будет уточнён в п. 62.6. Импортирова
 `skin.boneCount`; одного совпадения clip node count для выбора геометрии или
 иерархии недостаточно. Для Идефикса exact geometry 0 использует явно связанный
 31-bone hierarchy object 1.
+
+World-scope LVL01 включает 13 dictionaries: machinegun `19`, shops `20–21`,
+activator `22`, mechanism component `23`, square turtles `24–26`, checkpoint
+`29`, wild boar `30`, lightning FX `49` и interface `50–51`. В них находятся
+46 заполненных slots и 45 уникальных clips. Character dictionaries `27–28` и
+cinematic dictionaries исключены из этого scope намеренно. Воспроизводимая
+сборка и scoped-приёмка выполняются так:
+
+```sh
+make animation-world-annotations \
+  INPUT="$HOME/asterix-reference/animation-catalog-characters-task62.4.json" \
+  OUTPUT="$HOME/asterix-reference/animation-semantics-world-task62.5.json"
+fvm dart run bin/animation_catalog.dart apply-annotations \
+  "$HOME/asterix-reference/animation-catalog-characters-task62.4.json" \
+  "$HOME/asterix-reference/animation-semantics-world-task62.5.json" \
+  "$HOME/asterix-reference/animation-catalog-world-task62.5.json"
+make animation-world-validate \
+  INPUT="$HOME/asterix-reference/animation-catalog-world-task62.5.json"
+```
+
+Каждый slot имеет отдельный world action/event context, owner, playback policy,
+переходы и root-motion policy. Повтор clip `0321` в двух slots shop dictionary
+сохраняется как два context, а не схлопывается. Импортированный
+`RwAnimAnimation` содержит только skeletal keyframes и не содержит отдельного
+event track; поэтому `events: []` является подтверждённым отсутствием authored
+events, а будущие gameplay/VFX cues должны быть добавлены отдельным versioned
+track в п. 68.

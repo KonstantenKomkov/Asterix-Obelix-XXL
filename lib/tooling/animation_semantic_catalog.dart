@@ -42,6 +42,26 @@ const characterAnimationDictionaryIds = <int>{
   48,
 };
 
+/// Animation dictionaries owned by world mechanisms, shops, checkpoints,
+/// activators, fauna, the in-game interface and lightning FX in XXL1 LVL01.
+/// Cinematic dictionaries and character dictionaries are deliberately kept in
+/// their own review scopes.
+const worldAnimationDictionaryIds = <int>{
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  29,
+  30,
+  49,
+  50,
+  51,
+};
+
 /// Builds the objective part of the semantic catalog from importer output.
 /// Human conclusions live in a separate annotations file and are never
 /// guessed from a clip number.

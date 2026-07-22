@@ -5,6 +5,15 @@ import 'package:asterix_xxl/tooling/animation_semantic_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('world scope contains mechanisms, fauna, interface and FX only', () {
+    expect(
+      worldAnimationDictionaryIds,
+      equals({19, 20, 21, 22, 23, 24, 25, 26, 29, 30, 49, 50, 51}),
+    );
+    expect(worldAnimationDictionaryIds, isNot(contains(27)));
+    expect(worldAnimationDictionaryIds, isNot(contains(3)));
+  });
+
   test('character scope contains enemy, leader and NPC dictionaries only', () {
     expect(characterAnimationDictionaryIds, containsAll([4, 27, 28, 48]));
     expect(
