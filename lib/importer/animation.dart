@@ -114,6 +114,231 @@ final class SkeletalAnimation {
   }
 }
 
+final class AnimationDictionary {
+  const AnimationDictionary({
+    required this.objectId,
+    required this.animationIndices,
+  });
+
+  final int objectId;
+  final List<int?> animationIndices;
+
+  Map<String, Object> toJson() => {
+    'objectId': objectId,
+    'slots': animationIndices,
+  };
+}
+
+final class AnimationDictionaryReference {
+  const AnimationDictionaryReference({
+    required this.dictionaryObjectId,
+    required this.sourceCategory,
+    required this.sourceClassId,
+    required this.sourceObjectId,
+    required this.payloadByteOffset,
+  });
+
+  final int dictionaryObjectId;
+  final int sourceCategory;
+  final int sourceClassId;
+  final int sourceObjectId;
+  final int payloadByteOffset;
+
+  Map<String, Object> toJson() => {
+    'dictionaryObjectId': dictionaryObjectId,
+    'sourceCategory': sourceCategory,
+    'sourceClassId': sourceClassId,
+    'sourceObjectId': sourceObjectId,
+    'payloadByteOffset': payloadByteOffset,
+  };
+}
+
+final class AnimationDictionaryOwnerReference {
+  const AnimationDictionaryOwnerReference({
+    required this.reference,
+    required this.ownerClass,
+    required this.field,
+    required this.referenceKind,
+    required this.evidence,
+  });
+
+  final AnimationDictionaryReference reference;
+  final String ownerClass;
+  final String field;
+  final String referenceKind;
+  final String evidence;
+
+  Map<String, Object> toJson() => {
+    ...reference.toJson(),
+    'ownerClass': ownerClass,
+    'field': field,
+    'referenceKind': referenceKind,
+    'evidence': evidence,
+  };
+}
+
+const _xxl1AnimationDictionaryOwnerFields =
+    <(int, int), (String, String, String)>{
+      (2, 28): ('CKHkAsterix', 'heroAnimDict', 'typed-field'),
+      (2, 29): ('CKHkObelix', 'heroAnimDict', 'typed-field'),
+      (2, 30): ('CKHkIdefix', 'heroAnimDict', 'typed-field'),
+      (2, 31): ('CKHkMachinegun', 'mgunAnimDict', 'typed-field'),
+      (2, 52): ('CKHkActivator', 'actAnimDict', 'typed-field'),
+      (2, 93): ('CKHkBasicEnemy', 'beAnimDict', 'typed-field'),
+      (2, 97): ('CKHkAnimatedCharacter', 'animDict', 'typed-field'),
+      (2, 110): ('CKHkSquareTurtle', 'animationDictionary', 'typed-field'),
+      (2, 132): (
+        'CKHkInterfaceInGame',
+        'generic CKObject field',
+        'generic-field',
+      ),
+      (2, 148): ('CKHkBasicEnemyLeader', 'beAnimDict', 'typed-field'),
+      (2, 171): ('CKHkWildBoar', 'animationDictionary', 'typed-field'),
+      (2, 172): (
+        'CKHkAsterixShop',
+        'shopAnimDict1/shopAnimDict2',
+        'typed-field',
+      ),
+      (2, 193): ('CKHkAsterixCheckpoint', 'acpAnimDict', 'typed-field'),
+      (6, 2): ('CKGrpMecaCpntAsterix', 'cpmecOtherRefs', 'generic-field'),
+      (12, 42): ('CKCinematicSceneData', 'animDict', 'typed-field'),
+      (12, 101): ('CKLightningObjectNodeFx', 'animDict', 'typed-field'),
+    };
+
+/// Keeps only candidates whose source class declares an animation dictionary
+/// field in XXL-Editor's XXL1 layouts.
+List<AnimationDictionaryOwnerReference>
+findXxl1AnimationDictionaryOwnerReferences(
+  Uint8List levelBytes,
+  Xxl1LevelScan scan, {
+  List<AnimationDictionaryReference>? candidates,
+}) => (candidates ?? findXxl1AnimationDictionaryReferences(levelBytes, scan))
+    .map((reference) {
+      final owner =
+          _xxl1AnimationDictionaryOwnerFields[(
+            reference.sourceCategory,
+            reference.sourceClassId,
+          )];
+      if (owner == null) return null;
+      return AnimationDictionaryOwnerReference(
+        reference: reference,
+        ownerClass: owner.$1,
+        field: owner.$2,
+        referenceKind: owner.$3,
+        evidence:
+            'XXL-Editor class layout + serialized object reference at payload '
+            'offset ${reference.payloadByteOffset}',
+      );
+    })
+    .whereType<AnimationDictionaryOwnerReference>()
+    .toList(growable: false);
+
+/// Finds exact serialized object IDs that point at an animation dictionary.
+///
+/// The result is deliberately a list of reference candidates: proving that a
+/// value is a typed owner field additionally requires the source class layout.
+List<AnimationDictionaryReference> findXxl1AnimationDictionaryReferences(
+  Uint8List levelBytes,
+  Xxl1LevelScan scan,
+) {
+  final dictionaryIds = {
+    for (final object in scan.objects.where(
+      (object) => object.category == 9 && object.classId == 1,
+    ))
+      _xxl1ObjectId(9, 1, object.objectId): object.objectId,
+  };
+  final references = <AnimationDictionaryReference>[];
+  for (final source in scan.objects) {
+    for (
+      var offset = source.payloadOffset;
+      offset + 4 <= source.endOffset;
+      offset++
+    ) {
+      final value = ByteData.sublistView(
+        levelBytes,
+        offset,
+        offset + 4,
+      ).getUint32(0, Endian.little);
+      final dictionaryObjectId = dictionaryIds[value];
+      if (dictionaryObjectId == null) continue;
+      references.add(
+        AnimationDictionaryReference(
+          dictionaryObjectId: dictionaryObjectId,
+          sourceCategory: source.category,
+          sourceClassId: source.classId,
+          sourceObjectId: source.objectId,
+          payloadByteOffset: offset - source.payloadOffset,
+        ),
+      );
+    }
+  }
+  return List.unmodifiable(references);
+}
+
+int _xxl1ObjectId(int category, int classId, int objectId) =>
+    category | (classId << 6) | (objectId << 17);
+
+/// Extracts every XXL1 `CAnimationDictionary` (`category=9`, `classId=1`).
+///
+/// Empty slots are encoded by the original as `0xFFFFFFFF` and exposed as
+/// null, so they cannot be confused with a valid animation-manager index.
+List<AnimationDictionary> extractXxl1AnimationDictionaries(
+  Uint8List levelBytes,
+  Xxl1LevelScan scan, {
+  int? animationCount,
+  String? path,
+}) {
+  final dictionaries = <AnimationDictionary>[];
+  for (final object in scan.objects.where(
+    (object) => object.category == 9 && object.classId == 1,
+  )) {
+    final reader = BinaryReader(
+      Uint8List.sublistView(levelBytes, object.payloadOffset, object.endOffset),
+      path: path,
+    );
+    final slotCount = reader.readUint32();
+    final remainingBytes = reader.length - reader.offset;
+    if (slotCount > remainingBytes ~/ 4 || slotCount * 4 != remainingBytes) {
+      _invalid(reader, 'Animation dictionary slot count is invalid.', {
+        'dictionaryObjectId': object.objectId,
+        'slotCount': slotCount,
+        'payloadBytes': reader.length,
+      });
+    }
+    final slots = <int?>[];
+    for (var slot = 0; slot < slotCount; slot++) {
+      final index = reader.readUint32();
+      if (index == 0xFFFFFFFF) {
+        slots.add(null);
+      } else {
+        if (animationCount != null && index >= animationCount) {
+          _invalid(reader, 'Animation dictionary index is out of range.', {
+            'dictionaryObjectId': object.objectId,
+            'slot': slot,
+            'animationIndex': index,
+            'animationCount': animationCount,
+          });
+        }
+        slots.add(index);
+      }
+    }
+    if (reader.offset != reader.length) {
+      _invalid(reader, 'Animation dictionary boundary does not match.', {
+        'dictionaryObjectId': object.objectId,
+        'expected': reader.length,
+        'actual': reader.offset,
+      });
+    }
+    dictionaries.add(
+      AnimationDictionary(
+        objectId: object.objectId,
+        animationIndices: List.unmodifiable(slots),
+      ),
+    );
+  }
+  return List.unmodifiable(dictionaries);
+}
+
 List<SkeletalAnimation> extractXxl1LevelAnimations(
   Uint8List levelBytes,
   Xxl1LevelScan scan, {

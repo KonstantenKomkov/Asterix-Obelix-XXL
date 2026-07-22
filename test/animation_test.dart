@@ -29,6 +29,184 @@ void main() {
       ),
     );
   });
+
+  test('extracts animation dictionaries and normalizes empty slots', () {
+    final bytes = BytesBuilder(copy: false)
+      ..add(_u32Bytes(3))
+      ..add(_u32Bytes(2))
+      ..add(_u32Bytes(0xFFFFFFFF))
+      ..add(_u32Bytes(0));
+    final data = bytes.takeBytes();
+    final dictionaries = extractXxl1AnimationDictionaries(
+      data,
+      Xxl1LevelScan(
+        levelNumber: 1,
+        sectorCount: 5,
+        headerOffset: 0,
+        payloadOffset: 0,
+        objects: [
+          KwnObjectSlice(
+            category: 9,
+            classId: 1,
+            objectIndex: 7,
+            objectId: 7,
+            payloadOffset: 0,
+            endOffset: data.length,
+          ),
+        ],
+      ),
+      animationCount: 3,
+    );
+
+    expect(dictionaries, hasLength(1));
+    expect(dictionaries.single.objectId, 7);
+    expect(dictionaries.single.animationIndices, [2, null, 0]);
+  });
+
+  test('rejects an out-of-range animation dictionary index', () {
+    final data = Uint8List.fromList([..._u32Bytes(1), ..._u32Bytes(3)]);
+    final scan = Xxl1LevelScan(
+      levelNumber: 1,
+      sectorCount: 5,
+      headerOffset: 0,
+      payloadOffset: 0,
+      objects: [
+        KwnObjectSlice(
+          category: 9,
+          classId: 1,
+          objectIndex: 0,
+          objectId: 0,
+          payloadOffset: 0,
+          endOffset: data.length,
+        ),
+      ],
+    );
+    expect(
+      () => extractXxl1AnimationDictionaries(data, scan, animationCount: 3),
+      throwsA(isA<ImportException>()),
+    );
+  });
+
+  test('rejects an animation dictionary slot count beyond its payload', () {
+    final data = Uint8List.fromList(_u32Bytes(0xFFFFFFFF));
+    final scan = Xxl1LevelScan(
+      levelNumber: 1,
+      sectorCount: 5,
+      headerOffset: 0,
+      payloadOffset: 0,
+      objects: [
+        KwnObjectSlice(
+          category: 9,
+          classId: 1,
+          objectIndex: 0,
+          objectId: 0,
+          payloadOffset: 0,
+          endOffset: data.length,
+        ),
+      ],
+    );
+
+    expect(
+      () => extractXxl1AnimationDictionaries(data, scan),
+      throwsA(isA<ImportException>()),
+    );
+  });
+
+  test('finds serialized animation dictionary object references', () {
+    const encodedDictionaryOne = 9 | (1 << 6) | (1 << 17);
+    final bytes = BytesBuilder(copy: false)
+      ..add([0xAA])
+      ..add(_u32Bytes(encodedDictionaryOne))
+      ..add([0xBB]);
+    final data = bytes.takeBytes();
+    final scan = Xxl1LevelScan(
+      levelNumber: 1,
+      sectorCount: 5,
+      headerOffset: 0,
+      payloadOffset: 0,
+      objects: [
+        const KwnObjectSlice(
+          category: 9,
+          classId: 1,
+          objectIndex: 0,
+          objectId: 0,
+          payloadOffset: 0,
+          endOffset: 0,
+        ),
+        const KwnObjectSlice(
+          category: 9,
+          classId: 1,
+          objectIndex: 1,
+          objectId: 1,
+          payloadOffset: 0,
+          endOffset: 0,
+        ),
+        KwnObjectSlice(
+          category: 2,
+          classId: 28,
+          objectIndex: 0,
+          objectId: 0,
+          payloadOffset: 0,
+          endOffset: data.length,
+        ),
+      ],
+    );
+
+    final references = findXxl1AnimationDictionaryReferences(data, scan);
+
+    expect(references, hasLength(1));
+    expect(references.single.dictionaryObjectId, 1);
+    expect(references.single.sourceCategory, 2);
+    expect(references.single.sourceClassId, 28);
+    expect(references.single.payloadByteOffset, 1);
+  });
+
+  test('keeps only references from declared dictionary owner classes', () {
+    const encodedDictionaryZero = 9 | (1 << 6);
+    final bytes = Uint8List.fromList([
+      ..._u32Bytes(encodedDictionaryZero),
+      ..._u32Bytes(encodedDictionaryZero),
+    ]);
+    final scan = Xxl1LevelScan(
+      levelNumber: 1,
+      sectorCount: 5,
+      headerOffset: 0,
+      payloadOffset: 0,
+      objects: [
+        const KwnObjectSlice(
+          category: 9,
+          classId: 1,
+          objectIndex: 0,
+          objectId: 0,
+          payloadOffset: 0,
+          endOffset: 0,
+        ),
+        const KwnObjectSlice(
+          category: 2,
+          classId: 28,
+          objectIndex: 0,
+          objectId: 0,
+          payloadOffset: 0,
+          endOffset: 4,
+        ),
+        const KwnObjectSlice(
+          category: 10,
+          classId: 2,
+          objectIndex: 0,
+          objectId: 0,
+          payloadOffset: 4,
+          endOffset: 8,
+        ),
+      ],
+    );
+
+    final owners = findXxl1AnimationDictionaryOwnerReferences(bytes, scan);
+
+    expect(owners, hasLength(1));
+    expect(owners.single.ownerClass, 'CKHkAsterix');
+    expect(owners.single.field, 'heroAnimDict');
+    expect(owners.single.referenceKind, 'typed-field');
+  });
 }
 
 Uint8List _animation({int scheme = 1}) {
@@ -63,6 +241,11 @@ Uint8List _animation({int scheme = 1}) {
 void _u32(BytesBuilder builder, int value) {
   final data = ByteData(4)..setUint32(0, value, Endian.little);
   builder.add(data.buffer.asUint8List());
+}
+
+Uint8List _u32Bytes(int value) {
+  final data = ByteData(4)..setUint32(0, value, Endian.little);
+  return data.buffer.asUint8List();
 }
 
 void _f32(BytesBuilder builder, double value) {

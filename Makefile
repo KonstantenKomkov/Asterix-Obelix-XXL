@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -26,6 +26,14 @@ inventory: ## Построить локальный JSON-манифест ори
 importer-inspect: ## Проверить файл каркасом импортёра (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/файлу' >&2; exit 2)
 	$(DART) run bin/importer.dart inspect "$(INPUT)"
+
+animation-catalog-validate: ## Проверить полный семантический каталог (INPUT=...)
+	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/catalog.json' >&2; exit 2)
+	$(DART) run bin/animation_catalog.dart validate "$(INPUT)"
+
+animation-review: ## Создать HTML для просмотра clips (CATALOG=... ANIMATIONS=... OUTPUT=...)
+	@test -n "$(CATALOG)" -a -n "$(ANIMATIONS)" -a -n "$(OUTPUT)" || (echo 'Укажите CATALOG=... ANIMATIONS=... OUTPUT=...' >&2; exit 2)
+	$(DART) run bin/animation_review.dart "$(CATALOG)" "$(ANIMATIONS)" "$(OUTPUT)"
 
 package-inspect: ## Проверить и вывести manifest runtime-пакета (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/package.astpak' >&2; exit 2)

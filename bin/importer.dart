@@ -11,6 +11,8 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'probe-protected-level';
     final extractsAnimations =
         arguments.isNotEmpty && arguments.first == 'extract-animations';
+    final inventoriesAnimations =
+        arguments.isNotEmpty && arguments.first == 'inventory-animations';
     final extractsLevelTextures =
         arguments.isNotEmpty && arguments.first == 'extract-level-textures';
     final extractsCollision =
@@ -19,7 +21,10 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
     final decodesRws = arguments.isNotEmpty && arguments.first == 'decode-rws';
     final expectedLength =
-        extractsAnimations || extractsLevelSpatial || extractsLevelTextures
+        extractsAnimations ||
+            inventoriesAnimations ||
+            extractsLevelSpatial ||
+            extractsLevelTextures
         ? 4
         : extractsTextures ||
               probesProtectedLevel ||
@@ -38,6 +43,7 @@ Future<void> main(List<String> arguments) async {
           'extract-level-textures',
           'probe-protected-level',
           'extract-animations',
+          'inventory-animations',
           'extract-collision',
           'extract-level-spatial',
           'inspect-rws',
@@ -71,6 +77,65 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (inventoriesAnimations) {
+      final levelName = file.uri.pathSegments.last;
+      final match = RegExp(
+        r'^LVL(\d{2})\.KWN$',
+        caseSensitive: false,
+      ).firstMatch(levelName);
+      if (match == null) {
+        throw ImportException(
+          code: ImportErrorCode.invalidArguments,
+          message: 'Protected level file must be named LVLnn.KWN.',
+          path: path,
+        );
+      }
+      final modulePath = arguments[2];
+      final scan = scanProtectedXxl1Level(
+        bytes,
+        await File(modulePath).readAsBytes(),
+        levelNumber: int.parse(match.group(1)!),
+        levelPath: path,
+        gameModulePath: modulePath,
+      );
+      final animations = extractXxl1LevelAnimations(bytes, scan, path: path);
+      final dictionaries = extractXxl1AnimationDictionaries(
+        bytes,
+        scan,
+        animationCount: animations.length,
+        path: path,
+      );
+      final dictionaryReferenceCandidates =
+          findXxl1AnimationDictionaryReferences(bytes, scan);
+      final dictionaryOwnerReferences =
+          findXxl1AnimationDictionaryOwnerReferences(
+            bytes,
+            scan,
+            candidates: dictionaryReferenceCandidates,
+          );
+      final referenced = dictionaries
+          .expand((dictionary) => dictionary.animationIndices)
+          .whereType<int>()
+          .toSet();
+      final output = File(arguments[3]);
+      await output.parent.create(recursive: true);
+      await output.writeAsString(
+        '${const JsonEncoder.withIndent('  ').convert({
+          'schemaVersion': 1,
+          'source': levelName,
+          'clipCount': animations.length,
+          'dictionaryCount': dictionaries.length,
+          'referencedClipCount': referenced.length,
+          'unreferencedClips': [for (var index = 0; index < animations.length; index++)
+            if (!referenced.contains(index)) index],
+          'dictionaries': dictionaries.map((dictionary) => dictionary.toJson()).toList(),
+          'dictionaryReferenceCandidates': dictionaryReferenceCandidates.map((reference) => reference.toJson()).toList(),
+          'dictionaryOwnerReferences': dictionaryOwnerReferences.map((reference) => reference.toJson()).toList(),
+        })}\n',
+        flush: true,
+      );
+      return;
+    }
     if (extractsLevelTextures) {
       final match = RegExp(
         r'^LVL(\d{2})\.KWN$',
