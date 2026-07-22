@@ -11,8 +11,11 @@ Authoritative gameplay-состояние находится в C++ `player::Run
 скорость capsule определяют jump/fall/landing, а fall recovery возвращает
 машину в `fall` до повторного контакта с землёй.
 
-Параметры оставлены конфигурируемыми по ограничениям эталона: run speed 2.4,
-acceleration 10, deceleration 12, jump velocity 8.4 при gravity 24, attack 0.55 s,
+Параметры оставлены конфигурируемыми по ограничениям эталона. После калибровки
+задачи 60 run speed равен 4.32 world unit/s (2.4 H/s при 1 H = 1.8 world unit),
+acceleration 18 и deceleration 21.6. Snapshot отдельно публикует hysteresis gait
+`idle/walk/run` для animation graph. Jump velocity равна 8.4 при gravity 24,
+attack 0.55 s,
 hurt и invulnerability 0.4 s. Damage переводит в `hurt` или терминальный `death`;
 повторный damage в invulnerability window игнорируется. Hitbox, combo windows и
 источник enemy damage относятся к задаче 35.

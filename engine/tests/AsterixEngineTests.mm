@@ -544,7 +544,7 @@
   body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
   player::Runtime player(controller,body);
   constexpr float dt=1.0f/60.0f;
-  for(int tick=0;tick<119;++tick)player.update(dt,{1,0,false,false});
+  for(int tick=0;tick<29;++tick)player.update(dt,{1,0,false,false});
   const float previousPhase=player.snapshot().locomotion_seconds;
   player.update(dt,{1,0,false,false});
   XCTAssertLessThan(player.snapshot().body.position.x,1);
@@ -552,6 +552,92 @@
   XCTAssertEqualWithAccuracy(
       player.snapshot().locomotion_seconds-previousPhase,
       dt*player.snapshot().horizontal_speed/player.config().run_speed,.0001f);
+}
+
+- (void)testCalibratedRunUsesHeightScaleGaitThresholdAndReferenceCadence {
+  using namespace asterix;
+  collision::World world({{{-40,0,-40},{40,0,-40},{-40,0,40},1},
+                          {{40,0,-40},{40,0,40},{-40,0,40},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+  constexpr float dt=1.0f/60.0f;
+
+  XCTAssertEqualWithAccuracy(player.config().run_speed /
+      player.config().world_units_per_height,2.4f,.0001f);
+  player.update(dt,{1,0,false,false});
+  XCTAssertEqual(player.snapshot().gait,player::Gait::walk);
+
+  int ticks=1;
+  const float routeDistance=10.0f*player.config().world_units_per_height;
+  while(player.snapshot().body.position.x<routeDistance&&ticks<600) {
+    player.update(dt,{1,0,false,false});
+    ++ticks;
+  }
+  const float routeSeconds=ticks*dt;
+  XCTAssertEqual(player.snapshot().gait,player::Gait::run);
+  XCTAssertEqualWithAccuracy(player.snapshot().horizontal_speed,
+                             player.config().run_speed,.0001f);
+  XCTAssertGreaterThanOrEqual(routeSeconds,4.20f);
+  XCTAssertLessThanOrEqual(routeSeconds,4.40f);
+  // Confirmed clip 0035 lasts 0.56 s. Distance-driven playback must produce
+  // the same cadence as the original steady run within one fixed tick.
+  const float expectedCycles=routeDistance/player.config().run_speed/.56f;
+  const float actualCycles=player.snapshot().locomotion_seconds/.56f;
+  XCTAssertEqualWithAccuracy(actualCycles,expectedCycles,.04f);
+}
+
+- (void)testCalibratedRunNormalizesDiagonalDistance {
+  using namespace asterix;
+  collision::World world({{{-40,0,-40},{40,0,-40},{-40,0,40},1},
+                          {{40,0,-40},{40,0,40},{-40,0,40},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  collision::CapsuleController straightController(world,capsuleConfig);
+  collision::CapsuleController diagonalController(world,capsuleConfig);
+  player::Runtime straight(straightController,body);
+  player::Runtime diagonal(diagonalController,body);
+  constexpr float dt=1.0f/60.0f;
+  for(int tick=0;tick<180;++tick) {
+    straight.update(dt,{1,0,false,false});
+    diagonal.update(dt,{1,1,false,false});
+  }
+  const auto s=straight.snapshot().body.position;
+  const auto d=diagonal.snapshot().body.position;
+  const float straightDistance=std::sqrt(s.x*s.x+s.z*s.z);
+  const float diagonalDistance=std::sqrt(d.x*d.x+d.z*d.z);
+  XCTAssertEqualWithAccuracy(diagonalDistance,straightDistance,
+                             straightDistance*.02f);
+  XCTAssertEqual(diagonal.snapshot().gait,player::Gait::run);
+}
+
+- (void)testCalibratedRunClipCadenceVisualRegressionClosesAtPointFiveSixSeconds {
+  using namespace asterix::animation;
+  Transform neutral;
+  Transform strideForward=neutral; strideForward.translation={1,0,0};
+  Transform strideBack=neutral; strideBack.translation={-1,0,0};
+  Track track; track.keys={{0,neutral},{.14f,strideForward},{.28f,neutral},
+                           {.42f,strideBack},{.56f,neutral}};
+  Clip run; run.duration=.56f; run.looping=true; run.tracks={track};
+  const std::vector<Joint> joints={{-1}};
+  const VertexBinding binding{};
+  const std::array<float,3> vertex={0,0,0};
+  const auto start=skinPosition(vertex,binding,skinningPalette(run,joints,0));
+  const auto firstStride=skinPosition(
+      vertex,binding,skinningPalette(run,joints,.14f));
+  const auto secondStride=skinPosition(
+      vertex,binding,skinningPalette(run,joints,.42f));
+  const auto nextCycle=skinPosition(
+      vertex,binding,skinningPalette(run,joints,.56f));
+  XCTAssertEqualWithAccuracy(start[0],0,.0001f);
+  XCTAssertEqualWithAccuracy(firstStride[0],1,.0001f);
+  XCTAssertEqualWithAccuracy(secondStride[0],-1,.0001f);
+  XCTAssertEqualWithAccuracy(nextCycle[0],start[0],.0001f);
 }
 
 - (void)testPlayerAttackHurtInvulnerabilityAndDeathTransitions {

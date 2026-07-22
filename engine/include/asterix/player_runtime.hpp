@@ -12,6 +12,8 @@ namespace asterix::player {
 
 enum class State : std::uint8_t { idle, run, jump, fall, attack, hurt, death };
 
+enum class Gait : std::uint8_t { idle, walk, run };
+
 inline const char* stateName(State state) {
   switch (state) {
     case State::idle: return "idle";
@@ -26,9 +28,15 @@ inline const char* stateName(State state) {
 }
 
 struct Config {
-  float run_speed = 2.4f;
-  float acceleration = 10.0f;
-  float deceleration = 12.0f;
+  // The reference uses standing-height units (H). The imported capsule is
+  // 1.8 world units tall, so 2.4 H/s is 4.32 world units/s.
+  float world_units_per_height = 1.8f;
+  float run_speed = 4.32f;
+  float acceleration = 18.0f;
+  float deceleration = 21.6f;
+  float run_gait_enter_speed = 3.24f;
+  float run_gait_exit_speed = 2.70f;
+  float run_animation_rate = 1.0f;
   float jump_velocity = 8.4f;
   float jump_control_seconds = 0.2f;
   float jump_release_deceleration = 28.0f;
@@ -47,6 +55,7 @@ struct Input {
 
 struct Snapshot {
   State state = State::idle;
+  Gait gait = Gait::idle;
   collision::CapsuleState body{};
   std::int32_t health = 3;
   float state_seconds = 0;
@@ -63,8 +72,14 @@ class Runtime {
   Runtime(collision::CapsuleController& controller,
           collision::CapsuleState body, Config config = {})
       : controller_(controller), config_(config) {
-    if (config.run_speed <= 0 || config.acceleration <= 0 ||
+    if (config.world_units_per_height <= 0 || config.run_speed <= 0 ||
+        config.acceleration <= 0 ||
         config.deceleration <= 0 || config.jump_velocity <= 0 ||
+        config.run_gait_enter_speed <= 0 ||
+        config.run_gait_exit_speed <= 0 ||
+        config.run_gait_exit_speed >= config.run_gait_enter_speed ||
+        config.run_gait_enter_speed >= config.run_speed ||
+        config.run_animation_rate <= 0 ||
         config.jump_control_seconds <= 0 ||
         config.jump_release_deceleration <= 0 ||
         config.attack_seconds <= 0 || config.hurt_seconds <= 0 ||
@@ -90,6 +105,7 @@ class Runtime {
     snapshot_.horizontal_speed=0; snapshot_.idle_animation_seconds=0;
     snapshot_.locomotion_seconds=0;
     snapshot_.locomotion_blend=0;
+    snapshot_.gait=Gait::idle;
     enter(State::idle);
   }
   bool restore(collision::Vec3 position,collision::Vec3 checkpoint,
@@ -104,6 +120,7 @@ class Runtime {
     snapshot_.horizontal_speed=0; snapshot_.idle_animation_seconds=0;
     snapshot_.locomotion_seconds=0;
     snapshot_.locomotion_blend=0;
+    snapshot_.gait=Gait::idle;
     enter(health==0?State::death:State::idle); return true;
   }
 
@@ -203,7 +220,18 @@ class Runtime {
     if (snapshot_.horizontal_speed > .01f) {
       snapshot_.facing_radians = std::atan2(movedX, movedZ);
       snapshot_.locomotion_seconds +=
-          dt * snapshot_.horizontal_speed / config_.run_speed;
+          dt * snapshot_.horizontal_speed / config_.run_speed *
+          config_.run_animation_rate;
+    }
+    if (!snapshot_.body.grounded || snapshot_.horizontal_speed <= .05f) {
+      snapshot_.gait = Gait::idle;
+    } else if (snapshot_.gait == Gait::run) {
+      if (snapshot_.horizontal_speed < config_.run_gait_exit_speed)
+        snapshot_.gait = Gait::walk;
+    } else if (snapshot_.horizontal_speed >= config_.run_gait_enter_speed) {
+      snapshot_.gait = Gait::run;
+    } else {
+      snapshot_.gait = Gait::walk;
     }
     const float locomotionTarget = snapshot_.body.grounded &&
             snapshot_.horizontal_speed > .05f
