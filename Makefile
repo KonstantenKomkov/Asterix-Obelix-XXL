@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-catalog-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -34,6 +34,10 @@ animation-catalog-validate: ## Проверить полный семантич�
 animation-catalog-accept: ## Финальная приёмка каталога LVL01: 345 clips / 518 slots (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/catalog.json' >&2; exit 2)
 	$(DART) run bin/animation_catalog.dart accept-lvl01 "$(INPUT)"
+
+animation-bindings-accept: ## Сквозная приёмка catalog → bindings → runtime paths (CATALOG=... OUTPUT=...)
+	@test -n "$(CATALOG)" -a -n "$(OUTPUT)" || (echo 'Укажите CATALOG=... OUTPUT=...' >&2; exit 2)
+	$(DART) run bin/animation_binding_acceptance.dart "$(CATALOG)" assets/animation_bindings.v1.json assets/animation_visual_acceptance.v1.json "$(OUTPUT)"
 
 animation-dictionary-validate: ## Проверить один словарь (DICTIONARY=... INPUT=...)
 	@test -n "$(DICTIONARY)" -a -n "$(INPUT)" || (echo 'Укажите DICTIONARY=... INPUT=...' >&2; exit 2)

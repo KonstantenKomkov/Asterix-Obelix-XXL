@@ -106,3 +106,16 @@ of a blend therefore emits once. Pause does not advance the cursor, and a save
 stores the instance and absolute phase; restore resumes without replaying
 already delivered side effects. Manifest validation rejects unknown bindings,
 unordered/duplicate events, unsupported types and one-shots without completion.
+
+## End-to-end acceptance
+
+Task 69 adds a dataset-specific gate which joins the confirmed local catalog,
+all dictionary memberships and this registry by exact animation filename. It
+also derives a verified selection path for every binding from hero entry
+graphs, character states/events, world events or cinematic script cues. The
+machine-readable report must cover exactly 345 catalog clips and report zero
+unbound, unexplained, unreachable or unknown clips. Representative visual
+sequence metadata is versioned separately; original captures and extracted
+animation payloads remain local. See
+`documents/gameplay/animation_binding_acceptance.md` for the reproducible
+command and accepted report digest.

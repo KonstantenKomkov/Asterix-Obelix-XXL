@@ -1,5 +1,33 @@
 # Выполненные задачи первой итерации
 
+## П. 69 — Сквозная приёмка полноты привязок анимаций
+
+**Выполнено:** 22 июля 2026.
+
+Добавлен воспроизводимый acceptance gate, который повторно проверяет строгий
+локальный каталог 345 clips / 52 dictionaries / 518 slots и соединяет каждый
+clip по точному `NNNN.animation.json` со всеми versioned bindings. Для всех 408
+actor/action/context bindings отчёт выводит проверенный путь выбора из hero
+graph, renderer compatibility state machine, character state/event graph,
+world event profile либо cinematic script event/cue. Итоговые значения
+unbound, unexplained, unreachable и unknown clips равны нулю.
+
+Три representative sequences — locomotion/combat Астерикса, machinegun
+fire/recoil и cinematic scene-data-1 — зафиксированы versioned metadata и
+разрешаются в точные bindings после side-by-side сверки с локальным оригиналом.
+Подробный JSON-отчёт сохранён вне Git с SHA-256
+`788767f3cdab72bbdd673df41b64b0204a12663e272a406e8d3b2e7cac42bbcd`;
+каталог сохранил SHA-256
+`3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
+
+Отдельное diff review выявило и устранило ложное принятие всех hero bindings
+по одному лишь наличию entry state: итоговая проверка явно обходит transitions
+обоих достижимых hero-компонентов. Добавлены негативные regressions для
+неполного graph manifest и неизвестного visual binding. Пройдены resource
+policy, `flutter analyze`, все 92 Flutter tests и повторный локальный acceptance
+gate. Оригинальные clips, captures и производные игровые ресурсы в Git не
+добавлялись.
+
 ## П. 68 — Единые animation events и синхронизация gameplay
 
 **Выполнено:** 22 июля 2026.

@@ -20,7 +20,6 @@
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 | 61 | Подключить gameplay-камеру к фактическому перемещению игрока в Metal render loop | Gameplay bugfix | P0 | M | После п. 34 и 56; каждый fixed tick камера получает актуальную позицию капсулы, render использует интерполированный camera snapshot для view/projection, frustum/culling и audio listener; при движении во всех направлениях игрок остаётся в заданной dead zone без рывков и рассинхронизации, follow/collision поведение покрыто regression-тестом |
-| 69 | Выполнить сквозную приёмку полноты привязки всех анимаций | Animation acceptance | P0 | L | После п. 64–68; автоматический отчёт сопоставляет asset catalog, dictionaries, binding registry и достижимые runtime graphs: каждый из 345 clips привязан к конкретному trigger/action и имеет хотя бы один проверенный путь воспроизведения; число исключённых, необъяснённых и unbound clips равно нулю, representative sequences сверены визуально с оригиналом без добавления исходных ресурсов в Git |
 
 ---
 
@@ -116,14 +115,16 @@
 - [x] П. 66 — анимации объектов, окружения и механизмов
 - [x] П. 67 — scripted/cinematic анимации
 - [x] П. 68 — animation events и синхронизация gameplay
-- [ ] П. 69 — сквозная приёмка полноты всех привязок
+- [x] П. 69 — сквозная приёмка полноты всех привязок
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 68 выполнен: единые versioned event tracks и fixed-tick sampler доставляют footsteps, gameplay windows, impulses/root motion, world/VFX/SFX/camera cues и one-shot completion без потерь и дублей при low FPS, blend, pause/restore и loop boundary.
+**Последнее обновление:** 22 июля 2026 — п. 69 выполнен: сквозной acceptance gate сопоставляет 345 clips, 52 dictionaries / 518 slots, 408 bindings и достижимые hero/character/world/cinematic runtime paths; unbound, unexplained, unreachable и unknown clips отсутствуют, три representative sequences зафиксированы после визуальной сверки с локальным оригиналом.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 68 выполнен: единые versioned event tracks и fixed-tick sampler доставляют footsteps, gameplay windows, impulses/root motion, world/VFX/SFX/camera cues и one-shot completion без потерь и дублей при low FPS, blend, pause/restore и loop boundary.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 67 выполнен: 14 scene-data timelines связывают подтверждённые 44 clips / 63 cinematic contexts с exact script events и actor cues; camera/audio/subtitle/control, interrupt, skip, checkpoint restore и re-entry покрыты сценарными regressions.
 

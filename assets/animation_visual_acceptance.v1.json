@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "dataset": "XXL1/LVL01",
+  "reviewedAt": "2026-07-22",
+  "method": "side-by-side playback against the locally installed original; captures and extracted assets remain outside Git",
+  "sequences": [
+    {
+      "id": "asterix-locomotion-combat",
+      "originalReference": "task-62 review sheet and task-59 held-movement capture",
+      "result": "match",
+      "steps": [
+        {"actor": "asterix", "action": "locomotion.idle", "clip": "0053.animation.json"},
+        {"actor": "asterix", "action": "locomotion.run", "clip": "0035.animation.json"},
+        {"actor": "asterix", "action": "combat.attack", "clip": "0000.animation.json"},
+        {"actor": "asterix", "action": "damage.death", "clip": "0033.animation.json"}
+      ]
+    },
+    {
+      "id": "machinegun-fire-recoil",
+      "originalReference": "task-62 world dictionary review sheet, dictionary 19",
+      "result": "match",
+      "steps": [
+        {"actor": "mechanism:machinegun", "action": "combat.fire", "clip": "0243.animation.json"},
+        {"actor": "mechanism:machinegun", "action": "combat.recoil", "clip": "0242.animation.json"}
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-1",
+      "originalReference": "task-62 cinematic seven-pose review sheet, scene data 1",
+      "result": "match",
+      "steps": [
+        {"actor": "asterix", "action": "cinematic.scene-1.performance.cue-2", "clip": "0035.animation.json"},
+        {"actor": "asterix", "action": "cinematic.scene-1.performance.cue-7", "clip": "0025.animation.json"}
+      ]
+    }
+  ]
+}
