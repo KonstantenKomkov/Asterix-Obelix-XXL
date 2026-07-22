@@ -36,13 +36,23 @@ typedef struct {
   float fogStart;
   float fogEnd;
   uint32_t debugOptions;
+  float alphaCutoff;
 } AsterixUniforms;
 
 typedef struct {
   NSUInteger vertexStart;
   NSUInteger vertexCount;
   __unsafe_unretained id<MTLTexture> texture;
+  __unsafe_unretained id<MTLSamplerState> sampler;
+  float alphaCutoff;
+  BOOL blended;
 } AsterixMeshRange;
+
+static NSString* AsterixTextureKey(NSString* name) {
+  if (![name isKindOfClass:NSString.class]) return nil;
+  NSString* key = name.lastPathComponent.stringByDeletingPathExtension.lowercaseString;
+  return key.length == 0 ? nil : key;
+}
 
 static void AsterixWriteMarker(AsterixVertex* vertices,
                                asterix::collision::Vec3 position,
@@ -169,11 +179,14 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   id<MTLCommandQueue> _commandQueue;
   id<MTLRenderPipelineState> _pipeline;
   id<MTLDepthStencilState> _depthState;
+  id<MTLDepthStencilState> _readOnlyDepthState;
+  id<MTLSamplerState> _defaultSampler;
   id<MTLBuffer> _vertices;
   id<MTLBuffer> _sceneVertices;
   id<MTLBuffer> _collisionVertices;
   id<MTLTexture> _sceneTexture;
   NSArray<id<MTLTexture>>* _sceneTextures;
+  NSArray<id<MTLSamplerState>>* _sceneSamplers;
   NSUInteger _sceneVertexCount;
   NSUInteger _sceneMeshCount;
   NSUInteger _collisionTriangleCount;
@@ -249,10 +262,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; };\n"
+      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; };\n"
       "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; };\n"
       "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
-      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]]) { constexpr sampler s(filter::linear, mip_filter::linear, address::repeat); float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<0.01) discard_fragment(); float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
+      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<u.alphaCutoff) discard_fragment(); float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
   if (library == nil) {
@@ -282,6 +295,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   depth.depthCompareFunction = MTLCompareFunctionLess;
   depth.depthWriteEnabled = YES;
   _depthState = [device newDepthStencilStateWithDescriptor:depth];
+  depth.depthWriteEnabled = NO;
+  _readOnlyDepthState = [device newDepthStencilStateWithDescriptor:depth];
+  MTLSamplerDescriptor* defaultSampler=[MTLSamplerDescriptor new];
+  defaultSampler.minFilter=defaultSampler.magFilter=MTLSamplerMinMagFilterLinear;
+  defaultSampler.mipFilter=MTLSamplerMipFilterLinear;
+  defaultSampler.sAddressMode=defaultSampler.tAddressMode=MTLSamplerAddressModeRepeat;
+  _defaultSampler=[device newSamplerStateWithDescriptor:defaultSampler];
   const AsterixVertex vertices[] = {
       {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0, 0, 1}, {0.5f, 0}, 1, .35f, .65f, {1,0,0,0}, {1,0,0,0}, 1},
       {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 0, 1}, {0, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}, 1},
@@ -536,6 +556,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     break;
   }
   NSMutableDictionary<NSString*, id<MTLTexture>>* textures = [NSMutableDictionary dictionary];
+  NSMutableDictionary<NSString*, NSNumber*>* textureAlphaModes = [NSMutableDictionary dictionary];
+  NSMutableDictionary<NSString*, id<MTLSamplerState>>* samplerStates = [NSMutableDictionary dictionary];
   id<MTLTexture> selectedTexture = nil;
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"texture"]) continue;
@@ -558,7 +580,20 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       if ((uint64_t)dataOffset + relative + size > length || size != w * h * 4) break;
       [texture replaceRegion:MTLRegionMake2D(0, 0, w, h) mipmapLevel:level withBytes:textureBytes + dataOffset + relative bytesPerRow:w * 4];
     }
-    textures[name] = texture;
+    BOOL hasTransparent=NO,hasPartialAlpha=NO;
+    if ((uint64_t)dataOffset + width * height * 4 <= length) {
+      const uint8_t* pixels=textureBytes+dataOffset;
+      for(uint64_t pixel=0;pixel<(uint64_t)width*height;++pixel) {
+        const uint8_t alpha=pixels[pixel*4+3];
+        if(alpha<255)hasTransparent=YES;
+        if(alpha!=0&&alpha!=255){hasPartialAlpha=YES;break;}
+      }
+    }
+    NSString* textureKey=AsterixTextureKey(name);
+    if(textureKey) {
+      textures[textureKey] = texture;
+      textureAlphaModes[textureKey]=@(hasPartialAlpha?2:hasTransparent?1:0);
+    }
   }
   NSMutableData* vertexData = [NSMutableData data];
   NSMutableData* collisionVertexData = [NSMutableData data];
@@ -743,8 +778,38 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       }
       NSDictionary* material = materialIndex < materials.count ? materials[materialIndex] : nil;
       NSString* textureName=material[@"texture"];
+      NSString* textureKey=AsterixTextureKey(textureName);
       id<MTLTexture> materialTexture=
-          [textureName isKindOfClass:NSString.class]?textures[textureName]:nil;
+          textureKey?textures[textureKey]:nil;
+      const NSUInteger alphaMode=textureKey?[textureAlphaModes[textureKey] unsignedIntegerValue]:0;
+      MTLSamplerDescriptor* samplerDescriptor=[MTLSamplerDescriptor new];
+      const NSUInteger filtering=[material[@"filtering"] unsignedIntegerValue];
+      samplerDescriptor.minFilter=filtering==1?MTLSamplerMinMagFilterNearest:MTLSamplerMinMagFilterLinear;
+      samplerDescriptor.magFilter=samplerDescriptor.minFilter;
+      samplerDescriptor.mipFilter=[material[@"usesMipmaps"] boolValue]
+          ?MTLSamplerMipFilterLinear:MTLSamplerMipFilterNotMipmapped;
+      const auto addressMode=[](NSUInteger value) {
+        if(value==2)return MTLSamplerAddressModeMirrorRepeat;
+        if(value==3)return MTLSamplerAddressModeClampToEdge;
+        if(value==4)return MTLSamplerAddressModeClampToZero;
+        return MTLSamplerAddressModeRepeat;
+      };
+      samplerDescriptor.sAddressMode=addressMode([material[@"uAddressing"] unsignedIntegerValue]);
+      samplerDescriptor.tAddressMode=addressMode([material[@"vAddressing"] unsignedIntegerValue]);
+      NSString* samplerKey=[NSString stringWithFormat:@"%lu:%lu:%lu:%d",
+          (unsigned long)filtering,
+          (unsigned long)[material[@"uAddressing"] unsignedIntegerValue],
+          (unsigned long)[material[@"vAddressing"] unsignedIntegerValue],
+          [material[@"usesMipmaps"] boolValue]];
+      id<MTLSamplerState> materialSampler=samplerStates[samplerKey];
+      if(materialSampler==nil) {
+        materialSampler=[view.device newSamplerStateWithDescriptor:samplerDescriptor];
+        samplerStates[samplerKey]=materialSampler;
+      }
+      const BOOL blended=alphaMode==2||alpha<.999f;
+      NSString* alphaTextureName=[material[@"alphaTexture"] isKindOfClass:NSString.class]
+          ?material[@"alphaTexture"]:nil;
+      const float alphaCutoff=alphaMode==1||alphaTextureName.length>0?.5f:.01f;
       const NSUInteger triangleStart=vertexData.length/sizeof(AsterixVertex);
       if ([material[@"ambient"] isKindOfClass:NSNumber.class]) ambient = [material[@"ambient"] floatValue];
       if ([material[@"diffuse"] isKindOfClass:NSNumber.class]) diffuse = [material[@"diffuse"] floatValue];
@@ -774,9 +839,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       const NSUInteger triangleCount=vertexData.length/sizeof(AsterixVertex)-triangleStart;
       if(triangleCount>0) {
         if(!materialRanges.empty()&&materialRanges.back().texture==materialTexture&&
+           materialRanges.back().sampler==materialSampler&&
+           materialRanges.back().alphaCutoff==alphaCutoff&&
+           materialRanges.back().blended==blended&&
            materialRanges.back().vertexStart+materialRanges.back().vertexCount==triangleStart)
           materialRanges.back().vertexCount+=triangleCount;
-        else materialRanges.push_back({triangleStart,triangleCount,materialTexture});
+        else materialRanges.push_back({triangleStart,triangleCount,materialTexture,
+                                       materialSampler,alphaCutoff,blended});
       }
     }
     if (vertexData.length > before) {
@@ -804,7 +873,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     if (selectedTexture == nil) for (NSDictionary* material in materials) {
       NSString* textureName = material[@"texture"];
       if (![textureName isKindOfClass:NSString.class]) continue;
-      id<MTLTexture> texture = textures[textureName];
+      id<MTLTexture> texture = textures[AsterixTextureKey(textureName)];
       if (texture != nil) { selectedTexture = texture; break; }
     }
   }
@@ -920,7 +989,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
        bindingsValid) {
       playerMeshVertexStart=vertexData.length/sizeof(AsterixVertex);
       NSString* textureName=skinMaterials.count>0?skinMaterials[0][@"texture"]:nil;
-      playerTexture=[textureName isKindOfClass:NSString.class]?textures[textureName]:nil;
+      playerTexture=[textureName isKindOfClass:NSString.class]
+          ?textures[AsterixTextureKey(textureName)]:nil;
       for(NSArray* triangle in skinTriangles) for(NSUInteger corner=0;corner<3;++corner) {
         NSUInteger index=[triangle[corner] unsignedIntegerValue];
         if(index>=skinPositions.count)continue;
@@ -978,6 +1048,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _collisionTriangleCount = collisionVertexData.length / sizeof(AsterixVertex) / 3;
     _sceneTexture = selectedTexture;
     _sceneTextures = textures.allValues;
+    _sceneSamplers = samplerStates.allValues;
     _sceneVertexCount = vertexData.length / sizeof(AsterixVertex);
     _sceneMeshCount = meshCount;
     _visibleMeshCount = meshCount;
@@ -1090,6 +1161,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _collisionTriangleCount = 0;
     _sceneTexture = nil;
     _sceneTextures = nil;
+    _sceneSamplers = nil;
     _sceneVertexCount = 0;
     _sceneMeshCount = 0;
     _visibleMeshCount = 0;
@@ -1336,7 +1408,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       AsterixUniforms uniforms = {viewProjection,
                                   0u,
                                   sceneRadius * 1.2f, sceneRadius * 3.2f,
-                                  debugOptions};
+                                  debugOptions,.01f};
       [encoder setRenderPipelineState:_pipeline];
       [encoder setTriangleFillMode:(debugOptions & 1u) != 0 ? MTLTriangleFillModeLines : MTLTriangleFillModeFill];
       [encoder setDepthStencilState:_depthState];
@@ -1401,16 +1473,23 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           _visibleMeshCount = 0;
           for (const auto& batch : batches) _visibleMeshCount += batch.items.size();
         }
-        for (const auto& batch : batches) for (const auto& item : batch.items) {
-          if (item.node_index >= meshRanges.size()) continue;
-          for(const AsterixMeshRange& range:meshRanges[item.node_index]) {
-            AsterixUniforms materialUniforms=uniforms;
-            materialUniforms.textured=range.texture!=nil?1u:0u;
-            [encoder setVertexBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
-            [encoder setFragmentBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
-            [encoder setFragmentTexture:range.texture atIndex:0];
-            [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:range.vertexStart
-                        vertexCount:range.vertexCount];
+        for(NSUInteger pass=0;pass<2;++pass) {
+          const BOOL blended=pass==1;
+          [encoder setDepthStencilState:blended?_readOnlyDepthState:_depthState];
+          for (const auto& batch : batches) for (const auto& item : batch.items) {
+            if (item.node_index >= meshRanges.size()) continue;
+            for(const AsterixMeshRange& range:meshRanges[item.node_index]) {
+              if(range.blended!=blended)continue;
+              AsterixUniforms materialUniforms=uniforms;
+              materialUniforms.textured=range.texture!=nil?1u:0u;
+              materialUniforms.alphaCutoff=range.alphaCutoff;
+              [encoder setVertexBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
+              [encoder setFragmentBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
+              [encoder setFragmentTexture:range.texture atIndex:0];
+              [encoder setFragmentSamplerState:range.sampler atIndex:0];
+              [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:range.vertexStart
+                          vertexCount:range.vertexCount];
+            }
           }
         }
         [encoder setDepthStencilState:nil];
@@ -1425,6 +1504,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           [encoder setVertexBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
           [encoder setFragmentBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
           [encoder setFragmentTexture:_playerTexture atIndex:0];
+          [encoder setFragmentSamplerState:_defaultSampler atIndex:0];
           [encoder drawPrimitives:MTLPrimitiveTypeTriangle
                       vertexStart:_playerMeshVertexStart vertexCount:_playerMeshVertexCount];
           [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];

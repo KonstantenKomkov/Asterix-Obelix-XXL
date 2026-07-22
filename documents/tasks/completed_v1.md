@@ -1,5 +1,28 @@
 # Выполненные задачи первой итерации
 
+## П. 52 — Fidelity материалов и геометрии Gaul
+
+**Выполнено:** 22 июля 2026.
+
+RenderWare triangle material IDs теперь разрешаются через material slots, в том
+числе повторно используемые. Metal runtime нормализует texture lookup по имени,
+пути, расширению и регистру, создаёт sampler по filtering/mipmap/U/V addressing
+и классифицирует alpha textures как opaque, binary cutout либо blended. Cutout
+использует alpha test, blended ranges рисуются отдельным проходом без записи
+глубины.
+
+Добавлена команда `asset_package.dart audit-materials`. На пересобранном
+локальном Gaul ASTPAK она проверила 663 mesh, 149 038 triangles, 663 material
+records и 293 уникальных texture names: неверных indices и потерянных texture
+bindings нет; классифицированы 89 cutout и 33 blended textures. Solid/wireframe
+smoke-сверка с локальной эталонной записью подтвердила terrain, окружение,
+растительность и animated mesh Астерикса без marker fallback. Детали зафиксированы
+в [отчёте fidelity](../gameplay/gaul_material_fidelity.md); точная камера/spawn и
+автоматическое сравнение кадра остаются в п. 53.
+
+Прошли importer regression, native XCTest, macOS debug build и resource policy;
+оригинальные и производные игровые ресурсы в Git не добавлены.
+
 ## П. 51 — Skeletal animation Астерикса
 
 **Выполнено:** 22 июля 2026.

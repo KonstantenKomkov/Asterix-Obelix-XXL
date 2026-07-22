@@ -28,6 +28,17 @@ void main() {
     expect(mesh.materials.single.color, 0x80402010);
     expect(mesh.materials.single.usesMipmaps, isTrue);
     expect(mesh.materialSlots, [0, 0]);
+    expect(mesh.triangles.single.material, 0);
+  });
+
+  test('resolves reused RenderWare material slots for triangles', () {
+    final mesh = parseXxl1StaticGeometry(
+      _staticGeometryPayload(triangleMaterial: 1),
+    );
+
+    expect(mesh.materials, hasLength(1));
+    expect(mesh.materialSlots, [0, 0]);
+    expect(mesh.triangles.single.material, 0);
   });
 
   test('rejects triangle indices outside the vertex array', () {
@@ -44,7 +55,10 @@ void main() {
   });
 }
 
-Uint8List _staticGeometryPayload({int lastIndex = 2}) {
+Uint8List _staticGeometryPayload({
+  int lastIndex = 2,
+  int triangleMaterial = 0,
+}) {
   final frameStruct = BytesBuilder(copy: false);
   _u32(frameStruct, 1);
   for (final value in <double>[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]) {
@@ -67,7 +81,7 @@ Uint8List _staticGeometryPayload({int lastIndex = 2}) {
   }
   _u16(geometryStruct, 0);
   _u16(geometryStruct, 1);
-  _u16(geometryStruct, 1);
+  _u16(geometryStruct, triangleMaterial);
   _u16(geometryStruct, lastIndex);
   for (final value in <double>[0, 0, 0, 1]) {
     _f32(geometryStruct, value);

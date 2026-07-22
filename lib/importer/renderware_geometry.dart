@@ -447,6 +447,16 @@ SceneMesh _parseGeometry(
       });
     }
   }
+  final resolvedTriangles = triangles
+      .map(
+        (triangle) => SceneTriangle(
+          triangle.a,
+          triangle.b,
+          triangle.c,
+          materialList.slots[triangle.material],
+        ),
+      )
+      .toList(growable: false);
   SceneSkin? skin;
   while (reader.offset < outer.end) {
     final extension = _readHeader(reader);
@@ -470,7 +480,7 @@ SceneMesh _parseGeometry(
     vertices: vertices,
     normals: normals,
     uvSets: uvSets,
-    triangles: triangles,
+    triangles: resolvedTriangles,
     materials: materialList.materials,
     materialSlots: materialList.slots,
     skin: skin,
