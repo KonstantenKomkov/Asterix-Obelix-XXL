@@ -62,6 +62,17 @@ fvm dart run bin/animation_catalog.dart build-draft \
   "$HOME/asterix-reference/animation-catalog-draft.json"
 ```
 
+Для XXL1 HAnim node 0 является неподвижным scene root, а authored root motion
+находится в translation node 1. Поэтому `analysis.motionRootNodeIndex` равен 1
+для многокостных clips (0 для единственного node), и
+`rootTranslationDelta`/`rootMotionDistance` вычисляются именно по нему. Reviewer
+может получать точный `skin-object-id`: подбор иерархии только по числу bones
+небезопасен, поскольку разные персонажи используют одинаковое их количество.
+При наличии geometry точный skin также добавляет три контрольных skinned-mesh
+силуэта к фронтальной и боковой skeleton-проекциям. Для дополнительной проверки
+на свежем локальном ASTPAK profile runtime принимает строго opt-in переменную
+`ASTERIX_ANIMATION_REVIEW_CLIP=NNNN`; без неё gameplay bindings не меняются.
+
 Черновик намеренно помечает каждый clip как `unreviewed`. Финальный валидатор
 принимает только `confirmed` и требует owner, skin, costume, действие/событие,
 `loop`/`one-shot`, root motion, явные списки вариантов, переходов и events, а

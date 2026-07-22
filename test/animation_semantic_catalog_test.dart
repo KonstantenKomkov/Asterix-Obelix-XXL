@@ -1,7 +1,85 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:asterix_xxl/tooling/animation_semantic_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('catalog measures root motion from the animated HAnim root', () async {
+    final temporary = await Directory.systemTemp.createTemp(
+      'asterix-animation-catalog-',
+    );
+    addTearDown(() => temporary.delete(recursive: true));
+    final inventory = File('${temporary.path}/inventory.json');
+    await inventory.writeAsString(
+      jsonEncode({
+        'source': 'fixture',
+        'clipCount': 1,
+        'dictionaryCount': 1,
+        'dictionaries': [
+          {
+            'objectId': 2,
+            'slots': [0],
+          },
+        ],
+        'dictionaryOwnerReferences': [
+          {
+            'dictionaryObjectId': 2,
+            'ownerClass': 'CKHkAsterix',
+            'sourceObjectId': 0,
+            'field': 'heroAnimDict',
+            'referenceKind': 'typed-field',
+            'evidence': 'fixture',
+          },
+        ],
+      }),
+    );
+    List<double> transform(double x, double y, double z) => [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      x,
+      y,
+      z,
+      1,
+    ];
+    await File('${temporary.path}/0000.animation.json').writeAsString(
+      jsonEncode({
+        'nodeCount': 2,
+        'duration': 1.0,
+        'frameCount': 4,
+        'samples': [
+          {
+            'localTransforms': [transform(100, 0, 0), transform(1, 2, 3)],
+          },
+          {
+            'localTransforms': [transform(200, 0, 0), transform(4, 6, 3)],
+          },
+        ],
+      }),
+    );
+
+    final catalog = await buildAnimationCatalogDraft(
+      inventoryFile: inventory,
+      animationsDirectory: temporary,
+    );
+    final clip = (catalog['clips']! as List).single as Map;
+    final analysis = clip['analysis'] as Map;
+
+    expect(analysis['motionRootNodeIndex'], 1);
+    expect(analysis['rootTranslationDelta'], [3.0, 4.0, 0.0]);
+    expect(analysis['rootMotionDistance'], 5.0);
+  });
+
   test('semantic validator rejects unreviewed and evidence-free clips', () {
     final catalog = <String, Object?>{
       'schemaVersion': 1,

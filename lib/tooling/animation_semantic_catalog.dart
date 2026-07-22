@@ -61,8 +61,15 @@ Future<Map<String, Object?>> buildAnimationCatalogDraft({
     final last = samples.last! as Map<String, Object?>;
     final firstTransforms = first['localTransforms']! as List<Object?>;
     final lastTransforms = last['localTransforms']! as List<Object?>;
-    final rootStart = _translation(firstTransforms.first! as List<Object?>);
-    final rootEnd = _translation(lastTransforms.first! as List<Object?>);
+    // XXL HAnim clips keep a stationary scene root at node 0. Node 1 is the
+    // animated character root whose translation carries authored root motion.
+    final motionRootNodeIndex = firstTransforms.length > 1 ? 1 : 0;
+    final rootStart = _translation(
+      firstTransforms[motionRootNodeIndex]! as List<Object?>,
+    );
+    final rootEnd = _translation(
+      lastTransforms[motionRootNodeIndex]! as List<Object?>,
+    );
     final rootDelta = List<double>.generate(
       3,
       (component) => rootEnd[component] - rootStart[component],
@@ -99,6 +106,7 @@ Future<Map<String, Object?>> buildAnimationCatalogDraft({
       'dictionaryMemberships': clipMemberships,
       'ownerCandidates': ownerCandidates,
       'analysis': {
+        'motionRootNodeIndex': motionRootNodeIndex,
         'rootTranslationDelta': rootDelta,
         'rootMotionDistance': math.sqrt(
           rootDelta.fold<double>(0, (sum, value) => sum + value * value),
