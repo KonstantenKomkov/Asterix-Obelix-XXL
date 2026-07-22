@@ -30,6 +30,8 @@ struct Config {
   float acceleration = 10.0f;
   float deceleration = 12.0f;
   float jump_velocity = 8.4f;
+  float jump_control_seconds = 0.2f;
+  float jump_release_deceleration = 28.0f;
   float attack_seconds = 0.55f;
   float hurt_seconds = 0.4f;
   float invulnerability_seconds = 0.4f;
@@ -58,6 +60,8 @@ class Runtime {
       : controller_(controller), config_(config) {
     if (config.run_speed <= 0 || config.acceleration <= 0 ||
         config.deceleration <= 0 || config.jump_velocity <= 0 ||
+        config.jump_control_seconds <= 0 ||
+        config.jump_release_deceleration <= 0 ||
         config.attack_seconds <= 0 || config.hurt_seconds <= 0 ||
         config.invulnerability_seconds < 0 || config.maximum_health <= 0) {
       throw std::invalid_argument("player configuration is invalid");
@@ -76,7 +80,8 @@ class Runtime {
     snapshot_.body.velocity={}; snapshot_.body.grounded=false;
     snapshot_.health=config_.maximum_health; snapshot_.invulnerability_seconds=0;
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
-    air_jump_available_=false;
+    air_jump_available_=false; jump_control_active_=false;
+    jump_cut_active_=false; jump_control_elapsed_=0;
     enter(State::idle);
   }
   bool restore(collision::Vec3 position,collision::Vec3 checkpoint,
@@ -86,7 +91,8 @@ class Runtime {
     snapshot_.body.velocity={}; snapshot_.body.grounded=false;
     snapshot_.health=health; snapshot_.invulnerability_seconds=0;
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
-    air_jump_available_=false;
+    air_jump_available_=false; jump_control_active_=false;
+    jump_cut_active_=false; jump_control_elapsed_=0;
     enter(health==0?State::death:State::idle); return true;
   }
 
@@ -114,6 +120,7 @@ class Runtime {
         std::max(0.0f, snapshot_.invulnerability_seconds - dt);
 
     const bool jump_edge = input.jump && !jump_was_pressed_;
+    const bool jump_release = !input.jump && jump_was_pressed_;
     const bool attack_edge = input.attack && !attack_was_pressed_;
     jump_was_pressed_ = input.jump;
     attack_was_pressed_ = input.attack;
@@ -151,11 +158,37 @@ class Runtime {
       if (!snapshot_.body.grounded) air_jump_available_ = false;
       snapshot_.body.velocity.y = config_.jump_velocity;
       snapshot_.body.grounded = false;
+      jump_control_active_ = true;
+      jump_cut_active_ = false;
+      jump_control_elapsed_ = 0;
       enter(State::jump);
     }
 
+    if (jump_release && jump_control_active_ &&
+        snapshot_.body.velocity.y > 0) {
+      jump_control_active_ = false;
+      jump_cut_active_ = true;
+    }
+    if (jump_control_active_) {
+      jump_control_elapsed_ += dt;
+      if (jump_control_elapsed_ >= config_.jump_control_seconds) {
+        jump_control_active_ = false;
+      }
+    }
+    if (jump_cut_active_ && snapshot_.body.velocity.y > 0) {
+      snapshot_.body.velocity.y = std::max(
+          0.0f, snapshot_.body.velocity.y -
+                    config_.jump_release_deceleration * dt);
+    } else if (snapshot_.body.velocity.y <= 0) {
+      jump_cut_active_ = false;
+    }
+
     snapshot_.body = controller_.move(snapshot_.body, horizontal_velocity_, dt);
-    if (snapshot_.body.grounded) air_jump_available_ = true;
+    if (snapshot_.body.grounded) {
+      air_jump_available_ = true;
+      jump_control_active_ = false;
+      jump_cut_active_ = false;
+    }
     if (snapshot_.body.recovered_from_fall) {
       enter(State::fall);
     } else if (snapshot_.state == State::attack &&
@@ -190,6 +223,9 @@ class Runtime {
   bool jump_was_pressed_ = false;
   bool attack_was_pressed_ = false;
   bool air_jump_available_ = false;
+  bool jump_control_active_ = false;
+  bool jump_cut_active_ = false;
+  float jump_control_elapsed_ = 0;
 };
 
 }  // namespace asterix::player

@@ -361,6 +361,80 @@
   XCTAssertEqual(player.snapshot().state,player::State::jump);
 }
 
+- (void)testPlayerJumpHeightDependsDeterministicallyOnButtonHold {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  constexpr float dt=1.0f/60.0f;
+
+  auto jumpHeight = [&](int heldTicks, bool useAirJump) {
+    collision::CapsuleController controller(world,capsuleConfig);
+    collision::CapsuleState body;
+    body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+    body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+    player::Runtime player(controller,body);
+    player::Input input;
+
+    if(useAirJump) {
+      input.jump=true; player.update(dt,input);
+      input.jump=false; player.update(dt,input);
+      for(int tick=0;tick<120&&player.snapshot().state!=player::State::fall;++tick)
+        player.update(dt,input);
+    }
+
+    const float startHeight=player.snapshot().body.position.y;
+    input.jump=true;
+    float apex=startHeight;
+    for(int tick=0;tick<240;++tick) {
+      if(tick==heldTicks)input.jump=false;
+      player.update(dt,input);
+      apex=std::max(apex,player.snapshot().body.position.y);
+      if(player.snapshot().state==player::State::fall)break;
+    }
+    return apex-startHeight;
+  };
+
+  const float shortGround=jumpHeight(1,false);
+  const float cappedGround=jumpHeight(12,false);
+  const float fullGround=jumpHeight(60,false);
+  const float repeatedShortGround=jumpHeight(1,false);
+  XCTAssertGreaterThan(fullGround,shortGround+.5f);
+  XCTAssertEqualWithAccuracy(cappedGround,fullGround,.0001f);
+  XCTAssertEqualWithAccuracy(shortGround,repeatedShortGround,.0001f);
+
+  const float shortAir=jumpHeight(1,true);
+  const float fullAir=jumpHeight(60,true);
+  XCTAssertGreaterThan(fullAir,shortAir+.5f);
+  XCTAssertEqualWithAccuracy(shortAir,shortGround,.0001f);
+  XCTAssertEqualWithAccuracy(fullAir,fullGround,.0001f);
+}
+
+- (void)testPlayerJumpReleaseShortensAscentWithoutVelocitySnap {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+  constexpr float dt=1.0f/60.0f;
+
+  player.update(dt,{0,0,true,false});
+  const float heldVelocity=player.snapshot().body.velocity.y;
+  player.update(dt,{0,0,false,false});
+  const float releasedVelocity=player.snapshot().body.velocity.y;
+  XCTAssertGreaterThan(releasedVelocity,0);
+  XCTAssertLessThan(releasedVelocity,heldVelocity);
+  XCTAssertEqualWithAccuracy(
+      releasedVelocity,
+      heldVelocity-player.config().jump_release_deceleration*dt-
+          capsuleConfig.gravity*dt,
+      .0001f);
+}
+
 - (void)testMovementInputReachesCapsuleOnFixedTicksAndReleaseStopsIt {
   using namespace asterix;
   collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
