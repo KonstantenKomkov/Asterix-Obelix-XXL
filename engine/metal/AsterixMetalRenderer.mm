@@ -16,6 +16,7 @@
 #include "asterix/interactive_runtime.hpp"
 #include "asterix/audio_runtime.hpp"
 #include "asterix/animation_runtime.hpp"
+#include "asterix/fog_volume_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -41,6 +42,8 @@ typedef struct {
   float effectTime;
   uint32_t effect;
   vector_float2 uvOffset;
+  vector_float4 volumeFogColor;
+  float volumeFogAmount;
 } AsterixUniforms;
 
 typedef struct {
@@ -253,6 +256,7 @@ struct AsterixPushMesh {
   std::unique_ptr<asterix::camera::Runtime> _cameraRuntime;
   std::unique_ptr<asterix::combat::Runtime> _combatRuntime;
   std::unique_ptr<asterix::audio::Runtime> _audioRuntime;
+  std::unique_ptr<asterix::fog_volume::Runtime> _fogRuntime;
   AsterixAudioEngine* _audioEngine;
   float _footstepSeconds;
   asterix::player::Input _playerInput;
@@ -286,10 +290,10 @@ struct AsterixPushMesh {
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; float4 prelight; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; float effectTime; uint effect; float2 uvOffset; };\n"
+      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; float4 prelight; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; float effectTime; uint effect; float2 uvOffset; float4 volumeFogColor; float volumeFogAmount; };\n"
       "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; float4 prelight; };\n"
       "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv+u.uvOffset; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; o.prelight=v[i].prelight; return o; }\n"
-      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); base*=i.prelight; if(base.a<u.alphaCutoff) discard_fragment(); if(u.effect==1u){ float pulse=.82+.18*sin(u.effectTime*12.566+i.uv.y*3.14159); base.rgb*=pulse; return base; } float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
+      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); base*=i.prelight; if(base.a<u.alphaCutoff) discard_fragment(); if(u.effect==1u){ float pulse=.82+.18*sin(u.effectTime*12.566+i.uv.y*3.14159); base.rgb*=pulse; return base; } float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); float3 distanceFog=mix(float3(.58,.68,.72),base.rgb,fog); return float4(mix(distanceFog,u.volumeFogColor.rgb,saturate(u.volumeFogAmount)),base.a); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
   if (library == nil) {
@@ -559,6 +563,8 @@ struct AsterixPushMesh {
   if(presentation!=nil) {
     _currentAnimationPhase=[presentation[@"simulationSeconds"] floatValue];
     _previousAnimationPhase=_currentAnimationPhase;
+    if(_fogRuntime&&!_fogRuntime->restore({[presentation[@"simulationSeconds"] doubleValue],
+                                           _fogRuntime->snapshot().streamed}))return NO;
   }
   return YES;
 } }
@@ -676,6 +682,41 @@ struct AsterixPushMesh {
         (unsigned long)fireEmitters.size(),(unsigned long)expectedFireEmitters]; }
     return NO;
   }
+  std::vector<asterix::fog_volume::Profile> fogProfiles;
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"fog-volume"]) continue;
+    const uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    const uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset>payloadLength||length>payloadLength-offset)continue;
+    NSData* data=[package subdataWithRange:NSMakeRange((NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+    NSDictionary* fog=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    NSArray* matrices=fog[@"matrices"],*origin=fog[@"origin"],*stops=fog[@"colorStops"],*profile=fog[@"profile"];
+    if([fog[@"schemaVersion"] integerValue]!=1||![fog[@"kind"] isEqual:@"authored-fog-volume"]||
+       matrices.count==0||origin.count!=3||stops.count==0)continue;
+    asterix::fog_volume::Vec3 lo={INFINITY,INFINITY,INFINITY},hi={-INFINITY,-INFINITY,-INFINITY};
+    for(NSArray* matrix in matrices)if([matrix isKindOfClass:NSArray.class]&&matrix.count==16) {
+      const asterix::fog_volume::Vec3 center={[matrix[12] floatValue],[matrix[13] floatValue],[matrix[14] floatValue]};
+      lo={std::min(lo.x,center.x),std::min(lo.y,center.y),std::min(lo.z,center.z)};
+      hi={std::max(hi.x,center.x),std::max(hi.y,center.y),std::max(hi.z,center.z)};
+    }
+    const float scale=std::max(.001f,[fog[@"scale"] floatValue]);
+    const asterix::fog_volume::Vec3 extent={fabsf([origin[0] floatValue])*scale,
+        fabsf([origin[1] floatValue])*scale,fabsf([origin[2] floatValue])*scale};
+    lo={lo.x-extent.x,lo.y-extent.y,lo.z-extent.z}; hi={hi.x+extent.x,hi.y+extent.y,hi.z+extent.z};
+    std::vector<asterix::fog_volume::Stop> authoredStops;
+    for(NSDictionary* stop in stops)if([stop isKindOfClass:NSDictionary.class]) {
+      const uint32_t packed=[stop[@"innerColor"] unsignedIntValue];
+      authoredStops.push_back({[stop[@"position"] floatValue],std::max(0.0f,[stop[@"density"] floatValue]),
+          {(float)(packed&255u)/255.0f,(float)((packed>>8)&255u)/255.0f,
+           (float)((packed>>16)&255u)/255.0f,1}});
+    }
+    fogProfiles.push_back({(uint32_t)fogProfiles.size()+1,lo,hi,
+        profile.count>9?std::max(.001f,[profile[9] floatValue]):1,
+        profile.count>0?[profile[0] floatValue]:0,std::move(authoredStops)});
+  }
+  std::unique_ptr<asterix::fog_volume::Runtime> fogRuntime;
+  try { if(!fogProfiles.empty())fogRuntime=std::make_unique<asterix::fog_volume::Runtime>(fogProfiles); }
+  catch(const std::exception&) { [self reportSceneError:@"Authored fog-volume payload is invalid"]; return NO; }
   NSMutableData* vertexData = [NSMutableData data];
   NSMutableData* collisionVertexData = [NSMutableData data];
   std::vector<asterix::collision::Triangle> collisionTriangles;
@@ -1290,6 +1331,7 @@ struct AsterixPushMesh {
     _interactiveRuntime = std::move(interactiveRuntime);
     _cameraRuntime = std::move(cameraRuntime);
     _combatRuntime = std::move(combatRuntime);
+    _fogRuntime = std::move(fogRuntime);
     _combatAttackWasPressed = false;
     _interactPressed = false;
     _interactWasPressed = false;
@@ -1379,6 +1421,7 @@ struct AsterixPushMesh {
     _collisionVertices = nil;
     _fireVertices = nil;
     _fireEmitters.clear();
+    _fogRuntime.reset();
     _collisionTriangleCount = 0;
     _sceneTexture = nil;
     _sceneTextures = nil;
@@ -1458,6 +1501,7 @@ struct AsterixPushMesh {
         _simulationClock.advance(elapsed, [&](double step) {
           _previousAnimationPhase = _currentAnimationPhase;
           _currentAnimationPhase += (float)step;
+          if(_fogRuntime)_fogRuntime->advance(step);
           asterix::collision::Vec3 previousPlayer{};
           if (_playerRuntime) {
             previousPlayer=_playerRuntime->snapshot().body.position;
@@ -1654,6 +1698,14 @@ struct AsterixPushMesh {
                                   0u,
                                   sceneRadius * 1.2f, sceneRadius * 3.2f,
                                   debugOptions,.01f};
+      if(_fogRuntime) {
+        const asterix::fog_volume::Vec3 viewpoint=hasGameplayCamera
+            ?asterix::fog_volume::Vec3{cameraSnapshot.position.x,cameraSnapshot.position.y,cameraSnapshot.position.z}
+            :asterix::fog_volume::Vec3{sceneCenter.x,sceneCenter.y,sceneCenter.z+sceneRadius*2.2f};
+        const auto fog=_fogRuntime->sample(viewpoint);
+        uniforms.volumeFogColor={fog.color.r,fog.color.g,fog.color.b,1};
+        uniforms.volumeFogAmount=fog.density;
+      }
       if(fireVertices!=nil&&!fireEmitters.empty()) {
         vector_float3 right={1,0,0};
         if(hasGameplayCamera) {

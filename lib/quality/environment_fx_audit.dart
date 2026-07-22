@@ -90,12 +90,34 @@ final class EnvironmentFxAudit {
         final importedMetadata = importedNode?['metadata'] as Map?;
         final bool bindingValid;
         if (classId == 26) {
+          final payloadIds =
+              (importedNode?['payloadIds'] as List<Object?>? ?? const []);
+          final fogResource = payloadIds.length == 1
+              ? resources
+                    .where((value) => value['id'] == payloadIds.single)
+                    .firstOrNull
+              : null;
+          Map<String, Object?>? fog;
+          if (fogResource?['kind'] == 'fog-volume') {
+            fog =
+                jsonDecode(
+                      utf8.decode(
+                        package.payload(fogResource!['id']! as String),
+                      ),
+                    )
+                    as Map<String, Object?>;
+          }
           bindingValid =
               importedNode != null &&
-              (importedNode['payloadIds'] as List<Object?>).isEmpty &&
+              fogResource != null &&
+              fog?['schemaVersion'] == 1 &&
+              fog?['kind'] == 'authored-fog-volume' &&
+              (fog?['matrices'] as List?)?.isNotEmpty == true &&
+              (fog?['colorStops'] as List?)?.isNotEmpty == true &&
               importedMetadata?['environmentFxMechanism'] == 'fog-volume' &&
-              importedMetadata?['rendererPath'] == 'explicitly-disabled' &&
-              importedMetadata?['backlogTask'] == 79;
+              importedMetadata?['rendererPath'] ==
+                  'Metal/authored-fog-volume' &&
+              importedMetadata?['clock'] == 'simulation-time';
         } else if (enabled) {
           bindingValid =
               emitter != null &&
@@ -113,14 +135,14 @@ final class EnvironmentFxAudit {
                   : 'disabled-particle-placeholder'
             : switch (classId) {
                 21 => 'skeletal-frame-hierarchy',
-                26 => 'fog-volume-unsupported-task-79',
+                26 => 'authored-fog-volume',
                 _ => 'static-scene-graph',
               };
         if (!const {
           'particle-emitter',
           'disabled-particle-placeholder',
           'skeletal-frame-hierarchy',
-          'fog-volume-unsupported-task-79',
+          'authored-fog-volume',
           'static-scene-graph',
         }.contains(mechanism)) {
           unexplainedAnimatedObjects++;
@@ -142,7 +164,7 @@ final class EnvironmentFxAudit {
           'rendererPath': enabled
               ? 'Metal/environment-fx/camera-facing-transparent-particle-quads'
               : classId == 26
-              ? 'explicitly-disabled/pending-task-79'
+              ? 'Metal/authored-fog-volume/simulation-time'
               : classId == 21
               ? 'Metal/skinned-mesh-palette'
               : 'Metal/static-scene-graph',
@@ -234,6 +256,7 @@ final class EnvironmentFxAudit {
         particleCount == enabledParticleCount &&
         incompletePayloads == 0 &&
         invalidBindings == 0 &&
+        classCounts[26] == 7 &&
         waterBindings.length == 3 &&
         invalidWaterBindings == 0 &&
         textureSequenceCount == 0 &&
@@ -263,22 +286,13 @@ final class EnvironmentFxAudit {
         'materialAnimations': materialAnimationCount,
         'lightAnimations': lightAnimationCount,
         'authoredStaticPrelightMeshes': prelitMeshCount,
+        'authoredFogVolumes': classCounts[26] ?? 0,
       },
       'incompleteSourcePayloads': incompletePayloads,
       'invalidImportedOrRendererBindings':
           invalidBindings + invalidWaterBindings,
       'unexplainedNonSkeletalAnimatedObjects': unexplainedAnimatedObjects,
-      'residualBacklogItems': [
-        {
-          'task': 79,
-          'mechanism': 'CFogBoxNodeFx dynamic fog volume',
-          'objectCount': classCounts[26] ?? 0,
-          'runtimeRegressionCriteria':
-              'all seven authored fog volumes load from ASTPAK and update deterministically on the simulation clock; unsupported payloads fail explicitly',
-          'visualRegressionCriteria':
-              'reference viewpoints inside, outside and crossing each volume match fog color/density transitions without a static-mesh fallback',
-        },
-      ],
+      'residualBacklogItems': const <Object>[],
       'passed': passed,
     };
   }

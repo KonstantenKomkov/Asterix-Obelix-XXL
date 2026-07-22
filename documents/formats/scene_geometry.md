@@ -31,7 +31,7 @@ fvm dart run bin/importer.dart extract-geometry /path/to/STR01_00.KWN > "$HOME/a
 
 ## Scene nodes
 
-Для объектов `category=11` читаются локальная матрица 4×4 и raw object references `parent`/`next`. Для подтверждённых наследников `CSGBranch`/`CNode` также читаются `child` и ссылка на geometry. Ссылка декодируется как:
+Для объектов `category=11` читаются локальная матрица 4×4 и raw object references `parent`/`next`. Для подтверждённых наследников `CSGBranch`/`CNode` также читаются `child` и ссылка на geometry. `CFogBoxNodeFx` дополнительно декодирует все переменные matrices/coordinates/color stops и transition profile; точное потребление payload обязательно. Ссылка декодируется как:
 
 ```text
 bits 0..5   category

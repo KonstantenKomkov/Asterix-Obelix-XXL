@@ -4,6 +4,7 @@
 
 #include "asterix/engine.h"
 #include "asterix/animation_runtime.hpp"
+#include "asterix/fog_volume_runtime.hpp"
 #include "asterix/animation_event_runtime.hpp"
 #include "asterix/collision_runtime.hpp"
 #include "asterix/scene_runtime.hpp"
@@ -1189,6 +1190,29 @@
   XCTAssertEqualWithAccuracy(position[1], 1, 0.001);
   XCTAssertEqualWithAccuracy(fogFactor(5, 0, 10), .5, 0.001);
   XCTAssertEqualWithAccuracy(fogFactor(20, 0, 10), 0, 0.001);
+}
+
+- (void)testAuthoredFogVolumesAreDeterministicAcrossPauseStreamingAndRestore {
+  using namespace asterix::fog_volume;
+  Runtime runtime({{79,{-1,-1,-1},{1,1,1},2,.5f,
+      {{0,.4f,{.2f,.4f,.8f,1}},{1,.9f,{.8f,.4f,.2f,1}}}}});
+  runtime.setStreamed({79});
+  const auto inside=runtime.sample({0,0,0});
+  const auto outside=runtime.sample({4,0,0});
+  const auto boundary=runtime.sample({2,0,0});
+  XCTAssertGreaterThan(inside.density,boundary.density);
+  XCTAssertGreaterThan(boundary.density,outside.density);
+  const auto saved=runtime.snapshot();
+  runtime.advance(1.0,true);
+  XCTAssertEqual(runtime.snapshot().simulation_seconds,saved.simulation_seconds);
+  runtime.advance(.25);
+  const auto advanced=runtime.sample({0,0,0});
+  XCTAssertNotEqualWithAccuracy(advanced.density,inside.density,.00001f);
+  XCTAssertTrue(runtime.restore(saved));
+  XCTAssertEqualWithAccuracy(runtime.sample({0,0,0}).density,inside.density,.00001f);
+  runtime.setStreamed({});
+  XCTAssertEqualWithAccuracy(runtime.sample({0,0,0}).density,0,.00001f);
+  XCTAssertFalse(runtime.restore({0,{999}}));
 }
 
 - (void)testRenderWareTracksAndHierarchyBuildFullPalette {

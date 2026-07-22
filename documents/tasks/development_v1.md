@@ -19,7 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
-| 79 | **Перенести семь `CFogBoxNodeFx` первого уровня:** декодировать полный fog-volume payload, импортировать authored объёмы, цвета/плотность и переходы в ASTPAK и реализовать детерминированный Metal/runtime path | Environment FX runtime | P0 | M | После п. 77; все семь объёмов загружаются без static fallback, runtime regression проверяет simulation-clock/streaming/pause/restore, visual regression сверяет точки внутри, снаружи и пересечение границы каждого объёма |
 
 ---
 
@@ -125,14 +124,16 @@
 - [x] П. 76 — тени и интерьерное затемнение внутри домов
 - [x] П. 77 — полный аудит non-skeletal FX первого уровня
 - [x] П. 78 — реальная ASTPAK-интеграция воды и повторная post-build приёмка артефактов п. 74
-- [ ] П. 79 — authored `CFogBoxNodeFx` без static fallback
+- [x] П. 79 — authored `CFogBoxNodeFx` без static fallback
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 77 выполнен: полный raw-payload audit классифицировал 60 scene nodes всех пяти секций, 12 particle emitters, 3 water UV-scroll draw ranges и 668 static prelit meshes; необъяснённых non-skeletal animation mechanisms нет. Семь `CFogBoxNodeFx` явно отключены вместо static fallback и вынесены в п. 79 с runtime/visual criteria.
+**Последнее обновление:** 22 июля 2026 — п. 79 выполнен: полные payload семи `CFogBoxNodeFx` декодируются до object boundary и упаковываются отдельными ASTPAK resources; Metal семплирует authored volume color/density/transition по simulation clock, а regressions покрывают inside/outside/boundary, streaming, pause и restore без static fallback.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 77 выполнен: полный raw-payload audit классифицировал 60 scene nodes всех пяти секций, 12 particle emitters, 3 water UV-scroll draw ranges и 668 static prelit meshes; необъяснённых non-skeletal animation mechanisms нет. Семь `CFogBoxNodeFx` явно отключены вместо static fallback и вынесены в п. 79 с runtime/visual criteria.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 76 выполнен: RenderWare `rpGEOMETRYPRELIT` RGBA перенесён без потерь в ASTPAK/Metal как authored baked lighting для 668 mesh / 132 268 vertices / 668 draw ranges; level-local collision восстановил cold start внутри дома, а post-build audit, идентичные clean/cached packages и visual smoke исключили silent Lambert fallback и двойное глобальное затемнение.
 

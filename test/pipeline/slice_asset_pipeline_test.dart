@@ -515,7 +515,7 @@ void main() {
   );
 
   test(
-    'marks fog volumes unsupported instead of packaging a static mesh',
+    'packages authored fog volumes without a static mesh fallback',
     () async {
       final temporary = await Directory.systemTemp.createTemp(
         'asset-fog-audit-',
@@ -528,6 +528,30 @@ void main() {
           jsonDecode(await sceneFile.readAsString()) as Map<String, Object?>;
       final node = (scene['nodes']! as List).single as Map<String, Object?>;
       node['classId'] = 26;
+      node['fog'] = {
+        'schemaVersion': 1,
+        'kind': 'authored-fog-volume',
+        'flags': 0,
+        'matrices': [List<double>.generate(16, (i) => i % 5 == 0 ? 1 : 0)],
+        'effectName': 'fog',
+        'type': 1,
+        'modeBytes': [0, 0, 0, 0],
+        'counts': [0, 0, 0, 0],
+        'origin': [0.0, 0.0, 0.0],
+        'scale': 1.0,
+        'coordinates': <Object>[],
+        'tailBytes': [0, 0],
+        'colorStops': [
+          {
+            'position': 0.0,
+            'density': 0.5,
+            'innerColor': 0xFF112233,
+            'outerColor': 0xFF445566,
+          },
+        ],
+        'vectors': <Object>[],
+        'profile': [0.1, 0.2],
+      };
       await sceneFile.writeAsString(jsonEncode(scene));
 
       final package = AsterixAssetPackage.parse(
@@ -537,10 +561,14 @@ void main() {
           .cast<Map<String, Object?>>()
           .singleWhere((value) => value['kind'] == 'scene-node');
       final metadata = object['metadata']! as Map;
-      expect(object['payloadIds'], isEmpty);
+      expect(object['payloadIds'], hasLength(1));
       expect(metadata['environmentFxMechanism'], 'fog-volume');
-      expect(metadata['rendererPath'], 'explicitly-disabled');
-      expect(metadata['backlogTask'], 79);
+      expect(metadata['rendererPath'], 'Metal/authored-fog-volume');
+      expect(metadata['clock'], 'simulation-time');
+      final resource = (package.manifest['resources']! as List)
+          .cast<Map<String, Object?>>()
+          .singleWhere((value) => value['kind'] == 'fog-volume');
+      expect(resource['id'], (object['payloadIds'] as List).single);
     },
   );
 

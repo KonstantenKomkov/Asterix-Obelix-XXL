@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 79 — Authored `CFogBoxNodeFx` первого уровня
+
+**Выполнено:** 22 июля 2026.
+
+Importer декодирует полный XXL1 class layout всех семи fog box: matrices,
+effect name/type, координатные таблицы, RGBA/density stops и transition profile.
+Каждый реальный payload потребляется точно до object boundary (ноль trailing
+bytes) и сохраняется отдельным canonical `fog-volume` resource в ASTPAK.
+Scene-node содержит единственный typed binding к ресурсу; прежние
+`explicitly-disabled`/`backlogTask: 79` и static mesh fallback удалены.
+
+Новый native runtime семплирует authored volumes в позиции gameplay-камеры,
+смешивает цвет/плотность в Metal fragment path и обновляет переходы только по
+fixed simulation clock. Regression проверяет точки внутри, снаружи и на
+границе, pause, streaming residency и точный restore simulation time.
+Malformed payload или binding отклоняются явно.
+
+Свежая полная экстракция приняла 60 scene nodes, ровно 7 fog resources и ноль
+неполных payload, invalid bindings или необъяснённых non-skeletal mechanisms.
+ASTPAK размером 68 646 836 байт имеет SHA-256
+`5da692131bde3c534b8668a4660f1ab34f2881ac0eec506fa7fd4ec5d605d3e4`.
+Итоговый environment-FX audit имеет SHA-256
+`03f0fb2a03e4d83ac0c21b978bccea7a241d84b5ff958eaf4f3441b22a1c8b25`.
+Исходные и производные игровые данные в Git не добавлялись. Описание:
+[environment_fx_audit.md](../architecture/environment_fx_audit.md).
+
 ## П. 77 — Полный аудит non-skeletal FX первого уровня
 
 **Выполнено:** 22 июля 2026.

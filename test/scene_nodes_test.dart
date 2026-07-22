@@ -76,33 +76,66 @@ void main() {
     expect(node.sourcePayload.sha256, hasLength(64));
   });
 
-  test(
-    'preserves an unknown class-specific payload without static inference',
-    () {
-      final payload = BytesBuilder(copy: false);
-      for (var index = 0; index < 16; index++) {
-        _f32(payload, index == 15 ? 1 : 0);
-      }
-      _u32(payload, 0xFFFFFFFF);
-      _u16(payload, 0);
-      payload.addByte(0xFF);
-      _u32(payload, 0xFFFFFFFF);
-      _u32(payload, 0xFFFFFFFF);
-      _u32(payload, _ref(10, 2, 42));
-      payload.add([1, 2, 3, 4, 5]);
+  test('decodes and consumes the complete XXL1 fog-volume payload', () {
+    final payload = BytesBuilder(copy: false);
+    for (var index = 0; index < 16; index++) {
+      _f32(payload, index == 15 ? 1 : 0);
+    }
+    _u32(payload, 0xFFFFFFFF);
+    _u16(payload, 0);
+    payload.addByte(0xFF);
+    _u32(payload, 0xFFFFFFFF);
+    _u32(payload, 0xFFFFFFFF);
+    _u32(payload, _ref(10, 2, 42));
+    _u32(payload, 7); // flags
+    _u32(payload, 1); // matrices
+    for (var index = 0; index < 16; index++) {
+      _f32(payload, index % 5 == 0 ? 1 : 0);
+    }
+    _u16(payload, 3);
+    payload.add('fog'.codeUnits);
+    payload.add([1, 2, 3, 4, 5]);
+    _u32(payload, 6);
+    _u32(payload, 2);
+    _u32(payload, 8);
+    for (final value in [1.0, 2.0, 3.0, 0.5]) {
+      _f32(payload, value);
+    }
+    _u32(payload, 1);
+    _f32(payload, 0.25);
+    _f32(payload, 0.75);
+    payload.add([9, 10]);
+    _u32(payload, 11);
+    _u32(payload, 1);
+    _f32(payload, 0.0);
+    _f32(payload, 0.6);
+    _u32(payload, 0xFF112233);
+    _u32(payload, 0xFF445566);
+    // type 1: two arrays sized by fogUnk09 (2).
+    for (var index = 0; index < 4; index++) {
+      _f32(payload, index / 10);
+    }
+    for (var index = 0; index < 2 + 4 + 3 + 2 + 1; index++) {
+      _f32(payload, index.toDouble());
+    }
 
-      final node = parseXxl1SceneNode(
-        payload.takeBytes(),
-        classId: 26,
-        objectId: 7,
-      );
+    final node = parseXxl1SceneNode(
+      payload.takeBytes(),
+      classId: 26,
+      objectId: 7,
+    );
 
-      expect(node.sourcePayload.byteLength, 88);
-      expect(node.sourcePayload.consumedByteLength, 83);
-      expect(node.sourcePayload.trailingByteLength, 5);
-      expect(node.sourcePayload.hex, endsWith('0102030405'));
-    },
-  );
+    expect(
+      node.sourcePayload.consumedByteLength,
+      node.sourcePayload.byteLength,
+    );
+    expect(node.sourcePayload.trailingByteLength, 0);
+    expect(node.fog?.effectName, 'fog');
+    expect(node.fog?.matrices, hasLength(1));
+    expect(node.fog?.coordinates.single, [0.25, 0.75]);
+    expect(node.fog?.colorStops.single.innerColor, 0xFF112233);
+    expect(node.fog?.profile, hasLength(16));
+  });
 }
 
 int _ref(int category, int classId, int objectId) =>

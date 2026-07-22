@@ -33,6 +33,12 @@ source locator, payload references, object dependencies и optional metadata.
 Resources содержат те же identity fields, относительные offset/length, SHA-256
 и optional metadata.
 
+Authored environment volumes хранятся как canonical JSON resources kind
+`fog-volume` и привязываются ровно к одной `scene-node`. Payload v1 содержит
+исходные matrices, coordinates, RGBA/density stops и transition profile;
+metadata фиксирует section/object ID и counts. Runtime не имеет права заменять
+отсутствующий или malformed fog payload статической geometry.
+
 Canonical encoding рекурсивно сортирует JSON object keys; arrays objects и
 resources сортируются по ID, а reference arrays — лексикографически. Metadata
 допускает только JSON null/bool/string/integer и finite floating-point values.

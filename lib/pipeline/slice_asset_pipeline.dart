@@ -316,6 +316,38 @@ final class SliceAssetPipeline {
         final classId = _integer(node, 'classId');
         final geometryId = _referenceObjectId(node['geometry']);
         final meshPayloadId = classId == 26 ? null : meshPayloadIds[geometryId];
+        String? fogPayloadId;
+        if (classId == 26) {
+          final fog = node['fog'];
+          if (fog is! Map<String, Object?> ||
+              fog['kind'] != 'authored-fog-volume') {
+            throw AssetPipelineException(
+              AssetPipelineErrorCode.invalidSchema,
+              'CFogBoxNodeFx is missing its decoded authored payload.',
+              path: scenePath,
+              details: {'objectId': objectId},
+            );
+          }
+          final payload = AssetPayloadInput(
+            kind: 'fog-volume',
+            sourcePath: sectorSource,
+            sourceKey: 'fog:$objectId',
+            bytes: await cache.transform(
+              kind: 'fog-volume-json-v1',
+              input: encodeCanonicalJson(fog),
+              transform: encodeCanonicalJson,
+              value: fog,
+            ),
+            metadata: {
+              'objectId': objectId,
+              'section': sectorSource,
+              'matrixCount': (fog['matrices']! as List).length,
+              'colorStopCount': (fog['colorStops']! as List).length,
+            },
+          );
+          payloads.add(payload);
+          fogPayloadId = payload.id;
+        }
         final dependencies = <String>[];
         for (final key in const ['parent', 'next', 'child']) {
           final referencedId = _referenceObjectId(node[key]);
@@ -329,10 +361,10 @@ final class SliceAssetPipeline {
             kind: 'scene-node',
             sourcePath: sectorSource,
             sourceKey: 'node:$objectId',
-            // CFogBoxNodeFx owns a dynamic fog-volume payload. Packaging its
-            // geometry as an ordinary mesh would silently turn the effect into
-            // a static object while task 79 is pending.
-            payloadIds: [if (meshPayloadId != null) meshPayloadId],
+            payloadIds: [
+              if (meshPayloadId != null) meshPayloadId,
+              if (fogPayloadId != null) fogPayloadId,
+            ],
             dependencies: dependencies.toSet().toList(),
             metadata: {
               'classId': classId,
@@ -340,8 +372,8 @@ final class SliceAssetPipeline {
               'section': sectorSource,
               if (classId == 26) ...{
                 'environmentFxMechanism': 'fog-volume',
-                'rendererPath': 'explicitly-disabled',
-                'backlogTask': 79,
+                'rendererPath': 'Metal/authored-fog-volume',
+                'clock': 'simulation-time',
               },
               for (final key in const ['parent', 'next', 'child'])
                 '${key}Id': nodeObjectIds[_referenceObjectId(node[key])],
