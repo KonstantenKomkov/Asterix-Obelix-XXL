@@ -300,6 +300,34 @@
   XCTAssertEqual(player.snapshot().state,player::State::run);
 }
 
+- (void)testMovementInputReachesCapsuleOnFixedTicksAndReleaseStopsIt {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+
+  player::Input input; input.move_x=-1; input.move_z=1;
+  for(int tick=0;tick<30;++tick)player.update(1.0f/60.0f,input);
+  const auto moving=player.snapshot().body.position;
+  XCTAssertLessThan(moving.x,-.5f);
+  XCTAssertGreaterThan(moving.z,.5f);
+
+  input.move_x=0; input.move_z=0;
+  for(int tick=0;tick<30;++tick)player.update(1.0f/60.0f,input);
+  const auto stopped=player.snapshot().body.position;
+  XCTAssertLessThan(stopped.x,moving.x);
+  XCTAssertGreaterThan(stopped.z,moving.z);
+  for(int tick=0;tick<30;++tick)player.update(1.0f/60.0f,input);
+  XCTAssertEqualWithAccuracy(player.snapshot().body.position.x,stopped.x,.0001);
+  XCTAssertEqualWithAccuracy(player.snapshot().body.position.z,stopped.z,.0001);
+  XCTAssertEqual(player.snapshot().state,player::State::idle);
+}
+
 - (void)testPlayerAttackHurtInvulnerabilityAndDeathTransitions {
   using namespace asterix;
   collision::World world({{{-5,0,-5},{5,0,-5},{-5,0,5},1},

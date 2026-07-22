@@ -32,7 +32,7 @@ class GamePage extends StatefulWidget {
   State<GamePage> createState() => _GamePageState();
 }
 
-class _GamePageState extends State<GamePage> {
+class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   static const _controllerEvents = EventChannel('asterix/controller-events');
   static const _inputChannel = MethodChannel('asterix/game-input');
   static const _statsChannel = EventChannel('asterix/metal-stats');
@@ -52,6 +52,7 @@ class _GamePageState extends State<GamePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _profileId = widget.profileId;
     _profileName = widget.profileName.isEmpty ? 'Игрок' : widget.profileName;
     _statsStream = _statsChannel.receiveBroadcastStream().asBroadcastStream();
@@ -90,6 +91,7 @@ class _GamePageState extends State<GamePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     unawaited(
       _inputChannel.invokeMethod<void>('setPaused', false).catchError((_) {}),
     );
@@ -101,9 +103,16 @@ class _GamePageState extends State<GamePage> {
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     _publish(_router.handleKey(event));
-    return _router.bindings.keyboard.containsValue(event.logicalKey.keyId)
+    return _router.handlesKey(event.logicalKey)
         ? KeyEventResult.handled
         : KeyEventResult.ignored;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) return;
+    _router.reset();
+    _publish(_router.snapshot());
   }
 
   void _publish(GameInputSnapshot snapshot) {

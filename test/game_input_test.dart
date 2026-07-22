@@ -56,6 +56,83 @@ void main() {
     expect(snapshot.pressed(GameAction.attack), isTrue);
   });
 
+  test('arrow key-down and key-up drive all movement actions', () {
+    final router = GameInputRouter();
+    expect(router.handlesKey(LogicalKeyboardKey.arrowLeft), isTrue);
+    const arrows = <(LogicalKeyboardKey, PhysicalKeyboardKey, GameAction)>[
+      (
+        LogicalKeyboardKey.arrowLeft,
+        PhysicalKeyboardKey.arrowLeft,
+        GameAction.moveLeft,
+      ),
+      (
+        LogicalKeyboardKey.arrowRight,
+        PhysicalKeyboardKey.arrowRight,
+        GameAction.moveRight,
+      ),
+      (
+        LogicalKeyboardKey.arrowUp,
+        PhysicalKeyboardKey.arrowUp,
+        GameAction.moveForward,
+      ),
+      (
+        LogicalKeyboardKey.arrowDown,
+        PhysicalKeyboardKey.arrowDown,
+        GameAction.moveBackward,
+      ),
+    ];
+
+    for (final (logical, physical, action) in arrows) {
+      var snapshot = router.handleKey(
+        KeyDownEvent(
+          logicalKey: logical,
+          physicalKey: physical,
+          timeStamp: Duration.zero,
+        ),
+      );
+      expect(snapshot.pressed(action), isTrue, reason: '$logical key-down');
+      snapshot = router.handleKey(
+        KeyUpEvent(
+          logicalKey: logical,
+          physicalKey: physical,
+          timeStamp: Duration.zero,
+        ),
+      );
+      expect(snapshot.pressed(action), isFalse, reason: '$logical key-up');
+    }
+  });
+
+  test(
+    'releasing an arrow preserves a remapped key held for the same action',
+    () {
+      final router = GameInputRouter();
+      router.bindings.keyboard[GameAction.moveLeft] =
+          LogicalKeyboardKey.keyQ.keyId;
+      router.handleKey(
+        const KeyDownEvent(
+          logicalKey: LogicalKeyboardKey.keyQ,
+          physicalKey: PhysicalKeyboardKey.keyQ,
+          timeStamp: Duration.zero,
+        ),
+      );
+      router.handleKey(
+        const KeyDownEvent(
+          logicalKey: LogicalKeyboardKey.arrowLeft,
+          physicalKey: PhysicalKeyboardKey.arrowLeft,
+          timeStamp: Duration.zero,
+        ),
+      );
+      final snapshot = router.handleKey(
+        const KeyUpEvent(
+          logicalKey: LogicalKeyboardKey.arrowLeft,
+          physicalKey: PhysicalKeyboardKey.arrowLeft,
+          timeStamp: Duration.zero,
+        ),
+      );
+      expect(snapshot.pressed(GameAction.moveLeft), isTrue);
+    },
+  );
+
   test('bindings round-trip and malformed versions fall back safely', () {
     final bindings = InputBindings();
     bindings.keyboard[GameAction.jump] = LogicalKeyboardKey.enter.keyId;

@@ -99,4 +99,22 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(view.statistics["playerState"] as? String, "unavailable")
     XCTAssertEqual(view.statistics["playerHealth"] as? Int, 0)
   }
+
+  func testMovementSnapshotMapsToBoundedNativeAxesAndButtons() {
+    let input = MetalViewportView.gameplayInput(from: [
+      "moveLeft": 1, "moveRight": 0, "moveForward": 1,
+      "moveBackward": 0, "jump": 1, "attack": 0, "interact": 1,
+    ])
+    XCTAssertEqual(input.x, -1)
+    XCTAssertEqual(input.z, 1)
+    XCTAssertTrue(input.jump)
+    XCTAssertFalse(input.attack)
+    XCTAssertTrue(input.interact)
+
+    let bounded = MetalViewportView.gameplayInput(from: [
+      "moveRight": 4, "moveBackward": 3,
+    ])
+    XCTAssertEqual(bounded.x, 1)
+    XCTAssertEqual(bounded.z, -1)
+  }
 }

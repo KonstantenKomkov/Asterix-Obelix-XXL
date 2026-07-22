@@ -24,6 +24,13 @@ final defaultKeyboardBindings = <GameAction, int>{
   GameAction.pause: LogicalKeyboardKey.escape.keyId,
 };
 
+final _keyboardAliases = <GameAction, Set<int>>{
+  GameAction.moveLeft: {LogicalKeyboardKey.arrowLeft.keyId},
+  GameAction.moveRight: {LogicalKeyboardKey.arrowRight.keyId},
+  GameAction.moveForward: {LogicalKeyboardKey.arrowUp.keyId},
+  GameAction.moveBackward: {LogicalKeyboardKey.arrowDown.keyId},
+};
+
 const defaultGamepadBindings = <GameAction, String>{
   GameAction.moveLeft: 'leftX-',
   GameAction.moveRight: 'leftX+',
@@ -128,10 +135,21 @@ final class GameInputRouter {
     _pauseWasPressed = false;
   }
 
+  bool handlesKey(LogicalKeyboardKey key) {
+    final id = key.keyId;
+    return bindings.keyboard.containsValue(id) ||
+        _keyboardAliases.values.any((aliases) => aliases.contains(id));
+  }
+
   GameInputSnapshot snapshot() {
     final values = <GameAction, double>{};
     for (final action in GameAction.values) {
-      final keyboard = _keys.contains(bindings.keyboard[action]) ? 1.0 : 0.0;
+      final aliases = _keyboardAliases[action] ?? const <int>{};
+      final keyboard =
+          _keys.contains(bindings.keyboard[action]) ||
+              aliases.any(_keys.contains)
+          ? 1.0
+          : 0.0;
       final binding = bindings.gamepad[action];
       var gamepad = 0.0;
       if (binding != null) {

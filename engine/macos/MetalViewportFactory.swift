@@ -78,6 +78,7 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
       view.reportSceneConfigurationError("ASTERIX_ASSET_PACKAGE is not configured")
     }
     viewport = view
+    view.setInput(latestInput.mapValues { NSNumber(value: $0) })
     view.setAudioVolumes(music: pendingAudioVolumes.music, effects: pendingAudioVolumes.effects)
     if let state = pendingGameplayState { view.restoreGameplaySaveState(state) }
     return view
@@ -153,11 +154,20 @@ final class MetalViewportView: MTKView {
   }
 
   func setInput(_ values: [String: NSNumber]) {
-    let x = (values["moveRight"]?.floatValue ?? 0) - (values["moveLeft"]?.floatValue ?? 0)
-    let z = (values["moveForward"]?.floatValue ?? 0) - (values["moveBackward"]?.floatValue ?? 0)
-    renderer?.setInputMoveX(x, moveZ: z, jump: (values["jump"]?.doubleValue ?? 0) > 0.5,
-                           attack: (values["attack"]?.doubleValue ?? 0) > 0.5,
-                           interact: (values["interact"]?.doubleValue ?? 0) > 0.5)
+    let input = Self.gameplayInput(from: values)
+    renderer?.setInputMoveX(input.x, moveZ: input.z, jump: input.jump,
+                           attack: input.attack, interact: input.interact)
+  }
+
+  static func gameplayInput(from values: [String: NSNumber])
+    -> (x: Float, z: Float, jump: Bool, attack: Bool, interact: Bool) {
+    let x = ((values["moveRight"]?.floatValue ?? 0) -
+      (values["moveLeft"]?.floatValue ?? 0)).clamped(to: -1...1)
+    let z = ((values["moveForward"]?.floatValue ?? 0) -
+      (values["moveBackward"]?.floatValue ?? 0)).clamped(to: -1...1)
+    return (x, z, (values["jump"]?.doubleValue ?? 0) > 0.5,
+            (values["attack"]?.doubleValue ?? 0) > 0.5,
+            (values["interact"]?.doubleValue ?? 0) > 0.5)
   }
 
   func setGameplayPaused(_ paused: Bool) {
@@ -321,5 +331,11 @@ final class MetalViewportView: MTKView {
       width: max(0, (logicalSize.width * scale).rounded(.up)),
       height: max(0, (logicalSize.height * scale).rounded(.up))
     )
+  }
+}
+
+private extension Comparable {
+  func clamped(to range: ClosedRange<Self>) -> Self {
+    min(max(self, range.lowerBound), range.upperBound)
   }
 }
