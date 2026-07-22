@@ -11,7 +11,7 @@ import '../runtime/animation_binding_registry.dart';
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
-const _pipelineCacheVersion = 'slice-assets-v4-prelight-level-collision';
+const _pipelineCacheVersion = 'slice-assets-v5-environment-fx-audit';
 
 enum AssetPipelineErrorCode {
   missingInput,
@@ -313,7 +313,9 @@ final class SliceAssetPipeline {
       allNodeObjectIds.addAll(nodeObjectIds.values);
       for (final node in nodes) {
         final objectId = _integer(node, 'objectId');
+        final classId = _integer(node, 'classId');
         final geometryId = _referenceObjectId(node['geometry']);
+        final meshPayloadId = classId == 26 ? null : meshPayloadIds[geometryId];
         final dependencies = <String>[];
         for (final key in const ['parent', 'next', 'child']) {
           final referencedId = _referenceObjectId(node[key]);
@@ -327,12 +329,20 @@ final class SliceAssetPipeline {
             kind: 'scene-node',
             sourcePath: sectorSource,
             sourceKey: 'node:$objectId',
-            payloadIds: [if (meshPayloadIds[geometryId] case final id?) id],
+            // CFogBoxNodeFx owns a dynamic fog-volume payload. Packaging its
+            // geometry as an ordinary mesh would silently turn the effect into
+            // a static object while task 79 is pending.
+            payloadIds: [if (meshPayloadId != null) meshPayloadId],
             dependencies: dependencies.toSet().toList(),
             metadata: {
-              'classId': _integer(node, 'classId'),
+              'classId': classId,
               'transform': _matrix(node, 'transform', scenePath),
               'section': sectorSource,
+              if (classId == 26) ...{
+                'environmentFxMechanism': 'fog-volume',
+                'rendererPath': 'explicitly-disabled',
+                'backlogTask': 79,
+              },
               for (final key in const ['parent', 'next', 'child'])
                 '${key}Id': nodeObjectIds[_referenceObjectId(node[key])],
             },

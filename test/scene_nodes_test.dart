@@ -69,7 +69,40 @@ void main() {
     expect(node.particle?.mode, 1);
     expect(node.particle?.rate, 1.25);
     expect(node.particle?.seed, 0xDEADC0DE);
+    expect(node.sourcePayload.byteLength, 93);
+    expect(node.sourcePayload.consumedByteLength, 93);
+    expect(node.sourcePayload.trailingByteLength, 0);
+    expect(node.sourcePayload.hex, hasLength(186));
+    expect(node.sourcePayload.sha256, hasLength(64));
   });
+
+  test(
+    'preserves an unknown class-specific payload without static inference',
+    () {
+      final payload = BytesBuilder(copy: false);
+      for (var index = 0; index < 16; index++) {
+        _f32(payload, index == 15 ? 1 : 0);
+      }
+      _u32(payload, 0xFFFFFFFF);
+      _u16(payload, 0);
+      payload.addByte(0xFF);
+      _u32(payload, 0xFFFFFFFF);
+      _u32(payload, 0xFFFFFFFF);
+      _u32(payload, _ref(10, 2, 42));
+      payload.add([1, 2, 3, 4, 5]);
+
+      final node = parseXxl1SceneNode(
+        payload.takeBytes(),
+        classId: 26,
+        objectId: 7,
+      );
+
+      expect(node.sourcePayload.byteLength, 88);
+      expect(node.sourcePayload.consumedByteLength, 83);
+      expect(node.sourcePayload.trailingByteLength, 5);
+      expect(node.sourcePayload.hex, endsWith('0102030405'));
+    },
+  );
 }
 
 int _ref(int category, int classId, int objectId) =>

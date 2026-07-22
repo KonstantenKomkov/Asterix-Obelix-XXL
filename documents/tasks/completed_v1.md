@@ -1,5 +1,36 @@
 # Выполненные задачи первой итерации
 
+## П. 77 — Полный аудит non-skeletal FX первого уровня
+
+**Выполнено:** 22 июля 2026.
+
+Importer сохраняет полный raw payload каждой sector scene-node: byte length,
+длину декодированного префикса, SHA-256 и hex. Свежая экстракция классифицировала
+60 объектов классов 2, 3, 9, 19, 21 и 26 во всех пяти секциях. Вместо ожидаемых 11 обнаружены и
+проверены 12 enabled `CParticlesNodeFx`: 11 в `STR01_00` и один в `STR01_03`.
+Все они сопоставлены с точными ASTPAK environment-FX resources и Metal
+camera-facing transparent particle path.
+
+Level hooks дали три принятых material UV-scroll draw ranges. Texture sequence,
+vertex/material/light animation не обнаружены; 27 `CAnimatedNode` явно
+классифицированы как skeletal frame hierarchy, а 668 prelit mesh — как authored
+static lighting. Итог: ноль неполных source payload captures, invalid bindings
+и необъяснённых non-skeletal animated objects.
+
+Семь объектов класса 26 идентифицированы как неподдержанные `CFogBoxNodeFx` и
+вынесены в п. 79 с runtime/visual regression criteria. До реализации pipeline
+оставляет их без mesh payload с явными `fog-volume`, `explicitly-disabled` и
+`backlogTask: 79` metadata, исключая silent static fallback.
+
+Машинный отчёт имеет SHA-256
+`4cb827f5f9c434f776e39bc4379ad17d5f5cb9d024e21b14882e00037113a387`.
+Свежий установленный ASTPAK размером 68 580 276 байт имеет SHA-256
+`7e46ccc9cae765e6467bac82ceefd691f556388fa591ab115e08a1973a297644`;
+общий post-build gate также принял water, collision, checkpoint, push/pull и
+668 authored-lighting bindings. Описание:
+[environment_fx_audit.md](../architecture/environment_fx_audit.md). Исходные
+payload, отчёт и производные игровые ресурсы в Git не добавлялись.
+
 ## П. 76 — Authored тени и интерьерное затемнение домов Gaul
 
 **Выполнено:** 22 июля 2026.

@@ -28,7 +28,7 @@ fi
 
 mkdir -p "$output"
 cd "$repo_root"
-for suffix in 00 01 02 03; do
+for suffix in 00 01 02 03 04; do
   sector="$game_root/LVL001/STR01_$suffix.KWN"
   if [ ! -f "$sector" ]; then
     echo "required input does not exist: $sector" >&2
@@ -58,9 +58,10 @@ printf '%s\n' \
   '    {"source": "LVL001/STR01_00.KWN", "directory": "sectors/STR01_00"},' \
   '    {"source": "LVL001/STR01_01.KWN", "directory": "sectors/STR01_01"},' \
   '    {"source": "LVL001/STR01_02.KWN", "directory": "sectors/STR01_02"},' \
-  '    {"source": "LVL001/STR01_03.KWN", "directory": "sectors/STR01_03"}' \
+  '    {"source": "LVL001/STR01_03.KWN", "directory": "sectors/STR01_03"},' \
+  '    {"source": "LVL001/STR01_04.KWN", "directory": "sectors/STR01_04"}' \
   '  ],' \
-  '  "sourceFiles": ["LVL001/STR01_00.KWN", "LVL001/STR01_01.KWN", "LVL001/STR01_02.KWN", "LVL001/STR01_03.KWN", "LVL001/LVL01.KWN", "GameModule.elb", "LVL001/WINAS/WINAS8.rws"],' \
+  '  "sourceFiles": ["LVL001/STR01_00.KWN", "LVL001/STR01_01.KWN", "LVL001/STR01_02.KWN", "LVL001/STR01_03.KWN", "LVL001/STR01_04.KWN", "LVL001/LVL01.KWN", "GameModule.elb", "LVL001/WINAS/WINAS8.rws"],' \
   '  "outputs": {' \
   '    "textures": "textures/manifest.json",' \
   '    "animations": "animations/manifest.json",' \

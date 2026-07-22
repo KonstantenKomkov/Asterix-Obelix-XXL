@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
+
 import 'binary_reader.dart';
 import 'kwn_structure.dart';
 import 'protected_level.dart';
@@ -45,6 +47,7 @@ final class SceneNodeRecord {
     required this.next,
     required this.child,
     required this.geometry,
+    required this.sourcePayload,
     this.particle,
   });
 
@@ -55,6 +58,7 @@ final class SceneNodeRecord {
   final KwnObjectReference next;
   final KwnObjectReference? child;
   final KwnObjectReference? geometry;
+  final SceneNodeSourcePayload sourcePayload;
   final ParticleNodeParameters? particle;
 
   Map<String, Object> toJson() => {
@@ -65,7 +69,32 @@ final class SceneNodeRecord {
     'next': next.toJson(),
     if (child case final value?) 'child': value.toJson(),
     if (geometry case final value?) 'geometry': value.toJson(),
+    'sourcePayload': sourcePayload.toJson(),
     if (particle case final value?) 'particle': value.toJson(),
+  };
+}
+
+final class SceneNodeSourcePayload {
+  const SceneNodeSourcePayload({
+    required this.byteLength,
+    required this.consumedByteLength,
+    required this.sha256,
+    required this.hex,
+  });
+
+  final int byteLength;
+  final int consumedByteLength;
+  final String sha256;
+  final String hex;
+
+  int get trailingByteLength => byteLength - consumedByteLength;
+
+  Map<String, Object> toJson() => {
+    'byteLength': byteLength,
+    'consumedByteLength': consumedByteLength,
+    'trailingByteLength': trailingByteLength,
+    'sha256': sha256,
+    'hex': hex,
   };
 }
 
@@ -144,6 +173,7 @@ SceneNodeRecord parseXxl1SceneNode(
           seed: reader.readUint32(),
         )
       : null;
+  final consumedByteLength = reader.offset;
   return SceneNodeRecord(
     classId: classId,
     objectId: objectId,
@@ -152,6 +182,14 @@ SceneNodeRecord parseXxl1SceneNode(
     next: next,
     child: child,
     geometry: geometry,
+    sourcePayload: SceneNodeSourcePayload(
+      byteLength: payload.length,
+      consumedByteLength: consumedByteLength,
+      sha256: sha256.convert(payload).toString(),
+      hex: payload
+          .map((value) => value.toRadixString(16).padLeft(2, '0'))
+          .join(),
+    ),
     particle: particle,
   );
 }

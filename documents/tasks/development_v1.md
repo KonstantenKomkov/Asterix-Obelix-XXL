@@ -19,7 +19,7 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
-| 77 | **Провести и закрыть полный аудит non-skeletal FX первого уровня:** повторно извлечь все scene-node class IDs и их payload, включая 11 обнаруженных particle-node записей из локального proof, классифицировать enabled emitters, water/UV или texture-sequence данные, vertex/material/light animation и сопоставить каждый объект с ASTPAK и Metal draw path; для каждого неподдержанного механизма создать отдельный runtime/importer backlog item и исключить silent static fallback | Environment FX audit | P0 | M | После п. 72; машинно проверенный отчёт содержит object ID, section, source payload, animation mechanism, imported resource и renderer path для каждого объекта; ноль необъяснённых non-skeletal animated objects, а все остаточные пропуски имеют отдельные номера задач и visual/runtime regression criteria |
+| 79 | **Перенести семь `CFogBoxNodeFx` первого уровня:** декодировать полный fog-volume payload, импортировать authored объёмы, цвета/плотность и переходы в ASTPAK и реализовать детерминированный Metal/runtime path | Environment FX runtime | P0 | M | После п. 77; все семь объёмов загружаются без static fallback, runtime regression проверяет simulation-clock/streaming/pause/restore, visual regression сверяет точки внутри, снаружи и пересечение границы каждого объёма |
 
 ---
 
@@ -123,15 +123,18 @@
 - [x] П. 74 — позиция и каменный ассет передвигаемого блока первого уровня
 - [x] П. 75 — устранение провалов капсулы сквозь поверхность карты
 - [x] П. 76 — тени и интерьерное затемнение внутри домов
-- [ ] П. 77 — полный аудит non-skeletal FX первого уровня
+- [x] П. 77 — полный аудит non-skeletal FX первого уровня
 - [x] П. 78 — реальная ASTPAK-интеграция воды и повторная post-build приёмка артефактов п. 74
+- [ ] П. 79 — authored `CFogBoxNodeFx` без static fallback
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 76 выполнен: RenderWare `rpGEOMETRYPRELIT` RGBA перенесён без потерь в ASTPAK/Metal как authored baked lighting для 668 mesh / 132 268 vertices / 668 draw ranges; level-local collision восстановил cold start внутри дома, а post-build audit, идентичные clean/cached packages и visual smoke исключили silent Lambert fallback и двойное глобальное затемнение.
+**Последнее обновление:** 22 июля 2026 — п. 77 выполнен: полный raw-payload audit классифицировал 60 scene nodes всех пяти секций, 12 particle emitters, 3 water UV-scroll draw ranges и 668 static prelit meshes; необъяснённых non-skeletal animation mechanisms нет. Семь `CFogBoxNodeFx` явно отключены вместо static fallback и вынесены в п. 79 с runtime/visual criteria.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 76 выполнен: RenderWare `rpGEOMETRYPRELIT` RGBA перенесён без потерь в ASTPAK/Metal как authored baked lighting для 668 mesh / 132 268 vertices / 668 draw ranges; level-local collision восстановил cold start внутри дома, а post-build audit, идентичные clean/cached packages и visual smoke исключили silent Lambert fallback и двойное глобальное затемнение.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 75 выполнен: capsule ground contact использует footprint на каждом fixed-tick substep, реальный `CKHkAsterixCheckpoint` и его scene transform входят в ASTPAK и заменили синтетический spawn; post-build gate принял collision всех четырёх секторов (212 meshes / 9423 triangles), а clean/cached packages и cold-start runtime smoke подтвердили единый пакет без провалов на seam/slope/step regressions.
 

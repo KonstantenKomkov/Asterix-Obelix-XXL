@@ -514,6 +514,36 @@ void main() {
     },
   );
 
+  test(
+    'marks fog volumes unsupported instead of packaging a static mesh',
+    () async {
+      final temporary = await Directory.systemTemp.createTemp(
+        'asset-fog-audit-',
+      );
+      addTearDown(() => temporary.delete(recursive: true));
+      final proof = Directory('${temporary.path}/proof');
+      await _writeProof(proof, reverseOrder: false);
+      final sceneFile = File('${proof.path}/scene.json');
+      final scene =
+          jsonDecode(await sceneFile.readAsString()) as Map<String, Object?>;
+      final node = (scene['nodes']! as List).single as Map<String, Object?>;
+      node['classId'] = 26;
+      await sceneFile.writeAsString(jsonEncode(scene));
+
+      final package = AsterixAssetPackage.parse(
+        await const SliceAssetPipeline().buildFromProof(proof),
+      );
+      final object = (package.manifest['objects']! as List)
+          .cast<Map<String, Object?>>()
+          .singleWhere((value) => value['kind'] == 'scene-node');
+      final metadata = object['metadata']! as Map;
+      expect(object['payloadIds'], isEmpty);
+      expect(metadata['environmentFxMechanism'], 'fog-volume');
+      expect(metadata['rendererPath'], 'explicitly-disabled');
+      expect(metadata['backlogTask'], 79);
+    },
+  );
+
   test('packages authored stone push block at its level transform', () async {
     final temporary = await Directory.systemTemp.createTemp('asset-push-');
     addTearDown(() => temporary.delete(recursive: true));

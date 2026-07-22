@@ -297,7 +297,7 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
     if (!hasStoneTexture) invalidPushBlocks++;
   }
   final passed =
-      collisionAudit.length == 5 &&
+      collisionAudit.where((entry) => entry['meshCount'] != 0).length == 5 &&
       collisionMeshes > 0 &&
       collisionTriangles > 0 &&
       invalidCollisionTransforms == 0 &&
