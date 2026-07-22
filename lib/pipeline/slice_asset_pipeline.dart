@@ -13,6 +13,19 @@ const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
 const _pipelineCacheVersion = 'slice-assets-v1';
 
+// XXL1 water is a material UV transform, not a skeletal/vertex animation or
+// a texture flipbook. These names are the authored Gaul water materials; the
+// rates preserve the two axes exposed by CKHkWaterFall and use repeat
+// addressing so the phase remains continuous.
+const _gaulWaterUv = <String, (double, double)>{
+  'a_tr_eau_mer_f01_p0': (0.025, 0.015),
+  'sfx_riviere': (0.0, -0.08),
+  'sfx_water_ani04': (0.04, -0.02),
+  'sfx_water_2': (-0.025, -0.04),
+  'sfx_cascade06a': (0.0, -0.18),
+  'ecume01_modif': (0.06, 0.0),
+};
+
 enum AssetPipelineErrorCode {
   missingInput,
   invalidJson,
@@ -278,6 +291,35 @@ final class SliceAssetPipeline {
 
       for (final mesh in meshes) {
         final objectId = _integer(mesh, 'objectId');
+        final materials = _list(mesh, 'materials', scenePath, objectId);
+        for (final value in materials) {
+          if (value is! Map<String, Object?>) continue;
+          final texture = value['texture'];
+          if (texture is! String) continue;
+          final key = texture
+              .replaceAll('\\', '/')
+              .split('/')
+              .last
+              .replaceFirst(RegExp(r'\.[^.]+$'), '')
+              .toLowerCase();
+          final speed = _gaulWaterUv[key];
+          if (speed == null) continue;
+          if (value['uAddressing'] != 1 || value['vAddressing'] != 1) {
+            throw AssetPipelineException(
+              AssetPipelineErrorCode.invalidSchema,
+              'Animated water material must use repeat addressing.',
+              path: scenePath,
+              details: {'objectId': objectId, 'texture': texture},
+            );
+          }
+          value['waterAnimation'] = {
+            'mechanism': 'uv-scroll',
+            'uSpeed': speed.$1,
+            'vSpeed': speed.$2,
+            'phase': 0.0,
+            'clock': 'simulation-time',
+          };
+        }
         final payload = AssetPayloadInput(
           kind: 'mesh',
           sourcePath: sectorSource,

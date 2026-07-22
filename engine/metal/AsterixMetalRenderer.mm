@@ -39,6 +39,7 @@ typedef struct {
   float alphaCutoff;
   float effectTime;
   uint32_t effect;
+  vector_float2 uvOffset;
 } AsterixUniforms;
 
 typedef struct {
@@ -56,6 +57,8 @@ typedef struct {
   __unsafe_unretained id<MTLSamplerState> sampler;
   float alphaCutoff;
   BOOL blended;
+  vector_float2 waterSpeed;
+  float waterPhase;
 } AsterixMeshRange;
 
 static NSString* AsterixTextureKey(NSString* name) {
@@ -274,10 +277,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; float effectTime; uint effect; };\n"
+      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; float effectTime; uint effect; float2 uvOffset; };\n"
       "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; };\n"
-      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
-      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<u.alphaCutoff) discard_fragment(); if(u.effect!=0u){ float pulse=.82+.18*sin(u.effectTime*12.566+i.uv.y*3.14159); base.rgb*=pulse; return base; } float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
+      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv+u.uvOffset; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
+      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<u.alphaCutoff) discard_fragment(); if(u.effect==1u){ float pulse=.82+.18*sin(u.effectTime*12.566+i.uv.y*3.14159); base.rgb*=pulse; return base; } float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
   if (library == nil) {
@@ -471,6 +474,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                            @"health":@(player.health)},
             @"enemy":@{ @"position":AsterixVec3Array(enemy.body.position),
                           @"health":@(enemy.health)},
+            @"presentation":@{ @"simulationSeconds":@(_currentAnimationPhase)},
             @"world":@{ @"rewards":@(world.snapshot.rewards),
                           @"checkpoint":@(world.snapshot.active_checkpoint),
                           @"triggers":triggers,@"levers":levers,@"objects":objects,
@@ -483,8 +487,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   NSDictionary* player=state[@"player"];
   NSDictionary* enemy=state[@"enemy"];
   NSDictionary* world=state[@"world"];
+  NSDictionary* presentation=state[@"presentation"];
   if(![player isKindOfClass:NSDictionary.class]||![enemy isKindOfClass:NSDictionary.class]||
      ![world isKindOfClass:NSDictionary.class])return NO;
+  if(presentation!=nil&&(![presentation isKindOfClass:NSDictionary.class]||
+     ![presentation[@"simulationSeconds"] isKindOfClass:NSNumber.class]||
+     !std::isfinite([presentation[@"simulationSeconds"] doubleValue])||
+     [presentation[@"simulationSeconds"] doubleValue]<0))return NO;
   asterix::collision::Vec3 playerPosition,checkpoint,enemyPosition;
   if(!AsterixReadVec3(player[@"position"],playerPosition)||
      !AsterixReadVec3(player[@"checkpoint"],checkpoint)||
@@ -525,6 +534,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   _combatRuntime->setFighterHealth(2,enemyHealth);
   if(!persistent.destructible_health.empty())
     _combatRuntime->setFighterHealth(100,persistent.destructible_health.front());
+  if(presentation!=nil) {
+    _currentAnimationPhase=[presentation[@"simulationSeconds"] floatValue];
+    _previousAnimationPhase=_currentAnimationPhase;
+  }
   return YES;
 } }
 
@@ -899,6 +912,16 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       NSString* alphaTextureName=[material[@"alphaTexture"] isKindOfClass:NSString.class]
           ?material[@"alphaTexture"]:nil;
       const float alphaCutoff=alphaMode==1||alphaTextureName.length>0?.5f:.01f;
+      NSDictionary* water=[material[@"waterAnimation"] isKindOfClass:NSDictionary.class]
+          ?material[@"waterAnimation"]:nil;
+      vector_float2 waterSpeed={0,0};
+      float waterPhase=0;
+      if(water!=nil&&[water[@"mechanism"] isEqual:@"uv-scroll"]&&
+         [water[@"clock"] isEqual:@"simulation-time"]) {
+        waterSpeed={(float)[water[@"uSpeed"] doubleValue],
+                    (float)[water[@"vSpeed"] doubleValue]};
+        waterPhase=(float)[water[@"phase"] doubleValue];
+      }
       const NSUInteger triangleStart=vertexData.length/sizeof(AsterixVertex);
       if ([material[@"ambient"] isKindOfClass:NSNumber.class]) ambient = [material[@"ambient"] floatValue];
       if ([material[@"diffuse"] isKindOfClass:NSNumber.class]) diffuse = [material[@"diffuse"] floatValue];
@@ -931,10 +954,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
            materialRanges.back().sampler==materialSampler&&
            materialRanges.back().alphaCutoff==alphaCutoff&&
            materialRanges.back().blended==blended&&
+           simd_all(materialRanges.back().waterSpeed==waterSpeed)&&
+           materialRanges.back().waterPhase==waterPhase&&
            materialRanges.back().vertexStart+materialRanges.back().vertexCount==triangleStart)
           materialRanges.back().vertexCount+=triangleCount;
         else materialRanges.push_back({triangleStart,triangleCount,materialTexture,
-                                       materialSampler,alphaCutoff,blended});
+                                       materialSampler,alphaCutoff,blended,
+                                       waterSpeed,waterPhase});
       }
     }
     if (vertexData.length > before) {
@@ -1633,6 +1659,12 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
               AsterixUniforms materialUniforms=uniforms;
               materialUniforms.textured=range.texture!=nil?1u:0u;
               materialUniforms.alphaCutoff=range.alphaCutoff;
+              if(simd_length_squared(range.waterSpeed)>0) {
+                materialUniforms.effect=2;
+                materialUniforms.uvOffset={
+                    range.waterPhase+range.waterSpeed.x*seconds,
+                    range.waterPhase+range.waterSpeed.y*seconds};
+              }
               [encoder setVertexBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
               [encoder setFragmentBytes:&materialUniforms length:sizeof(materialUniforms) atIndex:1];
               [encoder setFragmentTexture:range.texture atIndex:0];

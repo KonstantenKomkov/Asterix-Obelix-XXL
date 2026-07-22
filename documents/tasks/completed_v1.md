@@ -1527,6 +1527,26 @@ batching и LOD. Moving-frustum regression с 381 синтетическим mes
 Также прошли полный `make check`, native XCTest, macOS debug build, diff review и
 resource policy. Локального ASTPAK для повторного profile-прогона не было;
 оригинальные или производные игровые ресурсы в Git не добавлялись.
+## П. 73 — Анимация движения воды
+
+**Выполнено:** 22 июля 2026.
+
+Исходный механизм определён как material UV transformation: RenderWare
+Material Effects использует UV effect type 5, а `CKHkWaterFall` хранит отдельные
+множители скорости по X/Y. Pipeline маркирует только шесть подтверждённых
+водных материалов Gaul и сохраняет механизм, направление, скорость, нулевую
+начальную фазу, repeat addressing и simulation clock в mesh payload.
+
+Metal применяет UV offset, сохраняя исходные texture bindings, alpha, filtering
+и addressing. Presentation simulation seconds входят в save state; pause не
+двигает воду, restore возвращает фазу, а streaming residency её не перезапускает.
+Pipeline regression исключает static fallback, native visual regression
+подтверждает изменение фазы и детерминированность pause/restore/streaming.
+
+Архитектурное описание: `documents/architecture/water_animation.md`. Прошли
+`make check`, native XCTest, macOS debug build, diff review и resource policy;
+оригинальные или производные игровые ресурсы в Git не добавлялись.
+
 ## П. 72 — Анимированный огонь на горящих домах
 
 **Выполнено:** 22 июля 2026.

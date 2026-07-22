@@ -271,6 +271,39 @@ void main() {
     expect(emitter['texture'], 'sfx_feu_flammes01');
     expect(resources.where((value) => value['kind'] == 'mesh'), hasLength(1));
   });
+
+  test('marks authored Gaul water as deterministic UV scroll', () async {
+    final temporary = await Directory.systemTemp.createTemp('asset-water-');
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    final sceneFile = File('${proof.path}/scene.json');
+    final scene =
+        jsonDecode(await sceneFile.readAsString()) as Map<String, Object?>;
+    final mesh = (scene['meshes']! as List).single as Map<String, Object?>;
+    mesh['materials'] = [
+      {'texture': 'sfx_riviere', 'uAddressing': 1, 'vAddressing': 1},
+    ];
+    await sceneFile.writeAsString(jsonEncode(scene));
+
+    final package = AsterixAssetPackage.parse(
+      await const SliceAssetPipeline().buildFromProof(proof),
+    );
+    final resource = (package.manifest['resources']! as List)
+        .cast<Map<String, Object?>>()
+        .singleWhere((value) => value['kind'] == 'mesh');
+    final packed =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    final material = (packed['materials']! as List).single as Map;
+    expect(material['waterAnimation'], {
+      'mechanism': 'uv-scroll',
+      'uSpeed': 0.0,
+      'vSpeed': -0.08,
+      'phase': 0.0,
+      'clock': 'simulation-time',
+    });
+  });
 }
 
 Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {

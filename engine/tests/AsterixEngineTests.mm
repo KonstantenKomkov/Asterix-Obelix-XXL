@@ -15,6 +15,7 @@
 #include "asterix/interactive_runtime.hpp"
 #include "asterix/world_animation_runtime.hpp"
 #include "asterix/cinematic_runtime.hpp"
+#include "asterix/water_animation_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -22,6 +23,30 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testWaterUvVisualRegressionMovesAndSurvivesPauseRestoreAndStreaming {
+  using namespace asterix::water_animation;
+  Runtime water({.04f,-.08f,.125f});
+  const auto initial=water.offset();
+  water.advance(2.5);
+  const auto checkpoint=water.snapshot();
+  const auto beforePause=water.offset();
+  XCTAssertNotEqualWithAccuracy(beforePause.u,initial.u,1e-6);
+  XCTAssertNotEqualWithAccuracy(beforePause.v,initial.v,1e-6);
+  water.advance(20,true);
+  XCTAssertEqualWithAccuracy(water.offset().u,beforePause.u,1e-6);
+  XCTAssertEqualWithAccuracy(water.offset().v,beforePause.v,1e-6);
+  // Streaming residency never owns the clock: recreating presentation from
+  // the same snapshot produces exactly the same phase.
+  Runtime streamed({.04f,-.08f,.125f});
+  XCTAssertTrue(streamed.restore(checkpoint));
+  XCTAssertEqualWithAccuracy(streamed.offset().u,beforePause.u,1e-6);
+  XCTAssertEqualWithAccuracy(streamed.offset().v,beforePause.v,1e-6);
+  water.advance(3);
+  XCTAssertTrue(water.restore(checkpoint));
+  XCTAssertEqualWithAccuracy(water.offset().u,beforePause.u,1e-6);
+  XCTAssertFalse(water.restore({-1}));
+}
 
 - (void)testAnimationEventsSurviveLowFpsLoopsPauseRestoreAndBlend {
   using namespace asterix::animation_event;
