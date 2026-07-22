@@ -4,6 +4,7 @@
 #include "asterix/collision_runtime.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -22,6 +23,8 @@ struct Parameters {
   float follow_sharpness = 8;
   float collision_padding = .2f;
   float near_distance = .5f;
+  float near_plane_aspect_ratio = 4.0f / 3.0f;
+  float collision_radius = .35f;
 };
 
 struct Zone {
@@ -82,6 +85,7 @@ class Runtime {
     const int zone_index = activeZone(player_position);
     const Parameters& parameters =
         zone_index < 0 ? defaults_ : zones_[zone_index].parameters;
+    const bool first_update = !initialized_;
     if (!initialized_) {
       snapshot_.target = player_position;
       snapshot_.position = desiredPosition(snapshot_.target, parameters);
@@ -103,8 +107,15 @@ class Runtime {
     const float blend = 1 - std::exp(-parameters.follow_sharpness * dt);
     const Vec3 candidate = snapshot_.position +
                            (desired - snapshot_.position) * blend;
-    snapshot_.position = avoidCollision(snapshot_.target, candidate, world,
-                                        parameters, snapshot_.collision_limited);
+    bool sightline_limited = false;
+    const Vec3 visible_candidate = avoidCollision(
+        snapshot_.target, candidate, world, parameters, sightline_limited);
+    bool follow_limited = false;
+    snapshot_.position = first_update
+        ? visible_candidate
+        : sweepCamera(previous_snapshot_.position, visible_candidate, world,
+                      parameters, follow_limited);
+    snapshot_.collision_limited = sightline_limited || follow_limited;
     return snapshot_;
   }
 
@@ -120,7 +131,10 @@ class Runtime {
         value.field_of_view_degrees <= 1 || value.field_of_view_degrees >= 179 ||
         value.horizontal_target_zone < 0 || value.vertical_target_zone < 0 ||
         value.follow_sharpness <= 0 || value.collision_padding < 0 ||
-        value.near_distance <= 0 || value.near_distance >= value.distance) {
+        value.near_distance <= 0 || value.near_distance >= value.distance ||
+        !std::isfinite(value.near_plane_aspect_ratio) ||
+        value.near_plane_aspect_ratio <= 0 ||
+        !std::isfinite(value.collision_radius) || value.collision_radius <= 0) {
       throw std::invalid_argument("camera parameters are invalid");
     }
   }
@@ -143,22 +157,103 @@ class Runtime {
     return {target.x, target.y + parameters.height,
             target.z + parameters.distance};
   }
-  static bool segmentTriangle(Vec3 origin, Vec3 direction,
-                              const collision::Triangle& triangle, float& t) {
-    const Vec3 edge1 = triangle.b - triangle.a;
-    const Vec3 edge2 = triangle.c - triangle.a;
-    const Vec3 p = collision::cross(direction, edge2);
-    const float determinant = collision::dot(edge1, p);
-    if (std::abs(determinant) < 1e-7f) return false;
-    const float inverse = 1 / determinant;
-    const Vec3 offset = origin - triangle.a;
-    const float u = collision::dot(offset, p) * inverse;
-    if (u < 0 || u > 1) return false;
-    const Vec3 q = collision::cross(offset, edge1);
-    const float v = collision::dot(direction, q) * inverse;
-    if (v < 0 || u + v > 1) return false;
-    t = collision::dot(edge2, q) * inverse;
-    return t >= 0 && t <= 1;
+  static Vec3 closestPointOnSegment(Vec3 point, Vec3 start, Vec3 end) {
+    const Vec3 segment = end - start;
+    const float length_squared = collision::dot(segment, segment);
+    if (length_squared <= 1e-12f) return start;
+    const float amount = std::clamp(
+        collision::dot(point - start, segment) / length_squared, 0.0f, 1.0f);
+    return start + segment * amount;
+  }
+  static Vec3 closestPoint(Vec3 point, const collision::Triangle& triangle) {
+    const Vec3 ab = triangle.b - triangle.a;
+    const Vec3 ac = triangle.c - triangle.a;
+    const Vec3 surface = collision::cross(ab, ac);
+    if (collision::dot(surface, surface) <= 1e-12f) {
+      const std::array<Vec3, 3> candidates = {
+          closestPointOnSegment(point, triangle.a, triangle.b),
+          closestPointOnSegment(point, triangle.b, triangle.c),
+          closestPointOnSegment(point, triangle.c, triangle.a)};
+      return *std::min_element(candidates.begin(), candidates.end(),
+          [point](Vec3 left, Vec3 right) {
+            return collision::dot(point - left, point - left) <
+                   collision::dot(point - right, point - right);
+          });
+    }
+    const Vec3 ap = point - triangle.a;
+    const float d1 = collision::dot(ab, ap);
+    const float d2 = collision::dot(ac, ap);
+    if (d1 <= 0 && d2 <= 0) return triangle.a;
+    const Vec3 bp = point - triangle.b;
+    const float d3 = collision::dot(ab, bp);
+    const float d4 = collision::dot(ac, bp);
+    if (d3 >= 0 && d4 <= d3) return triangle.b;
+    const float vc = d1 * d4 - d3 * d2;
+    if (vc <= 0 && d1 >= 0 && d3 <= 0)
+      return triangle.a + ab * (d1 / (d1 - d3));
+    const Vec3 cp = point - triangle.c;
+    const float d5 = collision::dot(ab, cp);
+    const float d6 = collision::dot(ac, cp);
+    if (d6 >= 0 && d5 <= d6) return triangle.c;
+    const float vb = d5 * d2 - d1 * d6;
+    if (vb <= 0 && d2 >= 0 && d6 <= 0)
+      return triangle.a + ac * (d2 / (d2 - d6));
+    const float va = d3 * d6 - d5 * d4;
+    if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0)
+      return triangle.b + (triangle.c - triangle.b) *
+                              ((d4 - d3) / ((d4 - d3) + (d5 - d6)));
+    const float denominator = 1 / (va + vb + vc);
+    return triangle.a + ab * (vb * denominator) + ac * (vc * denominator);
+  }
+  static float volumeRadius(const Parameters& parameters) {
+    constexpr float radians = 3.14159265358979323846f / 180.0f;
+    const float half_height = parameters.near_distance *
+                              std::tan(parameters.field_of_view_degrees *
+                                       radians * .5f);
+    const float half_width = half_height * parameters.near_plane_aspect_ratio;
+    return std::max(parameters.collision_radius,
+                    std::sqrt(half_width * half_width +
+                              half_height * half_height));
+  }
+  static float clearance(Vec3 position, const collision::World& world,
+                         float radius) {
+    float nearest = std::numeric_limits<float>::infinity();
+    for (const collision::Triangle& triangle : world.triangles()) {
+      const Vec3 delta = position - closestPoint(position, triangle);
+      nearest = std::min(nearest, collision::length(delta));
+    }
+    return nearest - radius;
+  }
+  static float sweepFraction(Vec3 start, Vec3 end,
+                             const collision::World& world, float radius) {
+    const Vec3 path = end - start;
+    const float distance = collision::length(path);
+    if (distance <= 1e-6f)
+      return clearance(end, world, radius) <= 0 ? 0 : 1;
+    // Point-to-triangle distance is 1-Lipschitz. Advancing by the current
+    // clearance cannot cross even an infinitely thin surface, unlike sampling
+    // the path at a fixed interval.
+    float safe = 0;
+    for (int iteration = 0; iteration < 128; ++iteration) {
+      const float available = clearance(start + path * safe, world, radius);
+      if (available <= 1e-5f) return safe;
+      const float advance = available / distance;
+      if (advance >= 1 - safe) return 1;
+      safe += advance;
+    }
+    return safe;
+  }
+  static Vec3 sweepCamera(Vec3 start, Vec3 end,
+                          const collision::World& world,
+                          const Parameters& parameters, bool& limited) {
+    const Vec3 path = end - start;
+    const float distance = collision::length(path);
+    const float fraction = sweepFraction(start, end, world,
+                                         volumeRadius(parameters));
+    limited = fraction < 1;
+    if (!limited || distance <= 1e-6f) return end;
+    const float padding_fraction = parameters.collision_padding / distance;
+    return start + path * std::max(0.0f, fraction - padding_fraction);
   }
   static Vec3 avoidCollision(Vec3 target, Vec3 candidate,
                              const collision::World& world,
@@ -166,16 +261,17 @@ class Runtime {
     const Vec3 ray = candidate - target;
     const float distance = collision::length(ray);
     if (distance <= 1e-6f) { limited = false; return candidate; }
-    float nearest = 1;
-    for (const collision::Triangle& triangle : world.triangles()) {
-      float t = 0;
-      if (segmentTriangle(target, ray, triangle, t)) nearest = std::min(nearest, t);
-    }
-    limited = nearest < 1;
+    const float start_fraction = std::min(parameters.near_distance / distance, 1.0f);
+    const Vec3 start = target + ray * start_fraction;
+    const float fraction = sweepFraction(start, candidate, world,
+                                         volumeRadius(parameters));
+    limited = fraction < 1;
     if (!limited) return candidate;
-    const float safe_distance = std::max(
-        parameters.near_distance, nearest * distance - parameters.collision_padding);
-    return target + ray * (std::min(safe_distance, distance) / distance);
+    const float swept_distance = collision::length(candidate - start);
+    const float padding_fraction = swept_distance <= 1e-6f
+        ? 0 : parameters.collision_padding / swept_distance;
+    return start + (candidate - start) *
+                       std::max(0.0f, fraction - padding_fraction);
   }
 
   Parameters defaults_;

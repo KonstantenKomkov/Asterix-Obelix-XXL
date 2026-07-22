@@ -449,6 +449,60 @@
   XCTAssertEqualWithAccuracy(midpoint.target.x,.125,.001);
 }
 
+- (void)testCameraNearPlaneVolumeStopsBeforeThinGeometry {
+  using namespace asterix;
+  collision::World world({{{-5,-5,5},{5,-5,5},{-5,8,5},70},
+                          {{5,-5,5},{5,8,5},{-5,8,5},70}});
+  camera::Runtime camera;
+  const auto snapshot=camera.update({0,1,0},world,1.0f/60.0f);
+  // The default 70-degree, 4:3 near plane has a 0.58-unit bounding radius;
+  // padding keeps the camera centre farther away than a point ray would.
+  XCTAssertTrue(snapshot.collision_limited);
+  XCTAssertLessThanOrEqual(snapshot.position.z,4.23f);
+  XCTAssertGreaterThan(snapshot.position.z,.5f);
+}
+
+- (void)testCameraSweepsLateralFollowAndKeepsRenderInterpolationOutsideCorner {
+  using namespace asterix;
+  camera::Parameters parameters;
+  parameters.follow_sharpness=60;
+  collision::World world({
+      // A thin lateral wall catches the camera as it moves right.
+      {{2,0,6},{2,8,6},{2,0,12},71},
+      {{2,8,6},{2,8,12},{2,0,12},71},
+      // Its perpendicular face reproduces the corner case.
+      {{2,0,8},{7,0,8},{2,8,8},72},
+      {{7,0,8},{7,8,8},{2,8,8},72}});
+  camera::Runtime camera(parameters);
+  camera.update({0,1,0},world,1.0f/60.0f);
+  camera.update({6,1,0},world,1.0f/60.0f);
+  XCTAssertTrue(camera.snapshot().collision_limited);
+  for(double alpha:{0.0,.1,.25,.5,.75,.9,1.0}) {
+    const auto render=camera.interpolatedSnapshot(alpha);
+    XCTAssertLessThanOrEqual(render.position.x,1.27f);
+    XCTAssertGreaterThanOrEqual(render.position.z,8.78f);
+  }
+}
+
+- (void)testCameraReturnsSmoothlyAfterCollisionContactIsLost {
+  using namespace asterix;
+  collision::Triangle first{{-5,-5,5},{5,-5,5},{-5,8,5},73,true,{20,0,0}};
+  collision::Triangle second{{5,-5,5},{5,8,5},{-5,8,5},73,true,{20,0,0}};
+  collision::World world({first,second});
+  camera::Runtime camera;
+  for(int tick=0;tick<30;++tick)camera.update({0,1,0},world,1.0f/60.0f);
+  const float blocked=camera.snapshot().position.z;
+  XCTAssertTrue(camera.snapshot().collision_limited);
+  world.advanceDynamic(1);
+  camera.update({0,1,0},world,1.0f/60.0f);
+  const float firstReturn=camera.snapshot().position.z;
+  XCTAssertFalse(camera.snapshot().collision_limited);
+  XCTAssertGreaterThan(firstReturn,blocked);
+  XCTAssertLessThan(firstReturn,10.0f);
+  for(int tick=0;tick<120;++tick)camera.update({0,1,0},world,1.0f/60.0f);
+  XCTAssertEqualWithAccuracy(camera.snapshot().position.z,10.0f,.001f);
+}
+
 - (void)testPlayerTransitionsIdleRunJumpFallAndLand {
   using namespace asterix;
   collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},

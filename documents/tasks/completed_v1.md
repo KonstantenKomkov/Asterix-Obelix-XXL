@@ -1,5 +1,29 @@
 # Выполненные задачи первой итерации
 
+## П. 70 — Collision-safe следование gameplay-камеры
+
+**Выполнено:** 22 июля 2026.
+
+Точечный segment test заменён на swept-volume collision. Объём камеры —
+консервативная сфера с радиусом не меньше конфигурируемого collision radius и
+диагонали near plane, вычисленной из FOV, near distance и aspect ratio.
+Conservative advancement по минимальному зазору до triangle world не
+перескакивает тонкие поверхности и устойчиво обрабатывает вырожденные
+треугольники.
+
+Runtime сначала ограничивает путь target → smoothed candidate, затем отдельно
+проверяет lateral путь от предыдущего к текущему fixed-tick snapshot. Поэтому
+весь отрезок, используемый Metal render interpolation, остаётся collision-safe
+в углах и при поперечном следовании. После исчезновения контакта камера
+возвращается к desired distance прежним exponential smoothing без скачка.
+
+Native regressions воспроизводят near-plane clearance у тонкой стены, lateral
+follow в углу, промежуточные render snapshots и плавный возврат после потери
+контакта. Diff review заменило дискретное семплирование пути на conservative
+advancement и добавило degenerate-triangle fallback. Пройдены 48 native XCTest,
+resource policy, native FFI build, `flutter analyze` и все 92 Flutter tests.
+Оригинальные ресурсы и производные игровые данные в Git не добавлялись.
+
 ## П. 61 — Следование gameplay-камеры за игроком
 
 **Выполнено:** 22 июля 2026.
