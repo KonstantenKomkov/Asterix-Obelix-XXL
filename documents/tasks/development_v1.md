@@ -21,7 +21,6 @@
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 | 60 | Откалибровать именно бег Астерикса по эталонному прохождению оригинала | Gameplay fidelity | P0 | M | После п. 5 и 56; отдельно идентифицированы походка и бег оригинала, при штатном полном вводе выбираются беговой клип и соответствующая ему скорость, а не ускоренная ходьба; на зафиксированном прямом маршруте измерены скорость и время прохождения, `run_speed`, пороги gait, acceleration/deceleration, animation rate и диагональная нормализация настроены в согласованном масштабе мира; расхождение дистанции, времени и cadence укладывается в документированный допуск и покрыто fixed-tick и visual regression-тестами |
 | 61 | Подключить gameplay-камеру к фактическому перемещению игрока в Metal render loop | Gameplay bugfix | P0 | M | После п. 34 и 56; каждый fixed tick камера получает актуальную позицию капсулы, render использует интерполированный camera snapshot для view/projection, frustum/culling и audio listener; при движении во всех направлениях игрок остаётся в заданной dead zone без рывков и рассинхронизации, follow/collision поведение покрыто regression-тестом |
-| 62.4 | Разобрать анимации врагов, лидеров, NPC и остальных персонажей | Animation inventory — characters | P0 | XL | После п. 62.1; все dictionaries character hooks сопоставлены с archetype/skin/costume и состояниями spawn/locomotion/combat/damage/death/special, включая варианты и events |
 | 62.5 | Разобрать анимации объектов, механизмов, UI и FX | Animation inventory — world | P1 | L | После п. 62.1; для dictionaries механизмов, shops, checkpoints, activators, turtles, boars, interface и lightning установлены owner, world action/event, playback, transitions, root motion и event tracks |
 | 62.6 | Разобрать cinematic dictionaries и все shared contexts | Animation inventory — scripted | P1 | XL | После п. 62.2–62.5; каждый cinematic slot получил actor/context/action и timeline evidence, а clips, общие с gameplay dictionaries, имеют отдельные semantic contexts без потери владельца или назначения |
 | 62.7 | Провести финальную машинную приёмку семантического каталога | Animation inventory acceptance | P0 | M | После п. 62.2–62.6; валидатор принимает ровно 345 clips и все 518 dictionary slots, каждый membership покрыт ровно одним подтверждённым context, `unreviewed`/`provisional`/необъяснённых значений нет, итог и ограничения документированы |
@@ -117,7 +116,7 @@
 - [x] П. 62.1 — инфраструктура полного семантического каталога
 - [x] П. 62.2 — анимации Астерикса
 - [x] П. 62.3 — анимации Обеликса и Идефикса
-- [ ] П. 62.4 — анимации врагов, NPC и персонажей
+- [x] П. 62.4 — анимации врагов, NPC и персонажей
 - [ ] П. 62.5 — анимации объектов, механизмов, UI и FX
 - [ ] П. 62.6 — cinematic dictionaries и shared contexts
 - [ ] П. 62.7 — финальная приёмка 345 clips / 518 slots
@@ -134,7 +133,9 @@
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 62.3 выполнен: подтверждены 84 slots / 71 уникальный clip Обеликса и 44 slots / 22 уникальных clips Идефикса, а также 17 дополнительных shared/cinematic contexts; совместный scoped validator принимает dictionaries 0 и 1 с точными skins и полным evidence.
+**Последнее обновление:** 22 июля 2026 — п. 62.4 выполнен: подтверждены все 25 character dictionaries, 92 уникальных clips и 109 contexts basic enemies, leaders, NPC и animated characters; отдельный scoped validator принимает полный character-каталог без world dictionaries.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 62.3 выполнен: подтверждены 84 slots / 71 уникальный clip Обеликса и 44 slots / 22 уникальных clips Идефикса, а также 17 дополнительных shared/cinematic contexts; совместный scoped validator принимает dictionaries 0 и 1 с точными skins и полным evidence.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 62.2 выполнен: подтверждены все 108 slots / 90 уникальных clips Астерикса и 10 дополнительных cinematic contexts; локальный scoped validator принимает dictionary 2 с полным evidence и не требует преждевременного завершения остальных словарей.
 

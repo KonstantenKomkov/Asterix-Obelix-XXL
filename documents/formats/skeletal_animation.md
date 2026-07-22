@@ -131,6 +131,34 @@ fvm dart run bin/animation_catalog.dart validate-dictionaries 0,1 \
   "$HOME/asterix-reference/animation-catalog-task62.json"
 ```
 
+Character-scope LVL01 задаётся версионированным набором из 25 словарей:
+gameplay dictionaries basic enemy/leader и dictionaries всех
+`CKHkAnimatedCharacter`. В него намеренно не входят boar, turtle, mechanisms,
+UI и FX — они относятся к world-scope п. 62.5. Воспроизводимая сборка и
+проверка annotations выполняются так:
+
+```sh
+make animation-character-annotations \
+  INPUT="$HOME/asterix-reference/animation-catalog-heroes-task62.3.json" \
+  OUTPUT="$HOME/asterix-reference/animation-semantics-characters-task62.4.json"
+fvm dart run bin/animation_catalog.dart apply-annotations \
+  "$HOME/asterix-reference/animation-catalog-heroes-task62.3.json" \
+  "$HOME/asterix-reference/animation-semantics-characters-task62.4.json" \
+  "$HOME/asterix-reference/animation-catalog-characters-task62.4.json"
+make animation-characters-validate \
+  INPUT="$HOME/asterix-reference/animation-catalog-characters-task62.4.json"
+```
+
+Идентификатор skin в character annotations является устойчивым semantic
+profile конкретного dictionary и HAnim node count. Он не утверждает связь с
+geometry только по совпадению числа костей. Enemy slots группируются в
+spawn/awareness, locomotion, combat, damage, death и special families; каждый
+slot остаётся отдельным context/variant. Для одноразовых animated-character
+dictionaries действие фиксируется как scripted performance, а конкретный
+cinematic timeline будет уточнён в п. 62.6. Импортированные clips не содержат
+отдельного event track, поэтому `events` остаётся пустым, а не заполняется
+предположительными hit windows.
+
 Точная skin geometry может хранить weights и inverse bind matrices без
 собственной копии HAnim hierarchy. Reviewer в таком случае требует отдельный
 `hierarchy-skin-object-id` и проверяет его число костей против объявленного

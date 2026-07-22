@@ -87,6 +87,26 @@ Future<void> main(List<String> arguments) async {
     }
     return;
   }
+  if (arguments.length == 2 &&
+      arguments.first == 'validate-character-dictionaries') {
+    final catalog =
+        jsonDecode(await File(arguments[1]).readAsString())
+            as Map<String, Object?>;
+    final issues = validateAnimationSemanticCatalog(
+      catalog,
+      requiredDictionaryIds: characterAnimationDictionaryIds,
+    );
+    if (issues.isNotEmpty) {
+      stderr.writeln(issues.join('\n'));
+      exitCode = 1;
+    } else {
+      stdout.writeln(
+        'All enemy, leader, NPC and animated-character dictionaries are '
+        'complete.',
+      );
+    }
+    return;
+  }
   if (arguments.length == 4 && arguments.first == 'apply-annotations') {
     final catalog =
         jsonDecode(await File(arguments[1]).readAsString())
@@ -120,6 +140,8 @@ Future<void> main(List<String> arguments) async {
     '   or: animation_catalog.dart validate-dictionary <dictionary-id> '
     '<catalog.json>\n'
     '   or: animation_catalog.dart validate-dictionaries <id,id,...> '
+    '<catalog.json>\n'
+    '   or: animation_catalog.dart validate-character-dictionaries '
     '<catalog.json>',
   );
   exitCode = 64;

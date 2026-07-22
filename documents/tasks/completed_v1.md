@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 62.4 — Семантический каталог анимаций персонажей
+
+**Выполнено:** 22 июля 2026.
+
+Разобраны все 25 character dictionaries LVL01: общий словарь 18 basic enemies,
+два словаря leaders и 22 dictionaries NPC/animated characters. Подтверждены 92
+уникальных clips и ровно 109 membership contexts; каждый slot сохраняет owner,
+dictionary-specific HAnim skin profile, costume, action/state family, playback,
+variant, transitions, authored root motion и сведения об events.
+
+Enemy и leader slots распределены по spawn/awareness, locomotion, combat,
+damage, death и special families. Одноразовые `CKHkAnimatedCharacter`
+dictionaries отмечены как scripted performances с сохранением их object/dict
+identity; привязка к конкретным cinematic timelines оставлена п. 62.6. В
+импортированных skeletal payload нет отдельного event track, поэтому events не
+подменены предположительными gameplay hit windows.
+
+Добавлены воспроизводимый генератор character annotations и отдельный scoped
+validator, который исключает boars, turtles, mechanisms, UI и FX будущего
+world-scope. Производные игровые данные сохранены только локально вне Git:
+`animation-semantics-characters-task62.4.json` (SHA-256
+`e49e9cbe24089c29a2d6c639e3cd5c54bb3e8a860914f27199fd28b9e1726cb1`) и
+`animation-catalog-characters-task62.4.json` (SHA-256
+`fca2839152a20ea85eed7551e572a3328c6536e1e09fb666c7c7520ff85c37cc`).
+
 ## П. 62.3 — Семантический каталог анимаций Обеликса и Идефикса
 
 **Выполнено:** 22 июля 2026.

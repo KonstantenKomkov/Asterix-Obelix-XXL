@@ -5,6 +5,17 @@ import 'package:asterix_xxl/tooling/animation_semantic_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('character scope contains enemy, leader and NPC dictionaries only', () {
+    expect(characterAnimationDictionaryIds, containsAll([4, 27, 28, 48]));
+    expect(
+      characterAnimationDictionaryIds,
+      containsAll(List.generate(17, (i) => i + 31)),
+    );
+    expect(characterAnimationDictionaryIds, isNot(contains(30)));
+    expect(characterAnimationDictionaryIds, isNot(contains(49)));
+    expect(characterAnimationDictionaryIds, hasLength(25));
+  });
+
   test('catalog measures root motion from the animated HAnim root', () async {
     final temporary = await Directory.systemTemp.createTemp(
       'asterix-animation-catalog-',
