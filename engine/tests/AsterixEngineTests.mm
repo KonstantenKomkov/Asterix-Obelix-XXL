@@ -4,6 +4,7 @@
 
 #include "asterix/engine.h"
 #include "asterix/animation_runtime.hpp"
+#include "asterix/animation_event_runtime.hpp"
 #include "asterix/collision_runtime.hpp"
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
@@ -21,6 +22,48 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testAnimationEventsSurviveLowFpsLoopsPauseRestoreAndBlend {
+  using namespace asterix::animation_event;
+  Runtime runtime;
+  runtime.add({"asterix.run",1,true,{
+    {"left",.2f,Type::footstep,"asterix","stone"},
+    {"right",.7f,Type::footstep,"asterix","stone"}}});
+  auto cursor=runtime.start("asterix.run",42);
+  auto events=runtime.sample("asterix.run",cursor,2.75);
+  XCTAssertEqual(events.size(),6u);
+  XCTAssertEqual(events.front().loop,0u);
+  XCTAssertEqual(events.back().loop,2u);
+  const Cursor checkpoint=cursor;
+  XCTAssertTrue(runtime.sample("asterix.run",cursor,3.0,true).empty());
+  XCTAssertEqualWithAccuracy(cursor.absolute_phase,checkpoint.absolute_phase,1e-9);
+  XCTAssertTrue(runtime.restore("asterix.run",cursor,checkpoint));
+  events=runtime.sample("asterix.run",cursor,3.25);
+  XCTAssertEqual(events.size(),1u);
+  XCTAssertEqual(events.front().event.id,"left");
+  auto blendCursor=checkpoint;
+  XCTAssertTrue(runtime.sample("asterix.run",blendCursor,3.25).empty());
+}
+
+- (void)testAnimationEventsDriveGameplayWindowsCuesAndOneShotCompletion {
+  using namespace asterix::animation_event;
+  Runtime runtime;
+  runtime.add({"asterix.attack",1,false,{
+    {"impulse",0.f,Type::impulse,"asterix","forward",1,0,0},
+    {"hit-open",.2f,Type::hit_window_open,"weapon","combo-1"},
+    {"swing",.25f,Type::sfx,"asterix","attack.swing"},
+    {"trail",.25f,Type::vfx,"weapon","attack.trail"},
+    {"camera",.3f,Type::camera,"main","combat-impact"},
+    {"hit-close",.4f,Type::hit_window_close,"weapon","combo-1"},
+    {"hurt-open",.5f,Type::hurt_window_open,"asterix","vulnerable"},
+    {"hurt-close",.8f,Type::hurt_window_close,"asterix","vulnerable"},
+    {"done",1.f,Type::one_shot_complete,"asterix","combat.attack"}}});
+  auto cursor=runtime.start("asterix.attack",7);
+  const auto events=runtime.sample("asterix.attack",cursor,4.0);
+  XCTAssertEqual(events.size(),9u);
+  XCTAssertEqual(events.back().event.type,Type::one_shot_complete);
+  XCTAssertTrue(runtime.sample("asterix.attack",cursor,5.0).empty());
+}
 
 - (void)testCinematicScenarioSupportsCuesInterruptSkipAndRestore {
   using namespace asterix::cinematic;

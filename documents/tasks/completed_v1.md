@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 68 — Единые animation events и синхронизация gameplay
+
+**Выполнено:** 22 июля 2026.
+
+В versioned binding manifest добавлен `eventTrackVersion: 1` и типизированные
+tracks для locomotion, combat, hurt и world state. Footsteps, hit/hurt windows,
+impulses/root motion, object state commits, VFX/SFX, camera cues и явное
+завершение one-shot теперь описываются нормализованными фазами clips. Validator
+отклоняет неизвестные bindings и event types, дубли, неупорядоченные фазы и
+one-shot без completion.
+
+Нативный fixed-tick sampler использует абсолютную фазу и интервал
+`(previous, current]`, перечисляет все пересечённые loop и формирует устойчивый
+identity `track:instance:loop:event`. Поэтому low FPS не теряет события на
+границе loop, обе ветви blend не дублируют side effects, pause не продвигает
+курсор, а checkpoint restore продолжает сохранённый instance/phase без replay.
+Отдельное diff review обнаружило и исправило доставку событий на фазе `0.0`.
+
+Пройдены resource policy, native FFI build, `flutter analyze`, все 89 Flutter
+tests и 43 native XCTest. Оригинальные ресурсы и производные игровые данные в
+Git не добавлялись.
+
 ## П. 67 — Scripted/cinematic animation timelines
 
 **Выполнено:** 22 июля 2026.

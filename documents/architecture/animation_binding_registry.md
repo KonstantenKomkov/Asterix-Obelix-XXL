@@ -88,4 +88,21 @@ gameplay camera/audio and return control. Interrupt retains the current cue,
 checkpoint restore changes state without replaying outputs, resume re-emits the
 current actor poses, and a subsequent script event starts again at cue zero.
 This makes entrance, exit and in-game timelines deterministic while leaving
-sub-frame clip events to task 68.
+sub-frame clip events to the shared transport below.
+
+## Versioned animation events
+
+`eventTrackVersion: 1` defines typed, ordered events against exact
+actor/action/context bindings. Gameplay windows, impulses/root motion, object
+state commits, VFX/SFX, camera cues, footsteps and one-shot completion are no
+longer inferred from unrelated wall-clock timers. A non-looping track must end
+with an explicit `one-shot-complete` event.
+
+The native sampler advances an absolute fixed-tick phase and samples the
+half-open interval `(previous, current]`. It enumerates every crossed loop, so a
+low render frame rate cannot drop events at a loop boundary. Delivery identity
+is `track:instance:loop:event`; the same clip instance sampled by both branches
+of a blend therefore emits once. Pause does not advance the cursor, and a save
+stores the instance and absolute phase; restore resumes without replaying
+already delivered side effects. Manifest validation rejects unknown bindings,
+unordered/duplicate events, unsupported types and one-shots without completion.

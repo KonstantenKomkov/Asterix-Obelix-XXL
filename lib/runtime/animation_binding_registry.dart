@@ -148,6 +148,7 @@ final class AnimationBindingRegistry {
       }
       bindings.add(Map<String, Object?>.from(raw));
     }
+    _validateEventTracks(value, bindings);
     for (var index = 0; index < bindings.length; index++) {
       final transitions = bindings[index]['transitions']! as List;
       final actor = bindings[index]['actor'];
@@ -502,6 +503,89 @@ final class AnimationBindingRegistry {
       }
     }
     return registry;
+  }
+
+  static void _validateEventTracks(
+    Map<String, Object?> manifest,
+    List<Map<String, Object?>> bindings,
+  ) {
+    final version = manifest['eventTrackVersion'];
+    final tracks = manifest['eventTracks'];
+    if (version == null && tracks == null) return;
+    if (version != 1 || tracks is! List || tracks.isEmpty) {
+      throw const AnimationBindingException(
+        'eventTrackVersion must equal 1 and eventTracks must be non-empty',
+      );
+    }
+    const types = {
+      'footstep',
+      'hit-window-open',
+      'hit-window-close',
+      'hurt-window-open',
+      'hurt-window-close',
+      'impulse',
+      'root-motion',
+      'object-state',
+      'vfx',
+      'sfx',
+      'camera',
+      'one-shot-complete',
+    };
+    final trackIds = <String>{};
+    for (var trackIndex = 0; trackIndex < tracks.length; trackIndex++) {
+      final track = tracks[trackIndex];
+      if (track is! Map<String, Object?> ||
+          track['id'] is! String ||
+          !trackIds.add(track['id']! as String) ||
+          track['actor'] is! String ||
+          track['action'] is! String ||
+          track['context'] is! String ||
+          track['loop'] is! bool ||
+          track['events'] is! List ||
+          (track['events']! as List).isEmpty) {
+        throw AnimationBindingException('eventTracks[$trackIndex] is invalid');
+      }
+      final matches = bindings.where(
+        (binding) =>
+            binding['actor'] == track['actor'] &&
+            binding['action'] == track['action'] &&
+            binding['context'] == track['context'] &&
+            binding['loop'] == track['loop'],
+      );
+      if (matches.isEmpty) {
+        throw AnimationBindingException(
+          'eventTracks[$trackIndex] has no matching binding',
+        );
+      }
+      var previous = -1.0;
+      final eventIds = <String>{};
+      for (final event in track['events']! as List) {
+        if (event is! Map<String, Object?> ||
+            event['id'] is! String ||
+            !eventIds.add(event['id']! as String) ||
+            !types.contains(event['type']) ||
+            event['phase'] is! num ||
+            (event['phase']! as num) < previous ||
+            (event['phase']! as num) < 0 ||
+            (event['phase']! as num) > 1 ||
+            event['target'] is! String ||
+            event['value'] is! String) {
+          throw AnimationBindingException(
+            'eventTracks[$trackIndex] events must be typed, unique and ordered',
+          );
+        }
+        previous = (event['phase']! as num).toDouble();
+      }
+      if (track['loop'] == false &&
+          !(track['events']! as List).any(
+            (event) =>
+                (event as Map<String, Object?>)['type'] == 'one-shot-complete',
+          )) {
+        throw AnimationBindingException(
+          'eventTracks[$trackIndex] one-shot has no completion event',
+        );
+      }
+    }
   }
 
   static AnimationBindingRegistry decode(Uint8List bytes) =>

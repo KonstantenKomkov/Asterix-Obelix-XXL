@@ -106,6 +106,44 @@ void main() {
     );
   });
 
+  test('validates versioned typed animation event tracks', () {
+    final value = manifest()
+      ..['eventTrackVersion'] = 1
+      ..['eventTracks'] = [
+        {
+          'id': 'hero.idle',
+          'actor': 'hero',
+          'action': 'idle',
+          'context': 'gameplay',
+          'loop': true,
+          'events': [
+            {
+              'id': 'cue',
+              'phase': .5,
+              'type': 'sfx',
+              'target': 'hero',
+              'value': 'idle.cue',
+            },
+          ],
+        },
+      ];
+    expect(
+      AnimationBindingRegistry.parse(value).manifest['eventTrackVersion'],
+      1,
+    );
+    final malformed = Map<String, Object?>.from(value);
+    malformed['eventTracks'] = [
+      {
+        ...(value['eventTracks']! as List).first as Map<String, Object?>,
+        'loop': false,
+      },
+    ];
+    expect(
+      () => AnimationBindingRegistry.parse(malformed),
+      throwsA(isA<AnimationBindingException>()),
+    );
+  });
+
   test('full hero graph binds every confirmed hero clip', () async {
     final registry = AnimationBindingRegistry.parse(
       jsonDecode(

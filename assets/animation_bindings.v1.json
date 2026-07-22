@@ -1,5 +1,51 @@
 {
   "schemaVersion": 1,
+  "eventTrackVersion": 1,
+  "eventTracks": [
+    {
+      "id": "asterix.locomotion.run.default",
+      "actor": "asterix", "action": "locomotion.run",
+      "context": "gameplay", "loop": true,
+      "events": [
+        {"id": "left-foot", "phase": 0.2, "type": "footstep", "target": "asterix", "value": "surface"},
+        {"id": "root-motion", "phase": 0.5, "type": "root-motion", "target": "asterix", "value": "clip-delta"},
+        {"id": "right-foot", "phase": 0.7, "type": "footstep", "target": "asterix", "value": "surface"}
+      ]
+    },
+    {
+      "id": "asterix.combat.attack.default",
+      "actor": "asterix", "action": "combat.attack",
+      "context": "gameplay", "loop": false,
+      "events": [
+        {"id": "impulse", "phase": 0.1, "type": "impulse", "target": "asterix", "value": "attack-forward"},
+        {"id": "hit-open", "phase": 0.2, "type": "hit-window-open", "target": "asterix.weapon", "value": "attack"},
+        {"id": "swing", "phase": 0.25, "type": "sfx", "target": "asterix", "value": "combat.swing"},
+        {"id": "trail", "phase": 0.25, "type": "vfx", "target": "asterix.weapon", "value": "combat.trail"},
+        {"id": "impact-camera", "phase": 0.3, "type": "camera", "target": "main", "value": "combat-impact"},
+        {"id": "hit-close", "phase": 0.4, "type": "hit-window-close", "target": "asterix.weapon", "value": "attack"},
+        {"id": "complete", "phase": 1.0, "type": "one-shot-complete", "target": "asterix", "value": "combat.attack"}
+      ]
+    },
+    {
+      "id": "asterix.damage.hurt.default",
+      "actor": "asterix", "action": "damage.hurt",
+      "context": "gameplay", "loop": false,
+      "events": [
+        {"id": "hurt-open", "phase": 0.0, "type": "hurt-window-open", "target": "asterix", "value": "invulnerable"},
+        {"id": "hurt-close", "phase": 0.8, "type": "hurt-window-close", "target": "asterix", "value": "invulnerable"},
+        {"id": "complete", "phase": 1.0, "type": "one-shot-complete", "target": "asterix", "value": "damage.hurt"}
+      ]
+    },
+    {
+      "id": "mechanism.component.activate.default",
+      "actor": "mechanism:component", "action": "mechanism.activate",
+      "context": "world", "loop": false,
+      "events": [
+        {"id": "commit", "phase": 0.6, "type": "object-state", "target": "mechanism:component", "value": "active"},
+        {"id": "complete", "phase": 1.0, "type": "one-shot-complete", "target": "mechanism:component", "value": "mechanism.activate"}
+      ]
+    }
+  ],
   "graphVersion": 1,
   "entryStates": {
     "asterix": "locomotion.idle",
