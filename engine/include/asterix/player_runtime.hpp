@@ -64,6 +64,7 @@ class Runtime {
     }
     snapshot_.body = body;
     snapshot_.health = config.maximum_health;
+    air_jump_available_ = body.grounded;
   }
 
   const Snapshot& snapshot() const { return snapshot_; }
@@ -75,6 +76,7 @@ class Runtime {
     snapshot_.body.velocity={}; snapshot_.body.grounded=false;
     snapshot_.health=config_.maximum_health; snapshot_.invulnerability_seconds=0;
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
+    air_jump_available_=false;
     enter(State::idle);
   }
   bool restore(collision::Vec3 position,collision::Vec3 checkpoint,
@@ -84,6 +86,7 @@ class Runtime {
     snapshot_.body.velocity={}; snapshot_.body.grounded=false;
     snapshot_.health=health; snapshot_.invulnerability_seconds=0;
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
+    air_jump_available_=false;
     enter(health==0?State::death:State::idle); return true;
   }
 
@@ -143,14 +146,16 @@ class Runtime {
     }
 
     if (attack_edge) enter(State::attack);
-    if (jump_edge && snapshot_.body.grounded &&
-        snapshot_.state != State::attack) {
+    if (jump_edge && snapshot_.state != State::attack &&
+        (snapshot_.body.grounded || air_jump_available_)) {
+      if (!snapshot_.body.grounded) air_jump_available_ = false;
       snapshot_.body.velocity.y = config_.jump_velocity;
       snapshot_.body.grounded = false;
       enter(State::jump);
     }
 
     snapshot_.body = controller_.move(snapshot_.body, horizontal_velocity_, dt);
+    if (snapshot_.body.grounded) air_jump_available_ = true;
     if (snapshot_.body.recovered_from_fall) {
       enter(State::fall);
     } else if (snapshot_.state == State::attack &&
@@ -184,6 +189,7 @@ class Runtime {
   collision::Vec3 horizontal_velocity_{};
   bool jump_was_pressed_ = false;
   bool attack_was_pressed_ = false;
+  bool air_jump_available_ = false;
 };
 
 }  // namespace asterix::player

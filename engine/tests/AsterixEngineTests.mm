@@ -300,6 +300,67 @@
   XCTAssertEqual(player.snapshot().state,player::State::run);
 }
 
+- (void)testPlayerAllowsOneAirJumpAndRestoresItOnlyAfterLanding {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+  player::Input input;
+  constexpr float dt=1.0f/60.0f;
+
+  input.jump=true;
+  player.update(dt,input);
+  input.jump=false;
+  player.update(dt,input);
+  for(int tick=0;tick<120&&player.snapshot().state!=player::State::fall;++tick) {
+    player.update(dt,input);
+  }
+  XCTAssertEqual(player.snapshot().state,player::State::fall);
+  const float velocityBeforeSecondJump=player.snapshot().body.velocity.y;
+
+  input.jump=true;
+  player.update(dt,input);
+  XCTAssertEqual(player.snapshot().state,player::State::jump);
+  XCTAssertEqualWithAccuracy(player.snapshot().state_seconds,0,.0001);
+  XCTAssertGreaterThan(player.snapshot().body.velocity.y,velocityBeforeSecondJump);
+  XCTAssertEqualWithAccuracy(player.snapshot().body.velocity.y,
+                             player.config().jump_velocity-capsuleConfig.gravity*dt,
+                             .0001);
+
+  input.jump=false;
+  player.update(dt,input);
+  for(int tick=0;tick<12;++tick)player.update(dt,input);
+  const float velocityBeforeThirdJump=player.snapshot().body.velocity.y;
+  input.jump=true;
+  player.update(dt,input);
+  XCTAssertLessThan(player.snapshot().body.velocity.y,velocityBeforeThirdJump);
+
+  input.jump=false;
+  bool landed=false;
+  for(int tick=0;tick<240;++tick) {
+    player.update(dt,input);
+    if(player.snapshot().body.grounded) { landed=true; break; }
+  }
+  XCTAssertTrue(landed);
+
+  input.jump=true;
+  player.update(dt,input);
+  input.jump=false;
+  player.update(dt,input);
+  for(int tick=0;tick<12;++tick)player.update(dt,input);
+  const float velocityBeforeRestoredAirJump=player.snapshot().body.velocity.y;
+  input.jump=true;
+  player.update(dt,input);
+  XCTAssertGreaterThan(player.snapshot().body.velocity.y,
+                       velocityBeforeRestoredAirJump);
+  XCTAssertEqual(player.snapshot().state,player::State::jump);
+}
+
 - (void)testMovementInputReachesCapsuleOnFixedTicksAndReleaseStopsIt {
   using namespace asterix;
   collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
