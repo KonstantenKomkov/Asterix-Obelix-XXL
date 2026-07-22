@@ -399,6 +399,56 @@
   XCTAssertGreaterThan(snapshot.position.z,0);
 }
 
+- (void)testGameplayCameraFollowsCapsuleInEveryDirectionWithInterpolatedSnapshots {
+  using namespace asterix;
+  collision::World world({{{-100,0,-100},{100,0,-100},{-100,0,100},1},
+                          {{100,0,-100},{100,0,100},{-100,0,100},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime player(controller,body);
+  camera::Runtime camera;
+  camera.update(player.snapshot().body.position,world,1.0f/60.0f);
+
+  const std::array<player::Input,4> directions = [] {
+    std::array<player::Input,4> values{};
+    values[0].move_x=1; values[1].move_x=-1;
+    values[2].move_z=1; values[3].move_z=-1;
+    return values;
+  }();
+  auto previousRender=camera.interpolatedSnapshot(0);
+  for(const auto& input:directions) {
+    for(int tick=0;tick<90;++tick) {
+      player.update(1.0f/60.0f,input);
+      camera.update(player.snapshot().body.position,world,1.0f/60.0f);
+      for(double alpha:{0.0,.25,.5,.75}) {
+        const auto render=camera.interpolatedSnapshot(alpha);
+        XCTAssertLessThanOrEqual(std::abs(player.snapshot().body.position.x-render.target.x),
+                                 .75f+player.config().run_speed/60.0f+.001f);
+        XCTAssertLessThanOrEqual(std::abs(player.snapshot().body.position.z-render.target.z),
+                                 .75f+player.config().run_speed/60.0f+.001f);
+        XCTAssertLessThan(collision::length(render.position-previousRender.position),.2f);
+        previousRender=render;
+      }
+    }
+  }
+}
+
+- (void)testInterpolatedCameraPreservesCollisionLimitedFollowSnapshot {
+  using namespace asterix;
+  collision::World world({{{-5,-5,5},{5,-5,5},{-5,8,5},7},
+                          {{5,-5,5},{5,8,5},{-5,8,5},7}});
+  camera::Runtime camera;
+  camera.update({0,1,0},world,1.0f/60.0f);
+  camera.update({1,1,0},world,1.0f/60.0f);
+  const auto midpoint=camera.interpolatedSnapshot(.5);
+  XCTAssertTrue(midpoint.collision_limited);
+  XCTAssertLessThan(midpoint.position.z,5);
+  XCTAssertEqualWithAccuracy(midpoint.target.x,.125,.001);
+}
+
 - (void)testPlayerTransitionsIdleRunJumpFallAndLand {
   using namespace asterix;
   collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},

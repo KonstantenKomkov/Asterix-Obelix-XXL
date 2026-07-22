@@ -1,5 +1,25 @@
 # Выполненные задачи первой итерации
 
+## П. 61 — Следование gameplay-камеры за игроком
+
+**Выполнено:** 22 июля 2026.
+
+Gameplay camera подключена к актуальной позиции capsule controller внутри
+каждого fixed tick. Camera runtime хранит предыдущий и текущий снимки и выдаёт
+интерполированный snapshot по render alpha; Metal render loop использует один
+и тот же снимок для view/projection, frustum culling, LOD camera distance и
+пространственного audio listener, исключая межсистемный рассинхрон.
+
+Regression-тест совместно прогоняет capsule controller, player runtime и
+камеру при движении в четырёх направлениях, проверяя заданную dead zone и
+непрерывность промежуточных кадров. Отдельный тест подтверждает сохранение
+collision-limited follow перед препятствием. Diff review подтвердило единый
+render snapshot и отсутствие обходных camera transforms.
+
+Пройдены 45 native XCTest, resource policy, native FFI build, `flutter analyze`,
+все 92 Flutter tests и release-сборка macOS. Оригинальные ресурсы и производные
+игровые данные в Git не добавлялись.
+
 ## П. 69 — Сквозная приёмка полноты привязок анимаций
 
 **Выполнено:** 22 июля 2026.

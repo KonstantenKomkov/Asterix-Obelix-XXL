@@ -19,7 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
-| 61 | Подключить gameplay-камеру к фактическому перемещению игрока в Metal render loop | Gameplay bugfix | P0 | M | После п. 34 и 56; каждый fixed tick камера получает актуальную позицию капсулы, render использует интерполированный camera snapshot для view/projection, frustum/culling и audio listener; при движении во всех направлениях игрок остаётся в заданной dead zone без рывков и рассинхронизации, follow/collision поведение покрыто regression-тестом |
 
 ---
 
@@ -101,7 +100,7 @@
 - [x] П. 58 — управляемая высота прыжка
 - [x] П. 59 — locomotion-анимации при движении
 - [x] П. 60 — эталонная скорость движения
-- [ ] П. 61 — следование gameplay-камеры за игроком
+- [x] П. 61 — следование gameplay-камеры за игроком
 - [x] П. 62.1 — инфраструктура полного семантического каталога
 - [x] П. 62.2 — анимации Астерикса
 - [x] П. 62.3 — анимации Обеликса и Идефикса
@@ -122,7 +121,9 @@
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 69 выполнен: сквозной acceptance gate сопоставляет 345 clips, 52 dictionaries / 518 slots, 408 bindings и достижимые hero/character/world/cinematic runtime paths; unbound, unexplained, unreachable и unknown clips отсутствуют, три representative sequences зафиксированы после визуальной сверки с локальным оригиналом.
+**Последнее обновление:** 22 июля 2026 — п. 61 выполнен: fixed-tick камера следует за фактической позицией капсулы, а единый интерполированный snapshot используется Metal view/projection, frustum/culling/LOD и audio listener; dead-zone и collision follow покрыты regressions.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 69 выполнен: сквозной acceptance gate сопоставляет 345 clips, 52 dictionaries / 518 slots, 408 bindings и достижимые hero/character/world/cinematic runtime paths; unbound, unexplained, unreachable и unknown clips отсутствуют, три representative sequences зафиксированы после визуальной сверки с локальным оригиналом.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 68 выполнен: единые versioned event tracks и fixed-tick sampler доставляют footsteps, gameplay windows, impulses/root motion, world/VFX/SFX/camera cues и one-shot completion без потерь и дублей при low FPS, blend, pause/restore и loop boundary.
 

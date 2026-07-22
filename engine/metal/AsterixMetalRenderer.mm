@@ -1400,7 +1400,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           }
         });
         if (_cameraRuntime && _cameraRuntime->initialized()) {
-          cameraSnapshot=_cameraRuntime->snapshot();
+          cameraSnapshot=_cameraRuntime->interpolatedSnapshot(
+              _simulationClock.interpolationAlpha());
           hasGameplayCamera=YES;
           const auto forward=cameraSnapshot.target-cameraSnapshot.position;
           [_audioEngine setListenerPosition:(vector_float3){cameraSnapshot.position.x,cameraSnapshot.position.y,cameraSnapshot.position.z}

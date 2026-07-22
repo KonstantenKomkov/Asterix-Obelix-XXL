@@ -53,6 +53,25 @@ class Runtime {
   }
 
   const Snapshot& snapshot() const { return snapshot_; }
+  Snapshot interpolatedSnapshot(double alpha) const {
+    if (!initialized_ || !std::isfinite(alpha)) {
+      if (!std::isfinite(alpha))
+        throw std::invalid_argument("camera interpolation is invalid");
+      return snapshot_;
+    }
+    const float amount = static_cast<float>(std::clamp(alpha, 0.0, 1.0));
+    Snapshot result = snapshot_;
+    result.position = previous_snapshot_.position +
+                      (snapshot_.position - previous_snapshot_.position) * amount;
+    result.target = previous_snapshot_.target +
+                    (snapshot_.target - previous_snapshot_.target) * amount;
+    result.field_of_view_degrees =
+        previous_snapshot_.field_of_view_degrees +
+        (snapshot_.field_of_view_degrees -
+         previous_snapshot_.field_of_view_degrees) *
+            amount;
+    return result;
+  }
   bool initialized() const { return initialized_; }
 
   const Snapshot& update(Vec3 player_position,
@@ -67,7 +86,9 @@ class Runtime {
       snapshot_.target = player_position;
       snapshot_.position = desiredPosition(snapshot_.target, parameters);
       initialized_ = true;
+      previous_snapshot_ = snapshot_;
     } else {
+      previous_snapshot_ = snapshot_;
       followAxis(snapshot_.target.x, player_position.x,
                  parameters.horizontal_target_zone);
       followAxis(snapshot_.target.z, player_position.z,
@@ -159,6 +180,7 @@ class Runtime {
 
   Parameters defaults_;
   std::vector<Zone> zones_;
+  Snapshot previous_snapshot_{};
   Snapshot snapshot_{};
   bool initialized_ = false;
 };
