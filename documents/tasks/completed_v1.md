@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 67 — Scripted/cinematic animation timelines
+
+**Выполнено:** 22 июля 2026.
+
+Versioned binding registry расширен 14 independently addressable scene-data
+timelines, которые связывают все подтверждённые 63 cinematic contexts и 44
+уникальных clips с точными script events, actor actions, dictionary slots и cue
+indices. Entrance, exit и in-game типы, camera/audio/subtitle cues, блокировка и
+возврат управления, interrupt, skip, checkpoint restore и повторный вход имеют
+явные политики. Не подтверждённое исходными данными распределение 14
+`CKCinematicSceneData` между четырьмя `CKCinematicScene` не угадывалось.
+
+Добавлены идемпотентный генератор, строгая проверка totals, уникальности
+timelines/events и exact event-to-clip reachability. Native coordinator
+синхронно выдаёт actor tracks и presentation cues, сохраняет текущий cue при
+interrupt, восстанавливает snapshot без replay, применяет terminal state при
+skip и всегда возвращает gameplay camera/audio/control. Сценарный XCTest
+проверяет двух actors, interrupt/resume, checkpoint restore, skip и re-entry;
+Dart regressions проходят все 63 bindings и отклоняют неполные graphs.
+
+Пройдены resource policy, native FFI build, `flutter analyze`, все 88 Flutter
+tests и 41 native XCTest. Генератор повторно создаёт byte-identical manifest;
+оригинальные ресурсы и производные игровые данные в Git не добавлялись.
+Sub-frame animation event tracks остаются п. 68.
+
 ## П. 66 — World animation graphs объектов, окружения и механизмов
 
 **Выполнено:** 22 июля 2026.

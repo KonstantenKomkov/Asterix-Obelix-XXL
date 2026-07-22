@@ -20,7 +20,6 @@
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 | 61 | Подключить gameplay-камеру к фактическому перемещению игрока в Metal render loop | Gameplay bugfix | P0 | M | После п. 34 и 56; каждый fixed tick камера получает актуальную позицию капсулы, render использует интерполированный camera snapshot для view/projection, frustum/culling и audio listener; при движении во всех направлениях игрок остаётся в заданной dead zone без рывков и рассинхронизации, follow/collision поведение покрыто regression-тестом |
-| 67 | Привязать все scripted/cinematic анимации к сценарным событиям | Scripted animation graphs | P1 | XL | После п. 62 и 63; entrance/exit, in-game сценки, синхронные действия нескольких actors, camera/audio/subtitle cues и возврат управления описаны timeline/event bindings; interrupt, skip, checkpoint restore и повторный вход имеют определённое поведение; каждый cinematic clip достижим из соответствующего script event и проверен сценарным тестом |
 | 68 | Ввести единый слой animation events и синхронизацию gameplay с фазами clips | Animation events | P0 | L | После п. 63; footsteps, hit/hurt windows, impulses/root motion, object state changes, VFX/SFX, camera cues и завершение one-shot приходят из versioned event tracks, а не из несвязанных таймеров; fixed-tick sampling не теряет и не дублирует события при blend, low FPS, pause/restore и loop boundary; покрыто детерминированными тестами |
 | 69 | Выполнить сквозную приёмку полноты привязки всех анимаций | Animation acceptance | P0 | L | После п. 64–68; автоматический отчёт сопоставляет asset catalog, dictionaries, binding registry и достижимые runtime graphs: каждый из 345 clips привязан к конкретному trigger/action и имеет хотя бы один проверенный путь воспроизведения; число исключённых, необъяснённых и unbound clips равно нулю, representative sequences сверены визуально с оригиналом без добавления исходных ресурсов в Git |
 
@@ -116,7 +115,7 @@
 - [x] П. 64 — полный animation graph управляемых героев
 - [x] П. 65 — animation graphs врагов, NPC и персонажей
 - [x] П. 66 — анимации объектов, окружения и механизмов
-- [ ] П. 67 — scripted/cinematic анимации
+- [x] П. 67 — scripted/cinematic анимации
 - [ ] П. 68 — animation events и синхронизация gameplay
 - [ ] П. 69 — сквозная приёмка полноты всех привязок
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
@@ -125,7 +124,9 @@
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 66 выполнен: 13 точных world profiles связывают подтверждённые 45 clips / 46 contexts механизмов, shops, activator, fauna, checkpoint, interface и FX с runtime events; идемпотентная доставка и restore без повторного side effect покрыты regressions.
+**Последнее обновление:** 22 июля 2026 — п. 67 выполнен: 14 scene-data timelines связывают подтверждённые 44 clips / 63 cinematic contexts с exact script events и actor cues; camera/audio/subtitle/control, interrupt, skip, checkpoint restore и re-entry покрыты сценарными regressions.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 66 выполнен: 13 точных world profiles связывают подтверждённые 45 clips / 46 contexts механизмов, shops, activator, fauna, checkpoint, interface и FX с runtime events; идемпотентная доставка и restore без повторного side effect покрыты regressions.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 65 выполнен: 27 точных character profiles связывают подтверждённые 92 clips / 109 contexts врагов, leaders, NPC и animated characters с runtime states/events; deterministic variants, reachability, terminal death и совпадение attack impact phase покрыты regressions.
 

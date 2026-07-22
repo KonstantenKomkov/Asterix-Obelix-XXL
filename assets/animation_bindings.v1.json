@@ -10392,6 +10392,1518 @@
       "trigger": "world-state:shop.idle",
       "dictionaryId": 21,
       "slot": 0
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-7",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-7",
+      "clip": "0025.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-7",
+      "dictionaryId": 5,
+      "slot": 7,
+      "timeline": "scene-data-1",
+      "cueIndex": 7
+    },
+    {
+      "actor": "asterix",
+      "skin": 12,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-8",
+      "action": "cinematic.scene-8.performance.cue-5",
+      "context": "cinematic",
+      "variant": "dictionary-12-slot-5",
+      "clip": "0025.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-8:cue-5",
+      "dictionaryId": 12,
+      "slot": 5,
+      "timeline": "scene-data-8",
+      "cueIndex": 5
+    },
+    {
+      "actor": "asterix",
+      "skin": 14,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-10",
+      "action": "cinematic.scene-10.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-14-slot-1",
+      "clip": "0025.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-10:cue-1",
+      "dictionaryId": 14,
+      "slot": 1,
+      "timeline": "scene-data-10",
+      "cueIndex": 1
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-2",
+      "clip": "0035.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-2",
+      "dictionaryId": 5,
+      "slot": 2,
+      "timeline": "scene-data-1",
+      "cueIndex": 2
+    },
+    {
+      "actor": "asterix",
+      "skin": 12,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-8",
+      "action": "cinematic.scene-8.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-12-slot-1",
+      "clip": "0035.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-8:cue-1",
+      "dictionaryId": 12,
+      "slot": 1,
+      "timeline": "scene-data-8",
+      "cueIndex": 1
+    },
+    {
+      "actor": "asterix",
+      "skin": 12,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-8",
+      "action": "cinematic.scene-8.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-12-slot-4",
+      "clip": "0053.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-8:cue-4",
+      "dictionaryId": 12,
+      "slot": 4,
+      "timeline": "scene-data-8",
+      "cueIndex": 4
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-0",
+      "clip": "0058.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-0",
+      "dictionaryId": 5,
+      "slot": 0,
+      "timeline": "scene-data-1",
+      "cueIndex": 0
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-6",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-6",
+      "clip": "0058.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-6",
+      "dictionaryId": 5,
+      "slot": 6,
+      "timeline": "scene-data-1",
+      "cueIndex": 6
+    },
+    {
+      "actor": "asterix",
+      "skin": 12,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-8",
+      "action": "cinematic.scene-8.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-12-slot-0",
+      "clip": "0058.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-8:cue-0",
+      "dictionaryId": 12,
+      "slot": 0,
+      "timeline": "scene-data-8",
+      "cueIndex": 0
+    },
+    {
+      "actor": "asterix",
+      "skin": 14,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-10",
+      "action": "cinematic.scene-10.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-14-slot-0",
+      "clip": "0058.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-10:cue-0",
+      "dictionaryId": 14,
+      "slot": 0,
+      "timeline": "scene-data-10",
+      "cueIndex": 0
+    },
+    {
+      "actor": "asterix",
+      "skin": 12,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-8",
+      "action": "cinematic.scene-8.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-12-slot-2",
+      "clip": "0075.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-8:cue-2",
+      "dictionaryId": 12,
+      "slot": 2,
+      "timeline": "scene-data-8",
+      "cueIndex": 2
+    },
+    {
+      "actor": "asterix",
+      "skin": 14,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-10",
+      "action": "cinematic.scene-10.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-14-slot-4",
+      "clip": "0075.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-10:cue-4",
+      "dictionaryId": 14,
+      "slot": 4,
+      "timeline": "scene-data-10",
+      "cueIndex": 4
+    },
+    {
+      "actor": "asterix",
+      "skin": 12,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-8",
+      "action": "cinematic.scene-8.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-12-slot-3",
+      "clip": "0076.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-8:cue-3",
+      "dictionaryId": 12,
+      "slot": 3,
+      "timeline": "scene-data-8",
+      "cueIndex": 3
+    },
+    {
+      "actor": "asterix",
+      "skin": 14,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-10",
+      "action": "cinematic.scene-10.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-14-slot-3",
+      "clip": "0076.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-10:cue-3",
+      "dictionaryId": 14,
+      "slot": 3,
+      "timeline": "scene-data-10",
+      "cueIndex": 3
+    },
+    {
+      "actor": "asterix",
+      "skin": 14,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-10",
+      "action": "cinematic.scene-10.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-14-slot-2",
+      "clip": "0077.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-10:cue-2",
+      "dictionaryId": 14,
+      "slot": 2,
+      "timeline": "scene-data-10",
+      "cueIndex": 2
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-1",
+      "clip": "0078.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-1",
+      "dictionaryId": 5,
+      "slot": 1,
+      "timeline": "scene-data-1",
+      "cueIndex": 1
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-4",
+      "clip": "0079.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-4",
+      "dictionaryId": 5,
+      "slot": 4,
+      "timeline": "scene-data-1",
+      "cueIndex": 4
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-5",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-5",
+      "clip": "0080.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-5",
+      "dictionaryId": 5,
+      "slot": 5,
+      "timeline": "scene-data-1",
+      "cueIndex": 5
+    },
+    {
+      "actor": "asterix",
+      "skin": 5,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-1",
+      "action": "cinematic.scene-1.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-5-slot-3",
+      "clip": "0081.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-1:cue-3",
+      "dictionaryId": 5,
+      "slot": 3,
+      "timeline": "scene-data-1",
+      "cueIndex": 3
+    },
+    {
+      "actor": "asterix",
+      "skin": 14,
+      "skinProfile": "asterix-hanim-58",
+      "costume": "scene-10",
+      "action": "cinematic.scene-10.performance.cue-5",
+      "context": "cinematic",
+      "variant": "dictionary-14-slot-5",
+      "clip": "0094.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-10:cue-5",
+      "dictionaryId": 14,
+      "slot": 5,
+      "timeline": "scene-data-10",
+      "cueIndex": 5
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-7",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-7",
+      "clip": "0116.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-7",
+      "dictionaryId": 6,
+      "slot": 7,
+      "timeline": "scene-data-2",
+      "cueIndex": 7
+    },
+    {
+      "actor": "obelix",
+      "skin": 13,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-9",
+      "action": "cinematic.scene-9.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-13-slot-1",
+      "clip": "0116.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-9:cue-1",
+      "dictionaryId": 13,
+      "slot": 1,
+      "timeline": "scene-data-9",
+      "cueIndex": 1
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-1",
+      "clip": "0125.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-1",
+      "dictionaryId": 6,
+      "slot": 1,
+      "timeline": "scene-data-2",
+      "cueIndex": 1
+    },
+    {
+      "actor": "obelix",
+      "skin": 11,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-7",
+      "action": "cinematic.scene-7.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-11-slot-4",
+      "clip": "0125.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-7:cue-4",
+      "dictionaryId": 11,
+      "slot": 4,
+      "timeline": "scene-data-7",
+      "cueIndex": 4
+    },
+    {
+      "actor": "obelix",
+      "skin": 13,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-9",
+      "action": "cinematic.scene-9.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-13-slot-3",
+      "clip": "0125.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-9:cue-3",
+      "dictionaryId": 13,
+      "slot": 3,
+      "timeline": "scene-data-9",
+      "cueIndex": 3
+    },
+    {
+      "actor": "obelix",
+      "skin": 11,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-7",
+      "action": "cinematic.scene-7.performance.cue-5",
+      "context": "cinematic",
+      "variant": "dictionary-11-slot-5",
+      "clip": "0140.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-7:cue-5",
+      "dictionaryId": 11,
+      "slot": 5,
+      "timeline": "scene-data-7",
+      "cueIndex": 5
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-8",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-8",
+      "clip": "0142.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-8",
+      "dictionaryId": 6,
+      "slot": 8,
+      "timeline": "scene-data-2",
+      "cueIndex": 8
+    },
+    {
+      "actor": "obelix",
+      "skin": 11,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-7",
+      "action": "cinematic.scene-7.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-11-slot-1",
+      "clip": "0142.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-7:cue-1",
+      "dictionaryId": 11,
+      "slot": 1,
+      "timeline": "scene-data-7",
+      "cueIndex": 1
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-0",
+      "clip": "0145.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-0",
+      "dictionaryId": 6,
+      "slot": 0,
+      "timeline": "scene-data-2",
+      "cueIndex": 0
+    },
+    {
+      "actor": "obelix",
+      "skin": 11,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-7",
+      "action": "cinematic.scene-7.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-11-slot-0",
+      "clip": "0145.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-7:cue-0",
+      "dictionaryId": 11,
+      "slot": 0,
+      "timeline": "scene-data-7",
+      "cueIndex": 0
+    },
+    {
+      "actor": "obelix",
+      "skin": 13,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-9",
+      "action": "cinematic.scene-9.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-13-slot-0",
+      "clip": "0145.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-9:cue-0",
+      "dictionaryId": 13,
+      "slot": 0,
+      "timeline": "scene-data-9",
+      "cueIndex": 0
+    },
+    {
+      "actor": "obelix",
+      "skin": 13,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-9",
+      "action": "cinematic.scene-9.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-13-slot-2",
+      "clip": "0156.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "script.cinematic.scene-data-9:cue-2",
+      "dictionaryId": 13,
+      "slot": 2,
+      "timeline": "scene-data-9",
+      "cueIndex": 2
+    },
+    {
+      "actor": "obelix",
+      "skin": 11,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-7",
+      "action": "cinematic.scene-7.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-11-slot-2",
+      "clip": "0157.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-7:cue-2",
+      "dictionaryId": 11,
+      "slot": 2,
+      "timeline": "scene-data-7",
+      "cueIndex": 2
+    },
+    {
+      "actor": "obelix",
+      "skin": 13,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-9",
+      "action": "cinematic.scene-9.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-13-slot-4",
+      "clip": "0157.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-9:cue-4",
+      "dictionaryId": 13,
+      "slot": 4,
+      "timeline": "scene-data-9",
+      "cueIndex": 4
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-6",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-6",
+      "clip": "0158.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-6",
+      "dictionaryId": 6,
+      "slot": 6,
+      "timeline": "scene-data-2",
+      "cueIndex": 6
+    },
+    {
+      "actor": "obelix",
+      "skin": 11,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-7",
+      "action": "cinematic.scene-7.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-11-slot-3",
+      "clip": "0158.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-7:cue-3",
+      "dictionaryId": 11,
+      "slot": 3,
+      "timeline": "scene-data-7",
+      "cueIndex": 3
+    },
+    {
+      "actor": "obelix",
+      "skin": 13,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-9",
+      "action": "cinematic.scene-9.performance.cue-5",
+      "context": "cinematic",
+      "variant": "dictionary-13-slot-5",
+      "clip": "0158.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-9:cue-5",
+      "dictionaryId": 13,
+      "slot": 5,
+      "timeline": "scene-data-9",
+      "cueIndex": 5
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-2",
+      "clip": "0159.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-2",
+      "dictionaryId": 6,
+      "slot": 2,
+      "timeline": "scene-data-2",
+      "cueIndex": 2
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-4",
+      "clip": "0160.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-4",
+      "dictionaryId": 6,
+      "slot": 4,
+      "timeline": "scene-data-2",
+      "cueIndex": 4
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-5",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-5",
+      "clip": "0161.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-5",
+      "dictionaryId": 6,
+      "slot": 5,
+      "timeline": "scene-data-2",
+      "cueIndex": 5
+    },
+    {
+      "actor": "obelix",
+      "skin": 6,
+      "skinProfile": "obelix-hanim-58",
+      "costume": "scene-2",
+      "action": "cinematic.scene-2.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-6-slot-3",
+      "clip": "0162.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 58,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-2:cue-3",
+      "dictionaryId": 6,
+      "slot": 3,
+      "timeline": "scene-data-2",
+      "cueIndex": 3
+    },
+    {
+      "actor": "idefix",
+      "skin": 8,
+      "skinProfile": "idefix-hanim-31",
+      "costume": "scene-4",
+      "action": "cinematic.scene-4.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-8-slot-0",
+      "clip": "0176.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-4:cue-0",
+      "dictionaryId": 8,
+      "slot": 0,
+      "timeline": "scene-data-4",
+      "cueIndex": 0
+    },
+    {
+      "actor": "idefix",
+      "skin": 8,
+      "skinProfile": "idefix-hanim-31",
+      "costume": "scene-4",
+      "action": "cinematic.scene-4.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-8-slot-1",
+      "clip": "0179.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-4:cue-1",
+      "dictionaryId": 8,
+      "slot": 1,
+      "timeline": "scene-data-4",
+      "cueIndex": 1
+    },
+    {
+      "actor": "idefix",
+      "skin": 8,
+      "skinProfile": "idefix-hanim-31",
+      "costume": "scene-4",
+      "action": "cinematic.scene-4.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-8-slot-2",
+      "clip": "0185.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-4:cue-2",
+      "dictionaryId": 8,
+      "slot": 2,
+      "timeline": "scene-data-4",
+      "cueIndex": 2
+    },
+    {
+      "actor": "idefix",
+      "skin": 18,
+      "skinProfile": "idefix-hanim-31",
+      "costume": "scene-13",
+      "action": "cinematic.scene-13.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-18-slot-1",
+      "clip": "0185.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-13:cue-1",
+      "dictionaryId": 18,
+      "slot": 1,
+      "timeline": "scene-data-13",
+      "cueIndex": 1
+    },
+    {
+      "actor": "idefix",
+      "skin": 8,
+      "skinProfile": "idefix-hanim-31",
+      "costume": "scene-4",
+      "action": "cinematic.scene-4.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-8-slot-3",
+      "clip": "0187.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-4:cue-3",
+      "dictionaryId": 8,
+      "slot": 3,
+      "timeline": "scene-data-4",
+      "cueIndex": 3
+    },
+    {
+      "actor": "idefix",
+      "skin": 8,
+      "skinProfile": "idefix-hanim-31",
+      "costume": "scene-4",
+      "action": "cinematic.scene-4.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-8-slot-4",
+      "clip": "0188.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-4:cue-4",
+      "dictionaryId": 8,
+      "slot": 4,
+      "timeline": "scene-data-4",
+      "cueIndex": 4
+    },
+    {
+      "actor": "idefix",
+      "skin": 18,
+      "skinProfile": "idefix-hanim-31",
+      "costume": "scene-13",
+      "action": "cinematic.scene-13.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-18-slot-0",
+      "clip": "0198.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-13:cue-0",
+      "dictionaryId": 18,
+      "slot": 0,
+      "timeline": "scene-data-13",
+      "cueIndex": 0
+    },
+    {
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "skinProfile": "cinematic-actor:scene-data-11-hanim-52",
+      "costume": "scene-11",
+      "action": "cinematic.scene-11.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-15-slot-0",
+      "clip": "0234.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-11:cue-0",
+      "dictionaryId": 15,
+      "slot": 0,
+      "timeline": "scene-data-11",
+      "cueIndex": 0
+    },
+    {
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "skinProfile": "cinematic-actor:scene-data-11-hanim-52",
+      "costume": "scene-11",
+      "action": "cinematic.scene-11.performance.cue-3",
+      "context": "cinematic",
+      "variant": "dictionary-15-slot-3",
+      "clip": "0234.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-11:cue-3",
+      "dictionaryId": 15,
+      "slot": 3,
+      "timeline": "scene-data-11",
+      "cueIndex": 3
+    },
+    {
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "skinProfile": "cinematic-actor:scene-data-11-hanim-52",
+      "costume": "scene-11",
+      "action": "cinematic.scene-11.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-15-slot-1",
+      "clip": "0235.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-11:cue-1",
+      "dictionaryId": 15,
+      "slot": 1,
+      "timeline": "scene-data-11",
+      "cueIndex": 1
+    },
+    {
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "skinProfile": "cinematic-actor:scene-data-11-hanim-52",
+      "costume": "scene-11",
+      "action": "cinematic.scene-11.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-15-slot-2",
+      "clip": "0236.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-11:cue-2",
+      "dictionaryId": 15,
+      "slot": 2,
+      "timeline": "scene-data-11",
+      "cueIndex": 2
+    },
+    {
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "skinProfile": "cinematic-actor:scene-data-11-hanim-52",
+      "costume": "scene-11",
+      "action": "cinematic.scene-11.performance.cue-5",
+      "context": "cinematic",
+      "variant": "dictionary-15-slot-5",
+      "clip": "0237.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-11:cue-5",
+      "dictionaryId": 15,
+      "slot": 5,
+      "timeline": "scene-data-11",
+      "cueIndex": 5
+    },
+    {
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "skinProfile": "cinematic-actor:scene-data-11-hanim-52",
+      "costume": "scene-11",
+      "action": "cinematic.scene-11.performance.cue-4",
+      "context": "cinematic",
+      "variant": "dictionary-15-slot-4",
+      "clip": "0238.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-11:cue-4",
+      "dictionaryId": 15,
+      "slot": 4,
+      "timeline": "scene-data-11",
+      "cueIndex": 4
+    },
+    {
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "skinProfile": "cinematic-actor:scene-data-11-hanim-52",
+      "costume": "scene-11",
+      "action": "cinematic.scene-11.performance.cue-6",
+      "context": "cinematic",
+      "variant": "dictionary-15-slot-6",
+      "clip": "0239.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-11:cue-6",
+      "dictionaryId": 15,
+      "slot": 6,
+      "timeline": "scene-data-11",
+      "cueIndex": 6
+    },
+    {
+      "actor": "cinematic-actor:scene-data-0",
+      "skin": 3,
+      "skinProfile": "cinematic-actor:scene-data-0-hanim-52",
+      "costume": "scene-0",
+      "action": "cinematic.scene-0.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-3-slot-1",
+      "clip": "0240.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-0:cue-1",
+      "dictionaryId": 3,
+      "slot": 1,
+      "timeline": "scene-data-0",
+      "cueIndex": 1
+    },
+    {
+      "actor": "cinematic-actor:scene-data-0",
+      "skin": 3,
+      "skinProfile": "cinematic-actor:scene-data-0-hanim-52",
+      "costume": "scene-0",
+      "action": "cinematic.scene-0.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-3-slot-0",
+      "clip": "0241.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-0:cue-0",
+      "dictionaryId": 3,
+      "slot": 0,
+      "timeline": "scene-data-0",
+      "cueIndex": 0
+    },
+    {
+      "actor": "cinematic-prop:scene-data-12",
+      "skin": 16,
+      "skinProfile": "cinematic-prop:scene-data-12-hanim-3",
+      "costume": "scene-12",
+      "action": "cinematic.scene-12.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-16-slot-0",
+      "clip": "0298.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 3,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-12:cue-0",
+      "dictionaryId": 16,
+      "slot": 0,
+      "timeline": "scene-data-12",
+      "cueIndex": 0
+    },
+    {
+      "actor": "cinematic-prop:scene-data-12",
+      "skin": 16,
+      "skinProfile": "cinematic-prop:scene-data-12-hanim-3",
+      "costume": "scene-12",
+      "action": "cinematic.scene-12.performance.cue-1",
+      "context": "cinematic",
+      "variant": "dictionary-16-slot-1",
+      "clip": "0299.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 3,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-12:cue-1",
+      "dictionaryId": 16,
+      "slot": 1,
+      "timeline": "scene-data-12",
+      "cueIndex": 1
+    },
+    {
+      "actor": "cinematic-prop:scene-data-12",
+      "skin": 16,
+      "skinProfile": "cinematic-prop:scene-data-12-hanim-3",
+      "costume": "scene-12",
+      "action": "cinematic.scene-12.performance.cue-2",
+      "context": "cinematic",
+      "variant": "dictionary-16-slot-2",
+      "clip": "0300.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 3,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "script.cinematic.scene-data-12:cue-2",
+      "dictionaryId": 16,
+      "slot": 2,
+      "timeline": "scene-data-12",
+      "cueIndex": 2
+    },
+    {
+      "actor": "animated-character:dictionary-7",
+      "skin": 7,
+      "skinProfile": "animated-character:dictionary-7-hanim-4",
+      "costume": "scene-3",
+      "action": "cinematic.scene-3.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-7-slot-0",
+      "clip": "0302.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 4,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-3:cue-0",
+      "dictionaryId": 7,
+      "slot": 0,
+      "timeline": "scene-data-3",
+      "cueIndex": 0
+    },
+    {
+      "actor": "animated-character:dictionary-9",
+      "skin": 9,
+      "skinProfile": "animated-character:dictionary-9-hanim-26",
+      "costume": "scene-5",
+      "action": "cinematic.scene-5.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-9-slot-0",
+      "clip": "0343.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 26,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-5:cue-0",
+      "dictionaryId": 9,
+      "slot": 0,
+      "timeline": "scene-data-5",
+      "cueIndex": 0
+    },
+    {
+      "actor": "animated-character:dictionary-10",
+      "skin": 10,
+      "skinProfile": "animated-character:dictionary-10-hanim-37",
+      "costume": "scene-6",
+      "action": "cinematic.scene-6.performance.cue-0",
+      "context": "cinematic",
+      "variant": "dictionary-10-slot-0",
+      "clip": "0344.animation.json",
+      "loop": false,
+      "priority": 100,
+      "fallback": false,
+      "skeletonNodes": 37,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "script.cinematic.scene-data-6:cue-0",
+      "dictionaryId": 10,
+      "slot": 0,
+      "timeline": "scene-data-6",
+      "cueIndex": 0
     }
   ],
   "characterGraphVersion": 1,
@@ -11107,6 +12619,861 @@
         "ui-event:interface.transition": "interface.transition"
       },
       "restorePolicy": "snapshot-without-replay"
+    }
+  ],
+  "cinematicGraphVersion": 1,
+  "cinematicCatalog": {
+    "clipCount": 44,
+    "contextCount": 63,
+    "timelineCount": 14
+  },
+  "cinematicTimelines": [
+    {
+      "id": "scene-data-0",
+      "scriptEvent": "script.cinematic.scene-data-0",
+      "kind": "entrance",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "cinematic-actor:scene-data-0",
+          "dictionaryId": 3,
+          "slot": 0,
+          "action": "cinematic.scene-0.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "cinematic-actor:scene-data-0",
+          "dictionaryId": 3,
+          "slot": 1,
+          "action": "cinematic.scene-0.performance.cue-1",
+          "cueIndex": 1
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:0"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:0"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-0"
+        }
+      ],
+      "terminalCue": 1
+    },
+    {
+      "id": "scene-data-1",
+      "scriptEvent": "script.cinematic.scene-data-1",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 0,
+          "action": "cinematic.scene-1.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 1,
+          "action": "cinematic.scene-1.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 2,
+          "action": "cinematic.scene-1.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 3,
+          "action": "cinematic.scene-1.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 4,
+          "action": "cinematic.scene-1.performance.cue-4",
+          "cueIndex": 4
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 5,
+          "action": "cinematic.scene-1.performance.cue-5",
+          "cueIndex": 5
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 6,
+          "action": "cinematic.scene-1.performance.cue-6",
+          "cueIndex": 6
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 5,
+          "slot": 7,
+          "action": "cinematic.scene-1.performance.cue-7",
+          "cueIndex": 7
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:1"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:1"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-1"
+        }
+      ],
+      "terminalCue": 7
+    },
+    {
+      "id": "scene-data-10",
+      "scriptEvent": "script.cinematic.scene-data-10",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "asterix",
+          "dictionaryId": 14,
+          "slot": 0,
+          "action": "cinematic.scene-10.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 14,
+          "slot": 1,
+          "action": "cinematic.scene-10.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 14,
+          "slot": 2,
+          "action": "cinematic.scene-10.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 14,
+          "slot": 3,
+          "action": "cinematic.scene-10.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 14,
+          "slot": 4,
+          "action": "cinematic.scene-10.performance.cue-4",
+          "cueIndex": 4
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 14,
+          "slot": 5,
+          "action": "cinematic.scene-10.performance.cue-5",
+          "cueIndex": 5
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:10"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:10"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-10"
+        }
+      ],
+      "terminalCue": 5
+    },
+    {
+      "id": "scene-data-11",
+      "scriptEvent": "script.cinematic.scene-data-11",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "dictionaryId": 15,
+          "slot": 0,
+          "action": "cinematic.scene-11.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "dictionaryId": 15,
+          "slot": 1,
+          "action": "cinematic.scene-11.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "dictionaryId": 15,
+          "slot": 2,
+          "action": "cinematic.scene-11.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "dictionaryId": 15,
+          "slot": 3,
+          "action": "cinematic.scene-11.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "dictionaryId": 15,
+          "slot": 4,
+          "action": "cinematic.scene-11.performance.cue-4",
+          "cueIndex": 4
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "dictionaryId": 15,
+          "slot": 5,
+          "action": "cinematic.scene-11.performance.cue-5",
+          "cueIndex": 5
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "dictionaryId": 15,
+          "slot": 6,
+          "action": "cinematic.scene-11.performance.cue-6",
+          "cueIndex": 6
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:11"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:11"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-11"
+        }
+      ],
+      "terminalCue": 6
+    },
+    {
+      "id": "scene-data-12",
+      "scriptEvent": "script.cinematic.scene-data-12",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "cinematic-prop:scene-data-12",
+          "dictionaryId": 16,
+          "slot": 0,
+          "action": "cinematic.scene-12.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "cinematic-prop:scene-data-12",
+          "dictionaryId": 16,
+          "slot": 1,
+          "action": "cinematic.scene-12.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "cinematic-prop:scene-data-12",
+          "dictionaryId": 16,
+          "slot": 2,
+          "action": "cinematic.scene-12.performance.cue-2",
+          "cueIndex": 2
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:12"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:12"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-12"
+        }
+      ],
+      "terminalCue": 2
+    },
+    {
+      "id": "scene-data-13",
+      "scriptEvent": "script.cinematic.scene-data-13",
+      "kind": "exit",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "idefix",
+          "dictionaryId": 18,
+          "slot": 0,
+          "action": "cinematic.scene-13.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "idefix",
+          "dictionaryId": 18,
+          "slot": 1,
+          "action": "cinematic.scene-13.performance.cue-1",
+          "cueIndex": 1
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:13"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:13"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-13"
+        }
+      ],
+      "terminalCue": 1
+    },
+    {
+      "id": "scene-data-2",
+      "scriptEvent": "script.cinematic.scene-data-2",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 0,
+          "action": "cinematic.scene-2.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 1,
+          "action": "cinematic.scene-2.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 2,
+          "action": "cinematic.scene-2.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 3,
+          "action": "cinematic.scene-2.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 4,
+          "action": "cinematic.scene-2.performance.cue-4",
+          "cueIndex": 4
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 5,
+          "action": "cinematic.scene-2.performance.cue-5",
+          "cueIndex": 5
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 6,
+          "action": "cinematic.scene-2.performance.cue-6",
+          "cueIndex": 6
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 7,
+          "action": "cinematic.scene-2.performance.cue-7",
+          "cueIndex": 7
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 6,
+          "slot": 8,
+          "action": "cinematic.scene-2.performance.cue-8",
+          "cueIndex": 8
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:2"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:2"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-2"
+        }
+      ],
+      "terminalCue": 8
+    },
+    {
+      "id": "scene-data-3",
+      "scriptEvent": "script.cinematic.scene-data-3",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "animated-character:dictionary-7",
+          "dictionaryId": 7,
+          "slot": 0,
+          "action": "cinematic.scene-3.performance.cue-0",
+          "cueIndex": 0
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:3"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:3"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-3"
+        }
+      ],
+      "terminalCue": 0
+    },
+    {
+      "id": "scene-data-4",
+      "scriptEvent": "script.cinematic.scene-data-4",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "idefix",
+          "dictionaryId": 8,
+          "slot": 0,
+          "action": "cinematic.scene-4.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "idefix",
+          "dictionaryId": 8,
+          "slot": 1,
+          "action": "cinematic.scene-4.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "idefix",
+          "dictionaryId": 8,
+          "slot": 2,
+          "action": "cinematic.scene-4.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "idefix",
+          "dictionaryId": 8,
+          "slot": 3,
+          "action": "cinematic.scene-4.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "idefix",
+          "dictionaryId": 8,
+          "slot": 4,
+          "action": "cinematic.scene-4.performance.cue-4",
+          "cueIndex": 4
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:4"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:4"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-4"
+        }
+      ],
+      "terminalCue": 4
+    },
+    {
+      "id": "scene-data-5",
+      "scriptEvent": "script.cinematic.scene-data-5",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "animated-character:dictionary-9",
+          "dictionaryId": 9,
+          "slot": 0,
+          "action": "cinematic.scene-5.performance.cue-0",
+          "cueIndex": 0
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:5"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:5"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-5"
+        }
+      ],
+      "terminalCue": 0
+    },
+    {
+      "id": "scene-data-6",
+      "scriptEvent": "script.cinematic.scene-data-6",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "animated-character:dictionary-10",
+          "dictionaryId": 10,
+          "slot": 0,
+          "action": "cinematic.scene-6.performance.cue-0",
+          "cueIndex": 0
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:6"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:6"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-6"
+        }
+      ],
+      "terminalCue": 0
+    },
+    {
+      "id": "scene-data-7",
+      "scriptEvent": "script.cinematic.scene-data-7",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "obelix",
+          "dictionaryId": 11,
+          "slot": 0,
+          "action": "cinematic.scene-7.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 11,
+          "slot": 1,
+          "action": "cinematic.scene-7.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 11,
+          "slot": 2,
+          "action": "cinematic.scene-7.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 11,
+          "slot": 3,
+          "action": "cinematic.scene-7.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 11,
+          "slot": 4,
+          "action": "cinematic.scene-7.performance.cue-4",
+          "cueIndex": 4
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 11,
+          "slot": 5,
+          "action": "cinematic.scene-7.performance.cue-5",
+          "cueIndex": 5
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:7"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:7"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-7"
+        }
+      ],
+      "terminalCue": 5
+    },
+    {
+      "id": "scene-data-8",
+      "scriptEvent": "script.cinematic.scene-data-8",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "asterix",
+          "dictionaryId": 12,
+          "slot": 0,
+          "action": "cinematic.scene-8.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 12,
+          "slot": 1,
+          "action": "cinematic.scene-8.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 12,
+          "slot": 2,
+          "action": "cinematic.scene-8.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 12,
+          "slot": 3,
+          "action": "cinematic.scene-8.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 12,
+          "slot": 4,
+          "action": "cinematic.scene-8.performance.cue-4",
+          "cueIndex": 4
+        },
+        {
+          "actor": "asterix",
+          "dictionaryId": 12,
+          "slot": 5,
+          "action": "cinematic.scene-8.performance.cue-5",
+          "cueIndex": 5
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:8"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:8"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-8"
+        }
+      ],
+      "terminalCue": 5
+    },
+    {
+      "id": "scene-data-9",
+      "scriptEvent": "script.cinematic.scene-data-9",
+      "kind": "in-game",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "tracks": [
+        {
+          "actor": "obelix",
+          "dictionaryId": 13,
+          "slot": 0,
+          "action": "cinematic.scene-9.performance.cue-0",
+          "cueIndex": 0
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 13,
+          "slot": 1,
+          "action": "cinematic.scene-9.performance.cue-1",
+          "cueIndex": 1
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 13,
+          "slot": 2,
+          "action": "cinematic.scene-9.performance.cue-2",
+          "cueIndex": 2
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 13,
+          "slot": 3,
+          "action": "cinematic.scene-9.performance.cue-3",
+          "cueIndex": 3
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 13,
+          "slot": 4,
+          "action": "cinematic.scene-9.performance.cue-4",
+          "cueIndex": 4
+        },
+        {
+          "actor": "obelix",
+          "dictionaryId": 13,
+          "slot": 5,
+          "action": "cinematic.scene-9.performance.cue-5",
+          "cueIndex": 5
+        }
+      ],
+      "cues": [
+        {
+          "index": 0,
+          "type": "camera",
+          "value": "cinematic:9"
+        },
+        {
+          "index": 0,
+          "type": "audio",
+          "value": "cinematic:9"
+        },
+        {
+          "index": 0,
+          "type": "subtitle",
+          "value": "cinematic.scene-9"
+        }
+      ],
+      "terminalCue": 5
     }
   ]
 }

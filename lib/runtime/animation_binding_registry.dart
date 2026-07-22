@@ -34,7 +34,10 @@ final class AnimationBindingRegistry {
       bindings.map((binding) => binding['actor']! as String).toSet();
 
   List<Map<String, Object?>> heroBindings(String actor) => bindings
-      .where((binding) => binding['actor'] == actor)
+      .where(
+        (binding) =>
+            binding['actor'] == actor && binding['context'] == 'gameplay',
+      )
       .toList(growable: false);
 
   List<Map<String, Object?>> profileBindings({
@@ -405,6 +408,96 @@ final class AnimationBindingRegistry {
           catalog['clipCount'] != clips.length) {
         throw const AnimationBindingException(
           'world graph catalog totals do not match bindings',
+        );
+      }
+    }
+    if (value['cinematicGraphVersion'] != null) {
+      if (value['cinematicGraphVersion'] != 1 ||
+          value['cinematicTimelines'] is! List ||
+          value['cinematicCatalog'] is! Map<String, Object?>) {
+        throw const AnimationBindingException(
+          'cinematicGraphVersion 1 requires timelines and catalog totals',
+        );
+      }
+      final timelines = value['cinematicTimelines']! as List;
+      final catalog = value['cinematicCatalog']! as Map<String, Object?>;
+      final ids = <String>{};
+      final scriptEvents = <String>{};
+      final clips = <Object?>{};
+      var contexts = 0;
+      for (var index = 0; index < timelines.length; index++) {
+        final raw = timelines[index];
+        if (raw is! Map<String, Object?> ||
+            raw['id'] is! String ||
+            raw['scriptEvent'] is! String ||
+            raw['tracks'] is! List ||
+            raw['cues'] is! List ||
+            raw['terminalCue'] is! int ||
+            raw['skipPolicy'] != 'apply-terminal-state' ||
+            raw['interruptPolicy'] != 'checkpoint-current-cue' ||
+            raw['controlPolicy'] != 'lock-on-start-return-on-terminal' ||
+            raw['reentryPolicy'] !=
+                'resume-checkpoint-or-restart-after-interrupt') {
+          throw AnimationBindingException(
+            'cinematicTimelines[$index] is invalid',
+          );
+        }
+        final id = raw['id']! as String;
+        final event = raw['scriptEvent']! as String;
+        if (!ids.add(id) || !scriptEvents.add(event)) {
+          throw AnimationBindingException('duplicate cinematic timeline $id');
+        }
+        final rawTracks = raw['tracks']! as List;
+        final tracks = rawTracks.whereType<Map<String, Object?>>();
+        final rawCues = raw['cues']! as List;
+        if (tracks.isEmpty ||
+            tracks.length != rawTracks.length ||
+            rawCues.whereType<Map<String, Object?>>().length !=
+                rawCues.length ||
+            rawCues.length < 3) {
+          throw AnimationBindingException(
+            'cinematic timeline $id is incomplete',
+          );
+        }
+        for (final track in tracks) {
+          if (track['actor'] is! String ||
+              track['dictionaryId'] is! int ||
+              track['slot'] is! int ||
+              track['action'] is! String ||
+              track['cueIndex'] is! int) {
+            throw AnimationBindingException(
+              'cinematic track in $id is invalid',
+            );
+          }
+          final matches = bindings.where(
+            (binding) =>
+                binding['context'] == 'cinematic' &&
+                binding['timeline'] == id &&
+                binding['actor'] == track['actor'] &&
+                binding['dictionaryId'] == track['dictionaryId'] &&
+                binding['slot'] == track['slot'] &&
+                binding['action'] == track['action'] &&
+                binding['cueIndex'] == track['cueIndex'] &&
+                binding['trigger'] == '$event:cue-${track['cueIndex']}',
+          );
+          if (matches.length != 1) {
+            throw AnimationBindingException(
+              'cinematic track in $id has no exact event binding',
+            );
+          }
+          clips.add(matches.single['clip']);
+          contexts++;
+        }
+      }
+      final cinematicBindings = bindings
+          .where((binding) => binding['context'] == 'cinematic')
+          .length;
+      if (catalog['timelineCount'] != timelines.length ||
+          catalog['contextCount'] != contexts ||
+          catalog['clipCount'] != clips.length ||
+          cinematicBindings != contexts) {
+        throw const AnimationBindingException(
+          'cinematic graph catalog totals do not match bindings',
         );
       }
     }

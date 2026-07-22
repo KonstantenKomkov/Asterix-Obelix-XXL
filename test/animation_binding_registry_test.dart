@@ -124,6 +124,7 @@ void main() {
           .where(
             (binding) =>
                 {'asterix', 'obelix', 'idefix'}.contains(binding['actor']) &&
+                binding['context'] == 'gameplay' &&
                 binding['variant'] != null,
           )
           .map((binding) => binding['clip'])
@@ -202,6 +203,94 @@ void main() {
     }
     expect(contexts, 46);
     expect(clips, hasLength(45));
+  });
+
+  test('cinematic timelines bind every scene-data cue and clip', () async {
+    final decoded =
+        jsonDecode(
+              await File('assets/animation_bindings.v1.json').readAsString(),
+            )
+            as Map<String, Object?>;
+    final registry = AnimationBindingRegistry.parse(decoded);
+    expect(decoded['cinematicGraphVersion'], 1);
+    expect(decoded['cinematicCatalog'], {
+      'clipCount': 44,
+      'contextCount': 63,
+      'timelineCount': 14,
+    });
+    final timelines = (decoded['cinematicTimelines']! as List)
+        .cast<Map<String, Object?>>();
+    expect(timelines, hasLength(14));
+    final clips = <Object?>{};
+    var contexts = 0;
+    for (final timeline in timelines) {
+      expect((timeline['cues']! as List).map((cue) => cue['type']).toSet(), {
+        'camera',
+        'audio',
+        'subtitle',
+      });
+      for (final track
+          in (timeline['tracks']! as List).cast<Map<String, Object?>>()) {
+        final binding = registry.resolve(
+          AnimationBindingQuery(
+            actor: track['actor']! as String,
+            skin: track['dictionaryId']! as int,
+            costume: 'scene-${(timeline['id']! as String).substring(11)}',
+            action: track['action']! as String,
+            context: 'cinematic',
+            variant:
+                'dictionary-${track['dictionaryId']}-slot-${track['slot']}',
+          ),
+        );
+        expect(binding['timeline'], timeline['id']);
+        clips.add(binding['clip']);
+        contexts++;
+      }
+    }
+    expect(contexts, 63);
+    expect(clips, hasLength(44));
+  });
+
+  test('cinematic graph rejects a cue without an exact event binding', () {
+    final value = manifest();
+    value.addAll({
+      'cinematicGraphVersion': 1,
+      'cinematicCatalog': {
+        'clipCount': 1,
+        'contextCount': 1,
+        'timelineCount': 1,
+      },
+      'cinematicTimelines': [
+        {
+          'id': 'scene-data-1',
+          'scriptEvent': 'script.scene-1',
+          'kind': 'in-game',
+          'reentryPolicy': 'resume-checkpoint-or-restart-after-interrupt',
+          'skipPolicy': 'apply-terminal-state',
+          'interruptPolicy': 'checkpoint-current-cue',
+          'controlPolicy': 'lock-on-start-return-on-terminal',
+          'terminalCue': 0,
+          'cues': [
+            {'type': 'camera'},
+            {'type': 'audio'},
+            {'type': 'subtitle'},
+          ],
+          'tracks': [
+            {
+              'actor': 'hero',
+              'dictionaryId': 4,
+              'slot': 0,
+              'action': 'performance',
+              'cueIndex': 0,
+            },
+          ],
+        },
+      ],
+    });
+    expect(
+      () => AnimationBindingRegistry.parse(value),
+      throwsA(isA<AnimationBindingException>()),
+    );
   });
 
   test(

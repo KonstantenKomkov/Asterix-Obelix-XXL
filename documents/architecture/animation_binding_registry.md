@@ -71,3 +71,21 @@ transitions idempotent across fixed ticks and checkpoint restoration. Binding
 validation rejects missing event targets, cross-profile transitions,
 unreachable states and catalog count drift. Sub-frame event-track sampling is
 still owned by task 68.
+
+`cinematicGraphVersion: 1` adds 14 independently addressable scene-data
+timelines for all 63 confirmed cinematic contexts / 44 unique clips. A script
+event (`script.cinematic.scene-data-N`) starts a timeline; every dictionary
+slot is an exact actor/action cue rather than an inferred clip number. Generic
+camera, audio and subtitle cues accompany timeline start. Scene data is kept
+independent because the imported level proves four `CKCinematicScene` objects
+and fourteen `CKCinematicSceneData` owners but does not yet prove a reliable
+parent-scene mapping; no story grouping is invented.
+
+The native coordinator supports multiple actor tracks on the same cue and
+defines lifecycle behavior explicitly. Starting locks player control; normal
+completion and skip apply the terminal state, clear presentation cues, restore
+gameplay camera/audio and return control. Interrupt retains the current cue,
+checkpoint restore changes state without replaying outputs, resume re-emits the
+current actor poses, and a subsequent script event starts again at cue zero.
+This makes entrance, exit and in-game timelines deterministic while leaving
+sub-frame clip events to task 68.

@@ -13,6 +13,7 @@
 #include "asterix/enemy_runtime.hpp"
 #include "asterix/interactive_runtime.hpp"
 #include "asterix/world_animation_runtime.hpp"
+#include "asterix/cinematic_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -20,6 +21,33 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testCinematicScenarioSupportsCuesInterruptSkipAndRestore {
+  using namespace asterix::cinematic;
+  Runtime runtime;
+  runtime.add("scene-data-1",{"script.cinematic.scene-data-1",
+    {{"asterix",{"enter","gesture","exit"}},
+     {"obelix",{"enter","react","exit"}}}});
+  XCTAssertTrue(runtime.start("script.cinematic.scene-data-1"));
+  auto outputs=runtime.drain();
+  XCTAssertEqual(outputs.size(),6u); // lock + camera/audio/subtitle + two actors
+  XCTAssertTrue(runtime.advance());
+  const Snapshot checkpoint=runtime.snapshot();
+  XCTAssertTrue(runtime.interrupt());
+  XCTAssertEqual(runtime.snapshot().state,State::interrupted);
+  XCTAssertTrue(runtime.restore(checkpoint));
+  XCTAssertTrue(runtime.interrupt());
+  XCTAssertTrue(runtime.resume());
+  XCTAssertEqual(runtime.snapshot().cue,1u);
+  XCTAssertTrue(runtime.skip());
+  outputs=runtime.drain();
+  XCTAssertEqual(runtime.snapshot().state,State::complete);
+  XCTAssertEqual(outputs.back().type,"control");
+  XCTAssertEqual(outputs.back().value,"return");
+  XCTAssertTrue(runtime.start("script.cinematic.scene-data-1"));
+  XCTAssertEqual(runtime.snapshot().cue,0u);
+  XCTAssertFalse(runtime.restore({"scene-data-1",State::playing,99}));
+}
 
 - (void)testWorldAnimationEventsAreIdempotentAndRestoreWithoutReplay {
   using namespace asterix::world_animation;
