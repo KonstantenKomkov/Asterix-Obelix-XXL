@@ -35,7 +35,6 @@
 | 48 | Профилировать CPU, GPU, память, размер приложения и startup time; закрыть утверждённые бюджеты | M6 | После п. 44–47 |
 | 49 | Настроить подпись, Hardened Runtime, notarization и упаковку `.dmg`/`.pkg` | M6 | После п. 1 и готовности release candidate |
 | 50 | Проверить установку и прохождение на чистой системе без Flutter SDK, Xcode, Wine и Windows executable | M6 | После п. 49 |
-| 51 | Подключить реальную skeletal animation Астерикса: сопоставить clips состояниям `idle/run/jump/fall/attack/hurt/death`, вычислять и передавать полную bone palette, убрать T-pose | M5 fidelity | После текущей загрузки skin; персонаж анимирован во всех gameplay-состояниях без повреждения геометрии |
 | 52 | Завершить fidelity материалов и геометрии Gaul: проверить все material slots, alpha/cutout, addressing, texture lookup и оставшиеся нетекстурированные либо неверно преобразованные mesh | M5 fidelity | После level-texture pipeline; стартовая сцена визуально сверена с эталоном без placeholder-геометрии и ошибочных материалов |
 | 53 | Добавить визуальный regression запуска Gaul для камеры, spawn, окружения и персонажа | M5 quality | После п. 51–52; эталонный кадр и автоматическая проверка ловят T-pose, неверный spawn и потерянные texture bindings |
 
@@ -97,11 +96,14 @@
 - [x] П. 41 — presentation MVP
 - [x] П. 42 — приёмка M4
 - [ ] П. 43 — решение о продолжении
-- [ ] П. 44–53 — полный контент, fidelity, качество и release candidate
+- [ ] П. 44–50, 52–53 — полный контент, fidelity, качество и release candidate
+- [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 
 ---
 
-**Последнее обновление:** 21 июля 2026 — п. 42 выполнен: многосекторный ASTPAK содержит STR01_00–03, vertical-slice сценарий принят по movement/combat/death/checkpoint/save/audio, ограничения fidelity переданы в gate п. 43.
+**Последнее обновление:** 22 июля 2026 — п. 51 выполнен: gameplay states Астерикса используют реальные 58-node clips LVL01, RenderWare tracks/HAnim hierarchy восстанавливаются в runtime, полная palette передаётся в Metal без T-pose fallback.
+
+**Предыдущее обновление:** 21 июля 2026 — п. 42 выполнен: многосекторный ASTPAK содержит STR01_00–03, vertical-slice сценарий принят по movement/combat/death/checkpoint/save/audio, ограничения fidelity переданы в gate п. 43.
 
 **Предыдущее обновление:** 21 июля 2026 — п. 41 выполнен: launch/menu/profile/settings flow адаптирован к 560×420 и 1440×900, fullscreen связан с NSWindow, ru/en locale и управляемые субтитры применяются без перезапуска.
 

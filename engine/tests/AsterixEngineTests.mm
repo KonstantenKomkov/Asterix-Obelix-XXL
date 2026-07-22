@@ -457,6 +457,21 @@
   XCTAssertEqualWithAccuracy(fogFactor(20, 0, 10), 0, 0.001);
 }
 
+- (void)testRenderWareTracksAndHierarchyBuildFullPalette {
+  using namespace asterix::animation;
+  std::vector<RawKeyframe> frames(6);
+  frames[2]={0,{},0}; frames[3]={0,{{0,0,0,1},{0,1,0}},1};
+  frames[4]={1,{{0,0,0,1},{2,0,0}},2};
+  frames[5]={1,{{0,0,0,1},{0,2,0}},3};
+  Clip clip; clip.duration=1; clip.tracks=linkedTracks(frames,2);
+  const auto parents=hierarchyParents({2,1});
+  XCTAssertEqual(parents[0],-1); XCTAssertEqual(parents[1],0);
+  const auto palette=skinningPalette(clip,{{parents[0]},{parents[1]}},.5f);
+  XCTAssertEqual(palette.size(),2u);
+  XCTAssertEqualWithAccuracy(palette[1].value[12],1,.001);
+  XCTAssertEqualWithAccuracy(palette[1].value[13],1.5,.001);
+}
+
 - (void)testSceneGraphResolvesHierarchyAndRejectsCycles {
   using namespace asterix::scene;
   Runtime runtime;

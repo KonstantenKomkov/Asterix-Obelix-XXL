@@ -15,6 +15,7 @@
 #include "asterix/enemy_runtime.hpp"
 #include "asterix/interactive_runtime.hpp"
 #include "asterix/audio_runtime.hpp"
+#include "asterix/animation_runtime.hpp"
 
 typedef struct {
   vector_float3 position;
@@ -95,6 +96,53 @@ static BOOL AsterixReadVec3(id value,asterix::collision::Vec3& result) {
   return std::isfinite(result.x)&&std::isfinite(result.y)&&std::isfinite(result.z);
 }
 
+static BOOL AsterixReadMatrix(NSArray* values, asterix::scene::Matrix4& result) {
+  if (![values isKindOfClass:NSArray.class] || values.count != 16) return NO;
+  for (NSUInteger i = 0; i < 16; ++i) {
+    if (![values[i] isKindOfClass:NSNumber.class]) return NO;
+    result.value[i] = [values[i] floatValue];
+    if (!std::isfinite(result.value[i])) return NO;
+  }
+  // RenderWare RwMatrix uses the fourth lane of each vector for flags/padding,
+  // not homogeneous matrix components.
+  result.value[3]=result.value[7]=result.value[11]=0;
+  result.value[15]=1;
+  return YES;
+}
+
+static BOOL AsterixReadClip(NSDictionary* json, BOOL looping,
+                            asterix::animation::Clip& result) {
+  const NSUInteger jointCount = [json[@"nodeCount"] unsignedIntegerValue];
+  const NSUInteger keySize = [json[@"keyFrameSize"] unsignedIntegerValue];
+  NSArray* values = json[@"frames"];
+  if (jointCount == 0 || keySize == 0 || ![values isKindOfClass:NSArray.class]) return NO;
+  std::vector<asterix::animation::RawKeyframe> frames;
+  frames.reserve(values.count);
+  for (NSDictionary* value in values) {
+    NSArray* q = value[@"quaternion"];
+    NSArray* t = value[@"translation"];
+    if (![q isKindOfClass:NSArray.class] || q.count != 4 ||
+        ![t isKindOfClass:NSArray.class] || t.count != 3) return NO;
+    asterix::animation::RawKeyframe frame;
+    frame.time = [value[@"time"] floatValue];
+    frame.previous = [value[@"previousFrame"] intValue] / (int)keySize;
+    for (NSUInteger i = 0; i < 4; ++i) frame.transform.rotation[i] = [q[i] floatValue];
+    for (NSUInteger i = 0; i < 3; ++i) frame.transform.translation[i] = [t[i] floatValue];
+    frames.push_back(frame);
+  }
+  try { result.tracks = asterix::animation::linkedTracks(frames, jointCount); }
+  catch (const std::exception&) { return NO; }
+  result.duration = [json[@"duration"] floatValue];
+  result.looping = looping;
+  return result.duration > 0;
+}
+
+static matrix_float4x4 AsterixMetalMatrix(const asterix::scene::Matrix4& value) {
+  matrix_float4x4 result;
+  for (NSUInteger i = 0; i < 16; ++i) result.columns[i / 4][i % 4] = value.value[i];
+  return result;
+}
+
 static matrix_float4x4 AsterixPerspective(float fovY, float aspect,
                                            float nearZ, float farZ) {
   const float y = 1.0f / tanf(fovY * 0.5f);
@@ -135,7 +183,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   NSUInteger _playerMeshVertexStart;
   NSUInteger _playerMeshVertexCount;
   id<MTLTexture> _playerTexture;
-  std::vector<vector_float3> _playerMeshPositions;
+  std::vector<asterix::animation::Joint> _playerJoints;
+  std::array<asterix::animation::Clip, 7> _playerClips;
+  std::array<bool, 7> _playerClipAvailable;
   NSUInteger _enemyMarkerVertexStart;
   std::vector<std::vector<AsterixMeshRange>> _sceneMeshRanges;
   std::unique_ptr<asterix::scene::Runtime> _sceneRuntime;
@@ -516,6 +566,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::vector<asterix::collision::Triangle> startCollisionTriangles;
   std::vector<std::vector<AsterixMeshRange>> meshRanges;
   NSDictionary* playerSkin = nil;
+  NSMutableDictionary<NSString*, NSDictionary*>* playerAnimations = [NSMutableDictionary dictionary];
   std::vector<asterix::scene::Node> runtimeNodes;
   NSUInteger meshCount = 0;
   vector_float3 minimum = {INFINITY, INFINITY, INFINITY};
@@ -536,6 +587,27 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       playerSkin=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
     }
     break;
+  }
+  // LVL01's Asterix set has 58 nodes. These source-stable clip numbers were
+  // classified against the gameplay states; one-shots deliberately do not loop.
+  NSDictionary<NSString*, NSString*>* animationKeys = @{
+    @"idle":@"0053.animation.json", @"run":@"0055.animation.json",
+    @"jump":@"0031.animation.json", @"fall":@"0039.animation.json",
+    @"attack":@"0000.animation.json", @"hurt":@"0009.animation.json",
+    @"death":@"0033.animation.json"};
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"animation"]) continue;
+    NSString* sourceKey=resource[@"source"][@"key"];
+    NSString* state=nil;
+    for (NSString* candidate in animationKeys)
+      if ([animationKeys[candidate] isEqual:sourceKey]) { state=candidate; break; }
+    if (state==nil) continue;
+    uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset>payloadLength||length>payloadLength-offset)continue;
+    NSData* data=[package subdataWithRange:NSMakeRange((NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+    NSDictionary* clip=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    if([clip[@"nodeCount"] unsignedIntegerValue]==58)playerAnimations[state]=clip;
   }
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"collision"]) continue;
@@ -753,7 +825,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   NSUInteger playerMarkerVertexStart=NSNotFound,enemyMarkerVertexStart=NSNotFound;
   NSUInteger playerMeshVertexStart=NSNotFound,playerMeshVertexCount=0;
   id<MTLTexture> playerTexture=nil;
-  std::vector<vector_float3> playerMeshPositions;
+  std::vector<asterix::animation::Joint> playerJoints;
+  std::array<asterix::animation::Clip,7> playerClips;
+  std::array<bool,7> playerClipAvailable{};
   if (!collisionTriangles.empty()) {
     const auto spawn=asterix::collision::safeSpawnPoint(
         startCollisionTriangles.empty()?collisionTriangles:startCollisionTriangles);
@@ -808,7 +882,42 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     NSArray* skinUvs=skinUvSets.count>0?skinUvSets[0]:nil;
     NSArray* skinMaterials=playerSkin[@"materials"];
     NSArray* skinTriangles=playerSkin[@"triangles"];
-    if(skinPositions.count>0&&skinTriangles.count>0) {
+    NSDictionary* skin=playerSkin[@"skin"];
+    NSArray* boneIndices=skin[@"vertexBoneIndices"];
+    NSArray* boneWeights=skin[@"vertexWeights"];
+    NSArray* inverseBind=skin[@"inverseBindMatrices"];
+    NSArray* hierarchy=playerSkin[@"frames"][0][@"hierarchy"][@"bones"];
+    if(hierarchy.count==inverseBind.count&&hierarchy.count>0) {
+      std::vector<std::uint32_t> flags;
+      for(NSDictionary* bone in hierarchy)flags.push_back([bone[@"flags"] unsignedIntValue]);
+      const auto parents=asterix::animation::hierarchyParents(flags);
+      for(NSUInteger i=0;i<inverseBind.count;++i) {
+        asterix::animation::Joint joint; joint.parent=parents[i];
+        if(!AsterixReadMatrix(inverseBind[i],joint.inverse_bind)){playerJoints.clear();break;}
+        playerJoints.push_back(joint);
+      }
+    }
+    NSArray<NSString*>* stateNames=@[@"idle",@"run",@"jump",@"fall",@"attack",@"hurt",@"death"];
+    if(playerJoints.size()==58)for(NSUInteger i=0;i<stateNames.count;++i)
+      playerClipAvailable[i]=AsterixReadClip(playerAnimations[stateNames[i]],i<2,playerClips[i]);
+    bool bindingsValid=boneIndices.count==skinPositions.count&&
+        boneWeights.count==skinPositions.count;
+    if(bindingsValid)for(NSUInteger vertex=0;vertex<boneIndices.count;++vertex) {
+      if([boneIndices[vertex] count]!=4||[boneWeights[vertex] count]!=4){bindingsValid=false;break;}
+      float total=0;
+      for(NSUInteger influence=0;influence<4;++influence) {
+        const float weight=[boneWeights[vertex][influence] floatValue];
+        if(!std::isfinite(weight)||weight<0||[boneIndices[vertex][influence] unsignedIntegerValue]>=58) {
+          bindingsValid=false; break;
+        }
+        total+=weight;
+      }
+      if(!bindingsValid||total<=0){bindingsValid=false;break;}
+    }
+    const bool animationReady=playerJoints.size()==58&&
+        std::all_of(playerClipAvailable.begin(),playerClipAvailable.end(),[](bool value){return value;});
+    if(skinPositions.count>0&&skinTriangles.count>0&&animationReady&&
+       bindingsValid) {
       playerMeshVertexStart=vertexData.length/sizeof(AsterixVertex);
       NSString* textureName=skinMaterials.count>0?skinMaterials[0][@"texture"]:nil;
       playerTexture=[textureName isKindOfClass:NSString.class]?textures[textureName]:nil;
@@ -826,12 +935,18 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         if(index<skinUvs.count) {
           NSArray* value=skinUvs[index]; uv={(float)[value[0] doubleValue],(float)[value[1] doubleValue]};
         }
-        AsterixVertex vertex={local+(vector_float3){body.position.x,body.position.y,body.position.z},
-            {1,1,1},normal,uv,1,1,1,{0,0,0,0},{1,0,0,0},900001};
+        asterix::animation::VertexBinding binding;
+        if(index<boneIndices.count&&index<boneWeights.count)for(NSUInteger influence=0;influence<4;++influence) {
+          binding.joints[influence]=[boneIndices[index][influence] unsignedShortValue];
+          binding.weights[influence]=[boneWeights[index][influence] floatValue];
+        }
+        AsterixVertex vertex={local,
+            {1,1,1},normal,uv,1,1,1,
+            {binding.joints[0],binding.joints[1],binding.joints[2],binding.joints[3]},
+            {binding.weights[0],binding.weights[1],binding.weights[2],binding.weights[3]},900001};
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
-        playerMeshPositions.push_back(local);
       }
-      playerMeshVertexCount=playerMeshPositions.size();
+      playerMeshVertexCount=vertexData.length/sizeof(AsterixVertex)-playerMeshVertexStart;
     } else {
       playerMarkerVertexStart=vertexData.length/sizeof(AsterixVertex);
       AsterixWriteMarker(marker,body.position,(vector_float3){1.0f,.72f,.08f},900001);
@@ -871,7 +986,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _playerMeshVertexStart=playerMeshVertexStart;
     _playerMeshVertexCount=playerMeshVertexCount;
     _playerTexture=playerTexture;
-    _playerMeshPositions=std::move(playerMeshPositions);
+    _playerJoints=std::move(playerJoints);
+    _playerClips=std::move(playerClips);
+    _playerClipAvailable=playerClipAvailable;
     _enemyMarkerVertexStart=enemyMarkerVertexStart;
     _sceneMeshRanges = std::move(meshRanges);
     _sceneRuntime = std::move(runtime);
@@ -1190,12 +1307,6 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
           AsterixWriteMarker((AsterixVertex*)_sceneVertices.contents+_playerMarkerVertexStart,
                              _playerRuntime->snapshot().body.position,
                              (vector_float3){1.0f,.72f,.08f},900001);
-        if(_sceneVertices&&_playerRuntime&&_playerMeshVertexStart!=NSNotFound) {
-          const auto position=_playerRuntime->snapshot().body.position;
-          AsterixVertex* vertices=(AsterixVertex*)_sceneVertices.contents+_playerMeshVertexStart;
-          for(NSUInteger index=0;index<_playerMeshVertexCount;++index)
-            vertices[index].position=_playerMeshPositions[index]+(vector_float3){position.x,position.y,position.z};
-        }
         if(_sceneVertices&&_enemyRuntime&&_enemyMarkerVertexStart!=NSNotFound)
           AsterixWriteMarker((AsterixVertex*)_sceneVertices.contents+_enemyMarkerVertexStart,
                              _enemyRuntime->snapshot().body.position,
@@ -1231,14 +1342,33 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       [encoder setDepthStencilState:_depthState];
       [encoder setVertexBuffer:hasScene ? sceneVertices : _vertices offset:0 atIndex:0];
       [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-      matrix_float4x4 bones[2] = {matrix_identity_float4x4, matrix_identity_float4x4};
+      std::vector<matrix_float4x4> playerBones(
+          std::max<std::size_t>(1,_playerJoints.size()),matrix_identity_float4x4);
       if (!hasScene) {
         const float angle = sinf(seconds * 2.0f) * .45f;
-        bones[1] = (matrix_float4x4){{{cosf(angle), sinf(angle), 0, 0},
+        playerBones.push_back((matrix_float4x4){{{cosf(angle), sinf(angle), 0, 0},
                                       {-sinf(angle), cosf(angle), 0, 0},
-                                      {0, 0, 1, 0}, {0, 0, 0, 1}}};
+                                      {0, 0, 1, 0}, {0, 0, 0, 1}}});
+      } else if(_playerRuntime&&!_playerJoints.empty()) {
+        const auto snapshot=_playerRuntime->snapshot();
+        const std::size_t state=(std::size_t)snapshot.state;
+        if(state<_playerClips.size()&&_playerClipAvailable[state]) {
+          try {
+            const auto palette=asterix::animation::skinningPalette(
+                _playerClips[state],_playerJoints,snapshot.state_seconds);
+            playerBones.clear(); playerBones.reserve(palette.size());
+            for(const auto& matrix:palette) {
+              auto metal=AsterixMetalMatrix(matrix);
+              metal.columns[3].xyz+=(vector_float3){snapshot.body.position.x,
+                                                    snapshot.body.position.y,
+                                                    snapshot.body.position.z};
+              playerBones.push_back(metal);
+            }
+          } catch(const std::exception&) { playerBones.assign(_playerJoints.size(),matrix_identity_float4x4); }
+        }
       }
-      [encoder setVertexBytes:bones length:sizeof(bones) atIndex:2];
+      matrix_float4x4 identityBone=matrix_identity_float4x4;
+      [encoder setVertexBytes:&identityBone length:sizeof(identityBone) atIndex:2];
       [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
       if (sceneTexture != nil) [encoder setFragmentTexture:sceneTexture atIndex:0];
       if (!hasScene) {
@@ -1288,6 +1418,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
         if(_playerMeshVertexStart!=NSNotFound) {
           [encoder setDepthStencilState:_depthState];
+          [encoder setVertexBytes:playerBones.data()
+                           length:playerBones.size()*sizeof(matrix_float4x4) atIndex:2];
           AsterixUniforms playerUniforms=uniforms;
           playerUniforms.textured=_playerTexture!=nil?1u:0u;
           [encoder setVertexBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
@@ -1297,6 +1429,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                       vertexStart:_playerMeshVertexStart vertexCount:_playerMeshVertexCount];
           [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
           [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+          [encoder setVertexBytes:&identityBone length:sizeof(identityBone) atIndex:2];
           [encoder setDepthStencilState:nil];
         }
         if(_playerMarkerVertexStart!=NSNotFound)

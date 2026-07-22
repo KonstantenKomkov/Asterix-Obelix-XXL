@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 namespace asterix::animation {
@@ -26,6 +27,65 @@ struct VertexBinding {
   std::array<std::uint16_t, 4> joints{};
   std::array<float, 4> weights{1, 0, 0, 0};
 };
+
+// RenderWare HAnim stores the hierarchy as a depth-first list. PUSH keeps the
+// current parent for a branch and POP returns to it after the current bone.
+inline std::vector<int> hierarchyParents(const std::vector<std::uint32_t>& flags) {
+  constexpr std::uint32_t pop_parent = 1;
+  constexpr std::uint32_t push_parent = 2;
+  std::vector<int> result(flags.size(), -1);
+  std::vector<int> stack;
+  int current = -1;
+  for (std::size_t i = 0; i < flags.size(); ++i) {
+    result[i] = current;
+    if ((flags[i] & push_parent) != 0) stack.push_back(current);
+    current = static_cast<int>(i);
+    if ((flags[i] & pop_parent) != 0) {
+      current = stack.empty() ? -1 : stack.back();
+      if (!stack.empty()) stack.pop_back();
+    }
+  }
+  return result;
+}
+
+struct RawKeyframe {
+  float time = 0;
+  Transform transform;
+  int previous = -1;
+};
+
+// Converts the interleaved RenderWare keyframe chains into one track per bone.
+inline std::vector<Track> linkedTracks(const std::vector<RawKeyframe>& frames,
+                                       std::size_t joint_count) {
+  if (joint_count == 0 || frames.size() < joint_count * 2)
+    throw std::invalid_argument("animation has no complete initial poses");
+  std::vector<Track> tracks(joint_count);
+  std::unordered_map<int, std::size_t> owner;
+  for (std::size_t joint = 0; joint < joint_count; ++joint) {
+    owner[static_cast<int>(joint)] = joint;
+    owner[static_cast<int>(joint_count + joint)] = joint;
+  }
+  for (std::size_t index = joint_count; index < frames.size(); ++index) {
+    int cursor = static_cast<int>(index);
+    std::size_t guard = 0;
+    while (owner.find(cursor) == owner.end()) {
+      if (cursor < 0 || static_cast<std::size_t>(cursor) >= frames.size() ||
+          ++guard > frames.size())
+        throw std::invalid_argument("animation keyframe chain is invalid");
+      cursor = frames[static_cast<std::size_t>(cursor)].previous;
+    }
+    const std::size_t joint = owner[cursor];
+    owner[static_cast<int>(index)] = joint;
+    tracks[joint].keys.push_back({frames[index].time, frames[index].transform});
+  }
+  for (auto& track : tracks) {
+    std::stable_sort(track.keys.begin(), track.keys.end(),
+                     [](const Keyframe& a, const Keyframe& b) { return a.time < b.time; });
+    if (track.keys.empty())
+      throw std::invalid_argument("animation joint has no keyframes");
+  }
+  return tracks;
+}
 
 inline Transform interpolate(const Transform& a, const Transform& b, float t) {
   Transform result;

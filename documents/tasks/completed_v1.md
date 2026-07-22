@@ -1,5 +1,29 @@
 # Выполненные задачи первой итерации
 
+## П. 51 — Skeletal animation Астерикса
+
+**Выполнено:** 22 июля 2026.
+
+Реальные LVL01 clips сопоставлены состояниям `idle/run/jump/fall/attack/hurt/death`.
+Metal loader восстанавливает 58 animation tracks из RenderWare previous-frame
+chains, строит hierarchy по HAnim push/pop flags, читает четыре joint indices и
+weights каждого vertex и полные inverse bind matrices skin object 4.
+
+На каждом render frame состояние и `state_seconds` player runtime выбирают и
+sample-ят нужный clip. C++ runtime вычисляет полную 58-bone palette, renderer
+добавляет gameplay-position и передаёт palette только draw-вызову Астерикса;
+статическая сцена продолжает использовать identity bone. Idle/run loop-ятся,
+one-shot состояния фиксируются на финальной позе до перехода state machine.
+
+Review отделил player palette от static geometry, нормализовал служебные
+flags/padding lanes RenderWare inverse-bind matrices и закрыл GPU out-of-bounds:
+неполные clips, несовместимая hierarchy, невалидные joint indices/weights или
+inverse binds приводят к безопасному marker, а не T-pose или повреждённому mesh.
+Новый XCTest проверяет восстановление interleaved tracks, HAnim hierarchy и
+полную palette. Прошли `make check` (49 Flutter tests), 26 native XCTest,
+macOS debug build, diff review и resource policy; приложение smoke-запущено с
+локальным ASTPAK. Оригинальные и производные игровые ресурсы в Git не добавлены.
+
 ## П. 42 — Приёмка vertical slice
 
 **Выполнено:** 21 июля 2026.
