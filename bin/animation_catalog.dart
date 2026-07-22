@@ -60,6 +60,33 @@ Future<void> main(List<String> arguments) async {
     }
     return;
   }
+  if (arguments.length == 3 && arguments.first == 'validate-dictionaries') {
+    final dictionaryIds = arguments[1]
+        .split(',')
+        .map((value) => int.tryParse(value.trim()))
+        .toList(growable: false);
+    if (dictionaryIds.isEmpty || dictionaryIds.any((id) => id == null)) {
+      stderr.writeln('Dictionary IDs must be a comma-separated integer list.');
+      exitCode = 64;
+      return;
+    }
+    final catalog =
+        jsonDecode(await File(arguments[2]).readAsString())
+            as Map<String, Object?>;
+    final requiredDictionaryIds = dictionaryIds.cast<int>().toSet();
+    final issues = validateAnimationSemanticCatalog(
+      catalog,
+      requiredDictionaryIds: requiredDictionaryIds,
+    );
+    if (issues.isNotEmpty) {
+      stderr.writeln(issues.join('\n'));
+      exitCode = 1;
+    } else {
+      final ids = requiredDictionaryIds.toList()..sort();
+      stdout.writeln('Animation dictionaries ${ids.join(', ')} are complete.');
+    }
+    return;
+  }
   if (arguments.length == 4 && arguments.first == 'apply-annotations') {
     final catalog =
         jsonDecode(await File(arguments[1]).readAsString())
@@ -91,6 +118,8 @@ Future<void> main(List<String> arguments) async {
     '<annotations.json> <catalog.json>\n'
     '   or: animation_catalog.dart validate <catalog.json>\n'
     '   or: animation_catalog.dart validate-dictionary <dictionary-id> '
+    '<catalog.json>\n'
+    '   or: animation_catalog.dart validate-dictionaries <id,id,...> '
     '<catalog.json>',
   );
   exitCode = 64;

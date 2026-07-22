@@ -3,10 +3,11 @@ import 'dart:io';
 import 'dart:math' as math;
 
 Future<void> main(List<String> arguments) async {
-  if (arguments.length < 3 || arguments.length > 6) {
+  if (arguments.length < 3 || arguments.length > 7) {
     stderr.writeln(
       'Usage: animation_review.dart <catalog.json> <animations-dir> '
-      '<output.html> [dictionary-id] [clip-ids] [skin-object-id]',
+      '<output.html> [dictionary-id] [clip-ids] [skin-object-id] '
+      '[hierarchy-skin-object-id]',
     );
     exitCode = 64;
     return;
@@ -16,11 +17,17 @@ Future<void> main(List<String> arguments) async {
   final initialDictionary = arguments.length >= 4 ? arguments[3] : '';
   final initialClipIds = arguments.length >= 5 ? arguments[4] : '';
   final dictionaryOrder = int.tryParse(initialDictionary);
-  final requestedSkinObjectId = arguments.length == 6
+  final requestedSkinObjectId = arguments.length >= 6
       ? int.tryParse(arguments[5])
       : null;
-  if (arguments.length == 6 && requestedSkinObjectId == null) {
+  final requestedHierarchySkinObjectId = arguments.length == 7
+      ? int.tryParse(arguments[6])
+      : null;
+  if (arguments.length >= 6 && requestedSkinObjectId == null) {
     throw FormatException('Invalid skin object ID: ${arguments[5]}');
+  }
+  if (arguments.length == 7 && requestedHierarchySkinObjectId == null) {
+    throw FormatException('Invalid hierarchy skin object ID: ${arguments[6]}');
   }
   final requestedClipIds = initialClipIds
       .split(',')
@@ -28,6 +35,7 @@ Future<void> main(List<String> arguments) async {
       .where((id) => id.isNotEmpty)
       .toSet();
   final hierarchies = <int, List<int>>{};
+  final hierarchiesBySkinObjectId = <int, List<int>>{};
   List<int>? requestedHierarchy;
   Map? requestedSkin;
   await for (final entity in directory.list()) {
@@ -36,6 +44,9 @@ Future<void> main(List<String> arguments) async {
     }
     final skin = jsonDecode(await entity.readAsString()) as Map;
     final frames = skin['frames'] as List;
+    if (skin['objectId'] == requestedSkinObjectId) {
+      requestedSkin = skin;
+    }
     if (frames.isEmpty) continue;
     final hierarchy = (frames.first as Map)['hierarchy'];
     if (hierarchy is! Map) continue;
@@ -44,13 +55,31 @@ Future<void> main(List<String> arguments) async {
       bones.map((bone) => (bone as Map)['flags'] as int).toList(),
     );
     hierarchies.putIfAbsent(bones.length, () => parents);
+    hierarchiesBySkinObjectId[skin['objectId'] as int] = parents;
     if (skin['objectId'] == requestedSkinObjectId) {
       requestedHierarchy = parents;
-      requestedSkin = skin;
     }
   }
-  if (requestedSkinObjectId != null && requestedHierarchy == null) {
+  if (requestedSkinObjectId != null && requestedSkin == null) {
     throw FormatException('Unknown skin object ID: $requestedSkinObjectId');
+  }
+  if (requestedSkin != null && requestedHierarchy == null) {
+    requestedHierarchy =
+        hierarchiesBySkinObjectId[requestedHierarchySkinObjectId];
+    if (requestedHierarchy == null) {
+      throw FormatException(
+        'Skin object $requestedSkinObjectId has no HAnim hierarchy; provide a '
+        'compatible hierarchy skin object ID.',
+      );
+    }
+    final skinData = requestedSkin['skin'];
+    final boneCount = skinData is Map ? skinData['boneCount'] as int? : null;
+    if (requestedHierarchy.length != boneCount) {
+      throw FormatException(
+        'Skin object $requestedHierarchySkinObjectId hierarchy has '
+        '${requestedHierarchy.length} bones; expected $boneCount.',
+      );
+    }
   }
 
   final cards = StringBuffer();

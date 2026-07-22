@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-dictionary-validate animation-dictionaries-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -34,6 +34,10 @@ animation-catalog-validate: ## Проверить полный семантич�
 animation-dictionary-validate: ## Проверить один словарь (DICTIONARY=... INPUT=...)
 	@test -n "$(DICTIONARY)" -a -n "$(INPUT)" || (echo 'Укажите DICTIONARY=... INPUT=...' >&2; exit 2)
 	$(DART) run bin/animation_catalog.dart validate-dictionary "$(DICTIONARY)" "$(INPUT)"
+
+animation-dictionaries-validate: ## Проверить набор словарей (DICTIONARIES=0,1 INPUT=...)
+	@test -n "$(DICTIONARIES)" -a -n "$(INPUT)" || (echo 'Укажите DICTIONARIES=0,1 INPUT=...' >&2; exit 2)
+	$(DART) run bin/animation_catalog.dart validate-dictionaries "$(DICTIONARIES)" "$(INPUT)"
 
 animation-review: ## Создать HTML для просмотра clips (CATALOG=... ANIMATIONS=... OUTPUT=...)
 	@test -n "$(CATALOG)" -a -n "$(ANIMATIONS)" -a -n "$(OUTPUT)" || (echo 'Укажите CATALOG=... ANIMATIONS=... OUTPUT=...' >&2; exit 2)

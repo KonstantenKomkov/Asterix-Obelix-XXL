@@ -1,5 +1,33 @@
 # Выполненные задачи первой итерации
 
+## П. 62.3 — Семантический каталог анимаций Обеликса и Идефикса
+
+**Выполнено:** 22 июля 2026.
+
+Все 84 занятых slots `CKHkObelix.heroAnimDict` сведены к 71 уникальному clip,
+а 44 slots `CKHkIdefix.heroAnimDict` — к 22 clips; каждый clip получил статус
+`confirmed`. Для обоих героев зафиксированы default costume, точные
+`CKSkinGeometry:2` и `CKSkinGeometry:0`, действие, playback, переходы, authored
+root motion и отсутствие отдельного event track в импортированном payload.
+
+Общие hero slot families сопоставлены с уже подтверждённым словарём Астерикса
+и отдельно проверены семикадровым front/side exact-skin просмотром. Уникальные
+слоты Обеликса 64–65 просмотрены отдельно и классифицированы как recovery и
+airborne-stun. Геометрия Идефикса хранит skin weights без собственной копии
+HAnim hierarchy; reviewer использует явно указанный hierarchy object 1 и
+проверяет его против `skin.boneCount`, не подменяя выбор точной geometry или
+иерархии совпадением числа костей clip.
+
+Помимо 128 gameplay memberships описаны все 17 shared/cinematic contexts, то
+есть итог содержит ровно 145 contexts без потери actor или scripted назначения.
+Производные игровые данные сохранены только локально вне Git:
+`animation-semantics-obelix-idefix-task62.3.json` (SHA-256
+`212274d1154543180670905d60be0e0dac1eb63f31523bb74327244b447aa446`) и
+`animation-catalog-heroes-task62.3.json` (SHA-256
+`bfe810f43e5f5b9150f20524cf8ee66e8c3522a46143449cad5f310533d2fb1`).
+Совместный scoped validator принимает dictionaries 0 и 1 независимо от ещё
+незавершённых словарей, сохраняя обязательное покрытие shared contexts.
+
 ## П. 62.2 — Семантический каталог анимаций Астерикса
 
 **Выполнено:** 22 июля 2026.

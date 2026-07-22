@@ -121,3 +121,19 @@ track считаться полностью разобранным после п
 fvm dart run bin/animation_catalog.dart validate-dictionary 2 \
   "$HOME/asterix-reference/animation-catalog-task62.json"
 ```
+
+Для совместной приёмки нескольких владельцев можно передать их словари одним
+scoped-запуском. Это сохраняет требование всех shared contexts для затронутых
+clips, но не требует преждевременно подтверждать словари остальных персонажей:
+
+```sh
+fvm dart run bin/animation_catalog.dart validate-dictionaries 0,1 \
+  "$HOME/asterix-reference/animation-catalog-task62.json"
+```
+
+Точная skin geometry может хранить weights и inverse bind matrices без
+собственной копии HAnim hierarchy. Reviewer в таком случае требует отдельный
+`hierarchy-skin-object-id` и проверяет его число костей против объявленного
+`skin.boneCount`; одного совпадения clip node count для выбора геометрии или
+иерархии недостаточно. Для Идефикса exact geometry 0 использует явно связанный
+31-bone hierarchy object 1.
