@@ -38,6 +38,28 @@ Future<void> main(List<String> arguments) async {
     }
     return;
   }
+  if (arguments.length == 2 && arguments.first == 'accept-lvl01') {
+    final catalog =
+        jsonDecode(await File(arguments[1]).readAsString())
+            as Map<String, Object?>;
+    final issues = validateLvl01AnimationCatalogAcceptance(catalog);
+    if (issues.isNotEmpty) {
+      stderr.writeln(issues.join('\n'));
+      exitCode = 1;
+    } else {
+      final dictionaries = catalog['dictionaries']! as List<Object?>;
+      final populatedSlots = dictionaries
+          .cast<Map<String, Object?>>()
+          .expand((dictionary) => dictionary['slots']! as List<Object?>)
+          .whereType<int>()
+          .length;
+      stdout.writeln(
+        'LVL01 animation catalog accepted: 345 confirmed clips, '
+        '52 dictionaries, 518 structural slots, $populatedSlots memberships.',
+      );
+    }
+    return;
+  }
   if (arguments.length == 3 && arguments.first == 'validate-dictionary') {
     final dictionaryId = int.tryParse(arguments[1]);
     if (dictionaryId == null) {
@@ -171,6 +193,7 @@ Future<void> main(List<String> arguments) async {
     '   or: animation_catalog.dart apply-annotations <draft.json> '
     '<annotations.json> <catalog.json>\n'
     '   or: animation_catalog.dart validate <catalog.json>\n'
+    '   or: animation_catalog.dart accept-lvl01 <catalog.json>\n'
     '   or: animation_catalog.dart validate-dictionary <dictionary-id> '
     '<catalog.json>\n'
     '   or: animation_catalog.dart validate-dictionaries <id,id,...> '

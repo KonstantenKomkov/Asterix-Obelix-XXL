@@ -85,6 +85,11 @@ const cinematicAnimationDictionaryIds = <int>{
   18,
 };
 
+/// Objective acceptance totals for the XXL1 LVL01 animation inventory.
+const lvl01AnimationClipCount = 345;
+const lvl01AnimationDictionaryCount = 52;
+const lvl01AnimationSlotCount = 518;
+
 /// Builds the objective part of the semantic catalog from importer output.
 /// Human conclusions live in a separate annotations file and are never
 /// guessed from a clip number.
@@ -302,7 +307,9 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
         continue;
       }
       final dictionaryId = dictionary['objectId']! as int;
-      catalogDictionaryIds.add(dictionaryId);
+      if (!catalogDictionaryIds.add(dictionaryId)) {
+        issues.add(AnimationCatalogIssue('$path.objectId', 'must be unique'));
+      }
       final slots = dictionary['slots']! as List<Object?>;
       for (var slot = 0; slot < slots.length; slot++) {
         final clipIndex = slots[slot];
@@ -330,6 +337,7 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
   }
   final ids = <String>{};
   final managerIndices = <int>{};
+  final membershipCounts = <(int, int), int>{};
   const requiredSemanticFields = [
     'owner',
     'skin',
@@ -398,6 +406,7 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
           membership['dictionaryId']! as int,
           membership['slot']! as int,
         );
+        membershipCounts[key] = (membershipCounts[key] ?? 0) + 1;
         if (dictionarySlots[key] != managerIndex) {
           issues.add(
             AnimationCatalogIssue(
@@ -563,6 +572,63 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
           ),
         );
       }
+    }
+  }
+  for (final entry in dictionarySlots.entries) {
+    final membershipCount = membershipCounts[entry.key] ?? 0;
+    if (membershipCount != 1) {
+      issues.add(
+        AnimationCatalogIssue(
+          'dictionaries[${entry.key.$1}].slots[${entry.key.$2}]',
+          'must be represented by exactly one clip membership; found '
+              '$membershipCount',
+        ),
+      );
+    }
+  }
+  return issues;
+}
+
+/// Runs the final, dataset-specific acceptance gate for task 62.7.
+List<AnimationCatalogIssue> validateLvl01AnimationCatalogAcceptance(
+  Map<String, Object?> catalog,
+) {
+  final issues = validateAnimationSemanticCatalog(catalog);
+  if (catalog['clipCount'] != lvl01AnimationClipCount) {
+    issues.add(
+      const AnimationCatalogIssue(
+        'clipCount',
+        'must equal the LVL01 acceptance total of 345',
+      ),
+    );
+  }
+  final dictionaries = catalog['dictionaries'];
+  if (catalog['dictionaryCount'] != lvl01AnimationDictionaryCount ||
+      dictionaries is! List<Object?> ||
+      dictionaries.length != lvl01AnimationDictionaryCount) {
+    issues.add(
+      const AnimationCatalogIssue(
+        'dictionaries',
+        'must equal the LVL01 acceptance total of 52',
+      ),
+    );
+  }
+  if (dictionaries is List<Object?>) {
+    final slotCount = dictionaries.whereType<Map<String, Object?>>().fold<int>(
+      0,
+      (total, dictionary) =>
+          total +
+          (dictionary['slots'] is List
+              ? (dictionary['slots']! as List).length
+              : 0),
+    );
+    if (slotCount != lvl01AnimationSlotCount) {
+      issues.add(
+        AnimationCatalogIssue(
+          'dictionaries.slots',
+          'must equal the LVL01 acceptance total of 518; found $slotCount',
+        ),
+      );
     }
   }
   return issues;

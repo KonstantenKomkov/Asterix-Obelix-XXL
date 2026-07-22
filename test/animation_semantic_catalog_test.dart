@@ -478,6 +478,54 @@ void main() {
     );
   });
 
+  test('semantic validator requires every populated slot as a membership', () {
+    final catalog = <String, Object?>{
+      'schemaVersion': 1,
+      'clipCount': 1,
+      'dictionaries': [
+        {
+          'objectId': 2,
+          'slots': [0, 0],
+        },
+      ],
+      'clips': [
+        <String, Object?>{
+          'id': '0000',
+          'managerIndex': 0,
+          'dictionaryMemberships': [
+            {'dictionaryId': 2, 'slot': 0},
+          ],
+          'ownerCandidates': [
+            {'ownerClass': 'CKHkAsterix'},
+          ],
+          'status': 'unreviewed',
+        },
+      ],
+    };
+
+    expect(
+      validateAnimationSemanticCatalog(
+        catalog,
+        requireConfirmed: false,
+      ).map((issue) => issue.message),
+      contains('must be represented by exactly one clip membership; found 0'),
+    );
+  });
+
+  test('LVL01 acceptance pins objective inventory totals', () {
+    final issues = validateLvl01AnimationCatalogAcceptance({
+      'schemaVersion': 1,
+      'clipCount': 0,
+      'dictionaryCount': 0,
+      'dictionaries': <Object?>[],
+      'clips': <Object?>[],
+    });
+
+    expect(issues.map((issue) => issue.path), contains('clipCount'));
+    expect(issues.map((issue) => issue.path), contains('dictionaries'));
+    expect(issues.map((issue) => issue.path), contains('dictionaries.slots'));
+  });
+
   test('annotations update only semantic fields', () {
     final catalog = <String, Object?>{
       'clips': [

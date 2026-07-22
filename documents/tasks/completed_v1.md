@@ -1,5 +1,29 @@
 # Выполненные задачи первой итерации
 
+## П. 62.7 — Финальная машинная приёмка семантического каталога
+
+**Выполнено:** 22 июля 2026.
+
+Добавлен отдельный dataset-specific acceptance gate для LVL01, который фиксирует
+объективные размеры набора и принимает ровно 345 manager clips, 52 animation
+dictionaries и 518 структурных slots. Обратная проверка slot coverage закрывает
+пробел прежнего валидатора: каждый из 449 заполненных slots обязан быть
+представлен ровно одним объективным membership, а существующая semantic
+проверка требует для него ровно один confirmed context.
+
+Итоговый локальный каталог
+`$HOME/asterix-reference/animation-catalog-cinematics-task62.6.json` (SHA-256
+`3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`)
+успешно прошёл gate: все 345 clips имеют статус `confirmed`, обязательные
+semantic поля и evidence; `unreviewed`, `provisional`, `excluded`, пустых
+обязательных значений, потерянных memberships и лишних contexts нет.
+
+Пустые dictionary slots входят в объективные 518 структурных позиций, но не
+получают вымышленных animation contexts. Импортированные animation payload не
+содержат authored event tracks, поэтому подтверждённые `events: []` остаются
+явным ограничением до versioned gameplay event tracks п. 68. Оригинальные
+ресурсы и производные игровые данные в Git не добавлялись.
+
 ## П. 62.6 — Семантический каталог cinematic dictionaries и shared contexts
 
 **Выполнено:** 22 июля 2026.

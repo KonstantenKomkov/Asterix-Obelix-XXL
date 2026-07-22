@@ -221,3 +221,18 @@ root-motion policy. Имена конкретных сюжетных сцен н
 event-to-scene mapping: устойчивое назначение выражено через scene data object
 и timeline slot. Shared gameplay clips получают отдельное cinematic действие,
 не теряя contexts hero dictionaries, а authored events не выдумываются.
+
+Финальная машинная приёмка LVL01 выполняется отдельным dataset-specific gate:
+
+```sh
+make animation-catalog-accept \
+  INPUT="$HOME/asterix-reference/animation-catalog-cinematics-task62.6.json"
+```
+
+Gate фиксирует объективные totals исходного набора: ровно 345 manager clips,
+52 словаря и 518 структурных slots. Каждый заполненный slot обязан иметь ровно
+один объективный membership, а каждый membership — ровно один confirmed
+semantic context. Полная семантическая проверка дополнительно исключает
+`unreviewed`, `provisional`, `excluded`, пустые обязательные поля и clips без
+evidence. Пустые slots входят в структурные 518, но не создают вымышленный
+context; в LVL01 заполнены 449 slots.
