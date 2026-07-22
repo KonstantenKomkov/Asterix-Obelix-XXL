@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 62.2 — Семантический каталог анимаций Астерикса
+
+**Выполнено:** 22 июля 2026.
+
+Все 108 занятых slots `CKHkAsterix.heroAnimDict` сведены к 90 уникальным clips
+и получили статус `confirmed`. Для каждого clip зафиксированы exact skin
+`CKSkinGeometry:4`, default costume, наблюдаемое действие и семейство вариантов,
+loop/one-shot policy, допустимые переходы, authored root motion и отсутствие
+отдельного event track в импортированном animation payload.
+
+Семантика подтверждена семикадровым front/side exact-skin просмотром, анализом
+motion-root node 1, структурой track и типизированной ссылкой владельца словаря.
+Помимо 108 gameplay memberships отдельно описаны все 10 shared cinematic
+memberships в dictionaries 5, 12 и 14 с владельцами `CKCinematicSceneData`
+objects 1, 8 и 10. Таким образом, итог содержит ровно 118 contexts без потери
+actor или назначения общего clip.
+
+Производные игровые данные сохранены только локально вне Git:
+`animation-semantics-asterix-task62.2.json` (SHA-256
+`79f5c0718fdb7bd228ed3ec37ba728681acb5a2858a735d784cb3d2f5adfa767`) и
+`animation-catalog-asterix-task62.2.json` (SHA-256
+`881d60e63785ec0cf2477b3a7d81b9992714df56d9c17c81a548436705e0c5b6`).
+Scoped validator принимает dictionary 2 независимо от ещё незавершённых
+словарей, но по-прежнему требует все shared contexts. Профильные и полные
+Flutter-тесты, статический анализ, resource policy и diff review проходят.
+
 ## П. 62.1 — Инфраструктура полного семантического каталога анимаций
 
 **Выполнено:** 22 июля 2026.

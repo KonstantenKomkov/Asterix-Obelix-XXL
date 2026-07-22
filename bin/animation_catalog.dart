@@ -38,6 +38,28 @@ Future<void> main(List<String> arguments) async {
     }
     return;
   }
+  if (arguments.length == 3 && arguments.first == 'validate-dictionary') {
+    final dictionaryId = int.tryParse(arguments[1]);
+    if (dictionaryId == null) {
+      stderr.writeln('Dictionary ID must be an integer.');
+      exitCode = 64;
+      return;
+    }
+    final catalog =
+        jsonDecode(await File(arguments[2]).readAsString())
+            as Map<String, Object?>;
+    final issues = validateAnimationSemanticCatalog(
+      catalog,
+      requiredDictionaryIds: {dictionaryId},
+    );
+    if (issues.isNotEmpty) {
+      stderr.writeln(issues.join('\n'));
+      exitCode = 1;
+    } else {
+      stdout.writeln('Animation dictionary $dictionaryId is complete.');
+    }
+    return;
+  }
   if (arguments.length == 4 && arguments.first == 'apply-annotations') {
     final catalog =
         jsonDecode(await File(arguments[1]).readAsString())
@@ -67,7 +89,9 @@ Future<void> main(List<String> arguments) async {
     '<animations-dir> <catalog.json>\n'
     '   or: animation_catalog.dart apply-annotations <draft.json> '
     '<annotations.json> <catalog.json>\n'
-    '   or: animation_catalog.dart validate <catalog.json>',
+    '   or: animation_catalog.dart validate <catalog.json>\n'
+    '   or: animation_catalog.dart validate-dictionary <dictionary-id> '
+    '<catalog.json>',
   );
   exitCode = 64;
 }

@@ -180,6 +180,87 @@ void main() {
     expect(validateAnimationSemanticCatalog(catalog), isEmpty);
   });
 
+  test('dictionary validation requires only the selected owner catalog', () {
+    Map<String, Object?> clip(
+      int index,
+      int dictionaryId, {
+      required String status,
+    }) => <String, Object?>{
+      'id': index.toString().padLeft(4, '0'),
+      'managerIndex': index,
+      'dictionaryMemberships': [
+        {'dictionaryId': dictionaryId, 'slot': 0},
+      ],
+      'ownerCandidates': [
+        {'ownerClass': dictionaryId == 2 ? 'CKHkAsterix' : 'CKHkObelix'},
+      ],
+      'status': status,
+      'owner': status == 'confirmed' ? 'asterix' : null,
+      'skin': status == 'confirmed' ? 'asterix-default' : null,
+      'costume': status == 'confirmed' ? 'default' : null,
+      'action': status == 'confirmed' ? 'locomotion.idle' : null,
+      'playback': status == 'confirmed' ? 'loop' : null,
+      'variants': <Object?>[],
+      'transitions': <Object?>[],
+      'rootMotion': status == 'confirmed' ? 'none' : null,
+      'events': <Object?>[],
+      'evidence': status == 'confirmed'
+          ? <Object?>[
+              {'method': 'fixture-review', 'reference': 'clip-$index'},
+            ]
+          : <Object?>[],
+      'contexts': status == 'confirmed'
+          ? <Object?>[
+              {
+                'dictionaryId': dictionaryId,
+                'slot': 0,
+                'owner': 'asterix',
+                'skin': 'asterix-default',
+                'costume': 'default',
+                'action': 'locomotion.idle',
+                'playback': 'loop',
+                'rootMotion': 'none',
+                'variants': <Object?>[],
+                'transitions': <Object?>[],
+                'events': <Object?>[],
+                'evidence': <Object?>[],
+              },
+            ]
+          : <Object?>[],
+    };
+    final catalog = <String, Object?>{
+      'schemaVersion': 1,
+      'clipCount': 2,
+      'dictionaries': [
+        {
+          'objectId': 2,
+          'slots': [0],
+        },
+        {
+          'objectId': 1,
+          'slots': [1],
+        },
+      ],
+      'clips': [
+        clip(0, 2, status: 'confirmed'),
+        clip(1, 1, status: 'unreviewed'),
+      ],
+    };
+
+    expect(
+      validateAnimationSemanticCatalog(catalog, requiredDictionaryIds: {2}),
+      isEmpty,
+    );
+    expect(validateAnimationSemanticCatalog(catalog), isNotEmpty);
+    expect(
+      validateAnimationSemanticCatalog(
+        catalog,
+        requiredDictionaryIds: {99},
+      ).map((issue) => issue.message),
+      contains('does not contain requested dictionary 99'),
+    );
+  });
+
   test('semantic validator rejects ambiguous playback policy', () {
     final catalog = <String, Object?>{
       'schemaVersion': 1,

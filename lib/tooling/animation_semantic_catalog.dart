@@ -194,6 +194,7 @@ Map<String, Object?> applyAnimationCatalogAnnotations(
 List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
   Map<String, Object?> catalog, {
   bool requireConfirmed = true,
+  Set<int>? requiredDictionaryIds,
 }) {
   final issues = <AnimationCatalogIssue>[];
   if (catalog['schemaVersion'] != 1) {
@@ -208,6 +209,7 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
     return issues;
   }
   final dictionarySlots = <(int, int), int>{};
+  final catalogDictionaryIds = <int>{};
   final dictionaries = catalog['dictionaries'];
   if (dictionaries is! List<Object?>) {
     issues.add(const AnimationCatalogIssue('dictionaries', 'must be a list'));
@@ -227,6 +229,7 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
         continue;
       }
       final dictionaryId = dictionary['objectId']! as int;
+      catalogDictionaryIds.add(dictionaryId);
       final slots = dictionary['slots']! as List<Object?>;
       for (var slot = 0; slot < slots.length; slot++) {
         final clipIndex = slots[slot];
@@ -237,6 +240,18 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
         } else if (clipIndex is int) {
           dictionarySlots[(dictionaryId, slot)] = clipIndex;
         }
+      }
+    }
+  }
+  if (requiredDictionaryIds != null) {
+    for (final dictionaryId in requiredDictionaryIds) {
+      if (!catalogDictionaryIds.contains(dictionaryId)) {
+        issues.add(
+          AnimationCatalogIssue(
+            'dictionaries',
+            'does not contain requested dictionary $dictionaryId',
+          ),
+        );
       }
     }
   }
@@ -338,7 +353,14 @@ List<AnimationCatalogIssue> validateAnimationSemanticCatalog(
     }.contains(status)) {
       issues.add(AnimationCatalogIssue('$path.status', 'has unknown value'));
     }
-    if (!requireConfirmed) continue;
+    final isInRequiredDictionary =
+        requiredDictionaryIds == null ||
+        (memberships is List<Object?> &&
+            memberships.whereType<Map<String, Object?>>().any(
+              (membership) =>
+                  requiredDictionaryIds.contains(membership['dictionaryId']),
+            ));
+    if (!requireConfirmed || !isInRequiredDictionary) continue;
     if (status != 'confirmed') {
       issues.add(AnimationCatalogIssue('$path.status', 'must be confirmed'));
     }

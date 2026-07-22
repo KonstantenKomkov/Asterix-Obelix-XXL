@@ -31,6 +31,10 @@ animation-catalog-validate: ## Проверить полный семантич�
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/catalog.json' >&2; exit 2)
 	$(DART) run bin/animation_catalog.dart validate "$(INPUT)"
 
+animation-dictionary-validate: ## Проверить один словарь (DICTIONARY=... INPUT=...)
+	@test -n "$(DICTIONARY)" -a -n "$(INPUT)" || (echo 'Укажите DICTIONARY=... INPUT=...' >&2; exit 2)
+	$(DART) run bin/animation_catalog.dart validate-dictionary "$(DICTIONARY)" "$(INPUT)"
+
 animation-review: ## Создать HTML для просмотра clips (CATALOG=... ANIMATIONS=... OUTPUT=...)
 	@test -n "$(CATALOG)" -a -n "$(ANIMATIONS)" -a -n "$(OUTPUT)" || (echo 'Укажите CATALOG=... ANIMATIONS=... OUTPUT=...' >&2; exit 2)
 	$(DART) run bin/animation_review.dart "$(CATALOG)" "$(ANIMATIONS)" "$(OUTPUT)"

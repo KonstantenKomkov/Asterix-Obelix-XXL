@@ -112,3 +112,12 @@ track считаться полностью разобранным после п
 В `LVL01` найдено 39 `CKSkinGeometry`; 38 полностью конечных portable skins экспортируются. Один legacy object содержит non-finite float и не записывается как JSON: его object ID явно перечислен в `excludedNonFiniteSkinObjectIds`, чтобы повреждение не маскировалось. Для multi-costume объектов текущий proof экспортирует первый costume; полный выбор costumes остаётся задачей asset pipeline.
 
 Структура сопоставлена с `RwAnimAnimation`, `RwExtHAnim`, `RwExtSkin`, `CAnimationManager` и `CKSkinGeometry` в [XXL-Editor revision d606cfc](https://github.com/AdrienTD/XXL-Editor/tree/d606cfccf8faa31287aa1326fa9d10c292c06157).
+
+Промежуточная приёмка каталога конкретного владельца не требует преждевременно
+подтверждать остальные 51 словарь. При этом для выбранных clips по-прежнему
+обязательны contexts всех их вхождений, в том числе cinematic:
+
+```sh
+fvm dart run bin/animation_catalog.dart validate-dictionary 2 \
+  "$HOME/asterix-reference/animation-catalog-task62.json"
+```
