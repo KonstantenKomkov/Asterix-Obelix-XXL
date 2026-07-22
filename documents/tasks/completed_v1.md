@@ -12,11 +12,14 @@
 
 Native bridge преобразует action snapshot в ограниченные оси `move_x/move_z` и
 теперь применяет последний snapshot даже тогда, когда он поступил до создания
-Metal viewport. Regression-тесты покрывают четыре стрелки, одновременную
+Metal viewport. AppKit local monitor страхует ввод, когда встроенный `MTKView`
+получает клавиатурные события вместо Flutter focus, и возвращает их в тот же
+Flutter router; при деактивации окна он явно отпускает все направления.
+Regression-тесты покрывают macOS key codes, четыре стрелки, одновременную
 альтернативную клавишу, native axis mapping, движение капсулы по диагонали на
 fixed ticks и полную остановку после отпускания.
 
-Прошли `make check` (55 Flutter-тестов), 28 native XCTest, 8 Runner XCTest,
+Прошли `make check` (56 Flutter-тестов), 28 native XCTest, 9 Runner XCTest,
 macOS debug build, diff review и resource policy; игровые ресурсы не добавлялись.
 
 ## П. 55 — Стартовая позиция Астерикса на земле

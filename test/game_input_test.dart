@@ -56,6 +56,25 @@ void main() {
     expect(snapshot.pressed(GameAction.attack), isTrue);
   });
 
+  test(
+    'native macOS keyboard fallback preserves arrow key-down and key-up',
+    () {
+      final router = GameInputRouter();
+      var snapshot = router.handleController(const {
+        'type': 'keyboard',
+        'action': 'moveForward',
+        'value': 1.0,
+      });
+      expect(snapshot.pressed(GameAction.moveForward), isTrue);
+      snapshot = router.handleController(const {
+        'type': 'keyboard',
+        'action': 'moveForward',
+        'value': 0.0,
+      });
+      expect(snapshot.pressed(GameAction.moveForward), isFalse);
+    },
+  );
+
   test('arrow key-down and key-up drive all movement actions', () {
     final router = GameInputRouter();
     expect(router.handlesKey(LogicalKeyboardKey.arrowLeft), isTrue);

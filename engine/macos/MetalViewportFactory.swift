@@ -170,6 +170,16 @@ final class MetalViewportView: MTKView {
             (values["interact"]?.doubleValue ?? 0) > 0.5)
   }
 
+  static func keyboardAction(keyCode: UInt16) -> String? {
+    switch keyCode {
+    case 123: return "moveLeft"
+    case 124: return "moveRight"
+    case 125: return "moveBackward"
+    case 126: return "moveForward"
+    default: return nil
+    }
+  }
+
   func setGameplayPaused(_ paused: Bool) {
     if paused { renderer?.suspend() } else { renderer?.resume() }
   }

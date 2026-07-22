@@ -117,4 +117,12 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(bounded.x, 1)
     XCTAssertEqual(bounded.z, -1)
   }
+
+  func testMacOSArrowKeyCodesMapToMovementActions() {
+    XCTAssertEqual(MetalViewportView.keyboardAction(keyCode: 123), "moveLeft")
+    XCTAssertEqual(MetalViewportView.keyboardAction(keyCode: 124), "moveRight")
+    XCTAssertEqual(MetalViewportView.keyboardAction(keyCode: 125), "moveBackward")
+    XCTAssertEqual(MetalViewportView.keyboardAction(keyCode: 126), "moveForward")
+    XCTAssertNil(MetalViewportView.keyboardAction(keyCode: 49))
+  }
 }

@@ -100,6 +100,7 @@ final class GameInputRouter {
 
   InputBindings bindings;
   final Set<int> _keys = {};
+  final Map<GameAction, double> _platformKeyboard = {};
   final Map<String, double> _controls = {};
   bool _controllerConnected = false;
   bool _pauseWasPressed = false;
@@ -113,6 +114,18 @@ final class GameInputRouter {
 
   GameInputSnapshot handleController(Map<Object?, Object?> event) {
     final type = event['type'];
+    if (type == 'keyboard') {
+      final actionName = event['action'];
+      final value = event['value'];
+      if (actionName is String && value is num) {
+        for (final action in GameAction.values) {
+          if (action.name == actionName) {
+            _platformKeyboard[action] = value.toDouble().clamp(0, 1);
+            break;
+          }
+        }
+      }
+    }
     if (type == 'connected') _controllerConnected = true;
     if (type == 'disconnected') {
       _controllerConnected = false;
@@ -131,6 +144,7 @@ final class GameInputRouter {
 
   void reset() {
     _keys.clear();
+    _platformKeyboard.clear();
     _controls.clear();
     _pauseWasPressed = false;
   }
@@ -150,6 +164,7 @@ final class GameInputRouter {
               aliases.any(_keys.contains)
           ? 1.0
           : 0.0;
+      final platformKeyboard = _platformKeyboard[action] ?? 0.0;
       final binding = bindings.gamepad[action];
       var gamepad = 0.0;
       if (binding != null) {
@@ -168,7 +183,11 @@ final class GameInputRouter {
             ? (-raw).clamp(0, 1)
             : raw.clamp(0, 1);
       }
-      values[action] = keyboard > gamepad ? keyboard : gamepad;
+      values[action] = [
+        keyboard,
+        platformKeyboard,
+        gamepad,
+      ].reduce((left, right) => left > right ? left : right);
     }
     return GameInputSnapshot(values, controllerConnected: _controllerConnected);
   }

@@ -1,3 +1,4 @@
+import AppKit
 import FlutterMacOS
 import GameController
 
@@ -6,6 +7,7 @@ final class GameControllerInput: NSObject, FlutterStreamHandler {
   static let channel = "asterix/controller-events"
   private var sink: FlutterEventSink?
   private var observers: [NSObjectProtocol] = []
+  private var keyboardMonitor: Any?
 
   init(messenger: FlutterBinaryMessenger) {
     super.init()
@@ -20,7 +22,19 @@ final class GameControllerInput: NSObject, FlutterStreamHandler {
       center.addObserver(forName: .GCControllerDidDisconnect, object: nil, queue: .main) { [weak self] _ in
         self?.sink?(["type": "disconnected"])
       },
+      center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) {
+        [weak self] _ in self?.releaseMovementKeys()
+      },
     ]
+    keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) {
+      [weak self] event in
+      guard let action = MetalViewportView.keyboardAction(keyCode: event.keyCode) else { return event }
+      self?.sink?([
+        "type": "keyboard", "action": action,
+        "value": event.type == .keyUp ? 0.0 : 1.0,
+      ])
+      return event
+    }
     GCController.startWirelessControllerDiscovery(completionHandler: nil)
     GCController.controllers().forEach(configure)
   }
@@ -40,6 +54,12 @@ final class GameControllerInput: NSObject, FlutterStreamHandler {
     sink?(["type": "control", "control": control, "value": Double(value)])
   }
 
+  private func releaseMovementKeys() {
+    for action in ["moveLeft", "moveRight", "moveForward", "moveBackward"] {
+      sink?(["type": "keyboard", "action": action, "value": 0.0])
+    }
+  }
+
   private func configure(_ controller: GCController) {
     guard let pad = controller.extendedGamepad else { return }
     pad.leftThumbstick.xAxis.valueChangedHandler = { [weak self] _, value in self?.emit("leftX", value) }
@@ -50,5 +70,8 @@ final class GameControllerInput: NSObject, FlutterStreamHandler {
     pad.buttonMenu.valueChangedHandler = { [weak self] _, value, _ in self?.emit("menu", value) }
   }
 
-  deinit { observers.forEach(NotificationCenter.default.removeObserver) }
+  deinit {
+    observers.forEach(NotificationCenter.default.removeObserver)
+    if let keyboardMonitor { NSEvent.removeMonitor(keyboardMonitor) }
+  }
 }
