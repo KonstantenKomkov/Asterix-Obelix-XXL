@@ -34,6 +34,16 @@ struct Lever { std::uint32_t id; Vec3 position; float radius=1.2f; bool activate
 struct Destructible { std::uint32_t id; Vec3 position; std::int32_t health=2; std::int32_t maximum_health=2; bool destroyed=false; };
 struct Reward { std::uint32_t id; Vec3 position; std::uint32_t source_object=0; std::int32_t value=1; bool available=true; bool collected=false; };
 struct Checkpoint { std::uint32_t id; Vec3 position; float radius=1.0f; bool activated=false; };
+struct PushBlock {
+  std::uint32_t id;
+  Vec3 position;
+  Vec3 initial_position;
+  Vec3 axis{1,0,0};
+  Vec3 half_extent{1.06f,1.07f,1.16f};
+  float minimum_offset=0;
+  float maximum_offset=1;
+  float offset=0;
+};
 struct Snapshot { std::int32_t rewards=0; std::uint32_t active_checkpoint=0; };
 struct PersistentState {
   Snapshot snapshot{};
@@ -42,6 +52,7 @@ struct PersistentState {
   std::vector<std::int32_t> destructible_health;
   std::vector<bool> rewards_available;
   std::vector<bool> rewards_collected;
+  std::vector<float> push_block_offsets;
 };
 
 class Runtime {
@@ -57,6 +68,14 @@ class Runtime {
     rewards_.push_back(value);
   }
   void addCheckpoint(Checkpoint value) { validateId(value.id); if(value.radius<=0)invalid(); checkpoints_.push_back(value); }
+  void addPushBlock(PushBlock value) {
+    validateId(value.id);
+    const float length=collision::length(value.axis);
+    if(length<=0||value.maximum_offset<=value.minimum_offset||value.half_extent.x<=0||
+       value.half_extent.y<=0||value.half_extent.z<=0)invalid();
+    value.axis=value.axis*(1/length); value.initial_position=value.position;
+    push_blocks_.push_back(value);
+  }
 
   const Snapshot& snapshot() const { return snapshot_; }
   const std::vector<Trigger>& triggers() const { return triggers_; }
@@ -64,6 +83,7 @@ class Runtime {
   const std::vector<Destructible>& destructibles() const { return destructibles_; }
   const std::vector<Reward>& rewards() const { return rewards_; }
   const std::vector<Checkpoint>& checkpoints() const { return checkpoints_; }
+  const std::vector<PushBlock>& pushBlocks() const { return push_blocks_; }
   PersistentState persistentState() const {
     PersistentState state; state.snapshot=snapshot_;
     for(const auto& value:triggers_)state.triggers_fired.push_back(value.fired);
@@ -73,6 +93,7 @@ class Runtime {
       state.rewards_available.push_back(value.available);
       state.rewards_collected.push_back(value.collected);
     }
+    for(const auto& value:push_blocks_)state.push_block_offsets.push_back(value.offset);
     return state;
   }
   bool restorePersistent(const PersistentState& state) {
@@ -81,6 +102,7 @@ class Runtime {
        state.destructible_health.size()!=destructibles_.size()||
        state.rewards_available.size()!=rewards_.size()||
        state.rewards_collected.size()!=rewards_.size())return false;
+    if(state.push_block_offsets.size()!=push_blocks_.size())return false;
     if(state.snapshot.rewards<0)return false;
     const auto checkpoint=std::find_if(checkpoints_.begin(),checkpoints_.end(),
         [&state](const auto& value){return value.id==state.snapshot.active_checkpoint;});
@@ -97,9 +119,48 @@ class Runtime {
     for(std::size_t i=0;i<rewards_.size();++i) {
       rewards_[i].available=state.rewards_available[i]; rewards_[i].collected=state.rewards_collected[i];
     }
+    for(std::size_t i=0;i<push_blocks_.size();++i) {
+      if(!std::isfinite(state.push_block_offsets[i])||
+         state.push_block_offsets[i]<push_blocks_[i].minimum_offset||
+         state.push_block_offsets[i]>push_blocks_[i].maximum_offset)return false;
+      push_blocks_[i].offset=state.push_block_offsets[i];
+      push_blocks_[i].position=push_blocks_[i].initial_position+
+          push_blocks_[i].axis*push_blocks_[i].offset;
+    }
     for(auto& value:checkpoints_)value.activated=value.id==snapshot_.active_checkpoint;
-    saved_=Saved{triggers_,levers_,destructibles_,rewards_,snapshot_};
+    saved_=Saved{triggers_,levers_,destructibles_,rewards_,push_blocks_,snapshot_};
     inside_triggers_.clear(); events_.clear(); return true;
+  }
+
+  bool push(std::uint32_t id,Vec3 previous_player,Vec3 player) {
+    auto it=std::find_if(push_blocks_.begin(),push_blocks_.end(),
+        [id](const auto& value){return value.id==id;});
+    if(it==push_blocks_.end())return false;
+    const Vec3 movement=player-previous_player;
+    const float along=collision::dot(movement,it->axis);
+    if(std::abs(along)<1e-5f)return false;
+    const Vec3 relative=player-it->position;
+    if(std::abs(relative.y)>it->half_extent.y+1.0f)return false;
+    const Vec3 lateral=relative-it->axis*collision::dot(relative,it->axis);
+    if(collision::length(lateral)>std::max(it->half_extent.x,it->half_extent.z)+.55f)return false;
+    if(std::abs(collision::dot(relative,it->axis))>
+       std::max(it->half_extent.x,it->half_extent.z)+.75f)return false;
+    const float next=std::clamp(it->offset+along,it->minimum_offset,it->maximum_offset);
+    if(next==it->offset)return false;
+    it->offset=next; it->position=it->initial_position+it->axis*next;
+    return true;
+  }
+  Vec3 resolvePushBlocks(Vec3 previous_player,Vec3 desired_player) {
+    for(const auto& block:push_blocks_) {
+      const Vec3 relative=desired_player-block.position;
+      if(std::abs(relative.y)>block.half_extent.y+1.0f)continue;
+      const float along=collision::dot(relative,block.axis);
+      const Vec3 lateral=relative-block.axis*along;
+      if(collision::length(lateral)>std::max(block.half_extent.x,block.half_extent.z)+.45f||
+         std::abs(along)>std::max(block.half_extent.x,block.half_extent.z)+.45f)continue;
+      if(!push(block.id,previous_player,desired_player))return previous_player;
+    }
+    return desired_player;
   }
   Hint hint(Vec3 player,bool player_dead) const {
     if(player_dead&&snapshot_.active_checkpoint!=0)return Hint::respawn;
@@ -128,7 +189,7 @@ class Runtime {
     for(auto& checkpoint:checkpoints_) if(!checkpoint.activated&&near(player,checkpoint.position,checkpoint.radius)) {
       for(auto& value:checkpoints_)value.activated=false;
       checkpoint.activated=true; snapshot_.active_checkpoint=checkpoint.id;
-      saved_=Saved{triggers_,levers_,destructibles_,rewards_,snapshot_};
+      saved_=Saved{triggers_,levers_,destructibles_,rewards_,push_blocks_,snapshot_};
       events_.push_back({EventType::checkpoint_activated,checkpoint.id});
     }
   }
@@ -150,6 +211,7 @@ class Runtime {
     if(!saved_)return std::nullopt;
     triggers_=saved_->triggers; levers_=saved_->levers;
     destructibles_=saved_->destructibles; rewards_=saved_->rewards;
+    push_blocks_=saved_->push_blocks;
     snapshot_=saved_->snapshot; inside_triggers_.clear();
     const auto it=std::find_if(checkpoints_.begin(),checkpoints_.end(),[this](const auto& v){return v.id==snapshot_.active_checkpoint;});
     if(it==checkpoints_.end())return std::nullopt;
@@ -159,7 +221,7 @@ class Runtime {
   std::vector<Event> drainEvents() { std::vector<Event> result; result.swap(events_); return result; }
 
  private:
-  struct Saved { std::vector<Trigger> triggers; std::vector<Lever> levers; std::vector<Destructible> destructibles; std::vector<Reward> rewards; Snapshot snapshot; };
+  struct Saved { std::vector<Trigger> triggers; std::vector<Lever> levers; std::vector<Destructible> destructibles; std::vector<Reward> rewards; std::vector<PushBlock> push_blocks; Snapshot snapshot; };
   static bool near(Vec3 a,Vec3 b,float radius) { auto d=a-b; return collision::dot(d,d)<=radius*radius; }
   static bool contains(const Trigger& t,Vec3 p) { auto d=p-t.center; return std::abs(d.x)<=t.half_extent.x&&std::abs(d.y)<=t.half_extent.y&&std::abs(d.z)<=t.half_extent.z; }
   void validateId(std::uint32_t id) const {
@@ -167,10 +229,12 @@ class Runtime {
     for(const auto& v:triggers_)if(v.id==id)invalid(); for(const auto& v:levers_)if(v.id==id)invalid();
     for(const auto& v:destructibles_)if(v.id==id)invalid(); for(const auto& v:rewards_)if(v.id==id)invalid();
     for(const auto& v:checkpoints_)if(v.id==id)invalid();
+    for(const auto& v:push_blocks_)if(v.id==id)invalid();
   }
   [[noreturn]] static void invalid() { throw std::invalid_argument("interactive configuration is invalid"); }
   std::vector<Trigger> triggers_; std::vector<Lever> levers_; std::vector<Destructible> destructibles_;
   std::vector<Reward> rewards_; std::vector<Checkpoint> checkpoints_; Snapshot snapshot_{};
+  std::vector<PushBlock> push_blocks_;
   std::optional<Saved> saved_; std::unordered_set<std::uint32_t> inside_triggers_; std::vector<Event> events_;
 };
 

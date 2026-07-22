@@ -197,6 +197,29 @@
   XCTAssertEqualWithAccuracy(player.snapshot().body.position.x,0,.001);
 }
 
+- (void)testStonePushBlockKeepsVisualAndCollisionTransformTogether {
+  using namespace asterix::interactive;
+  Runtime runtime;
+  runtime.addPushBlock({74,{-7.82035f,3.07921f,-5.31064f},{},{0,0,1},
+                        {1.06f,1.07f,1.16f},0,11.86339f,0});
+  runtime.addCheckpoint({75,{-7.82f,3.08f,-6.95f},.5f});
+  runtime.update({-7.82f,3.08f,-6.95f},false);
+  const auto before=runtime.pushBlocks().front();
+  XCTAssertEqualWithAccuracy(before.position.z,-5.31064f,.0001f);
+  XCTAssertFalse(runtime.push(74,{-7.82f,3.08f,-7.3f},{-7.52f,3.08f,-7.3f}));
+  const auto blocked=runtime.resolvePushBlocks(
+      {-9.4f,3.08f,-5.31f},{-9.1f,3.08f,-5.31f});
+  XCTAssertEqualWithAccuracy(blocked.x,-9.4f,.0001f);
+  XCTAssertTrue(runtime.push(74,{-7.82f,3.08f,-6.95f},{-7.82f,3.08f,-6.65f}));
+  const auto after=runtime.pushBlocks().front();
+  XCTAssertEqualWithAccuracy(after.position.z,before.position.z+.3f,.0001f);
+  const auto saved=runtime.persistentState();
+  XCTAssertTrue(runtime.push(74,{-7.82f,3.08f,-6.65f},{-7.82f,3.08f,-6.35f}));
+  XCTAssertTrue(runtime.restorePersistent(saved));
+  XCTAssertEqualWithAccuracy(runtime.pushBlocks().front().position.z,
+                             after.position.z,.0001f);
+}
+
 - (void)testPersistentWorldStateValidatesAndRestoresCheckpointBaseline {
   using namespace asterix::interactive;
   Runtime runtime;

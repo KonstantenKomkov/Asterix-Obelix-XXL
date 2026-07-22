@@ -1,5 +1,33 @@
 # Выполненные задачи первой итерации
 
+## П. 74 — Каменный push/pull-блок первого уровня
+
+**Выполнено:** 22 июля 2026.
+
+Источник дефекта установлен в level bindings: два `CKHkPushPullAsterix` ведут к
+nodes 8 и 11 с authored positions `(-7.820352, 3.079212, -5.310643)` и
+`(-27.091726, 1.089171, 49.158550)`. Geometry самого node — узкая служебная
+металлическая деталь `spec1_meta_bloc2_01_p0`; видимые парные meshes 17/24
+содержат каменный куб (175 vertices, 118 triangles) и material/texture
+`it_bloc2_01_mt`. Importer теперь извлекает именно эту проверенную пару и
+отклоняет металлический visual fallback.
+
+Pipeline сохраняет полный transform, origin, axis и исходные `CKFlaggedPath`
+ranges `0…11.863387` / `0…8.612516`. Metal и fixed-tick interactive runtime
+используют единый offset для render vertices, collision volume и push-сценария;
+поперечное проникновение блокируется, checkpoint/save восстанавливают позицию,
+а старые saves мигрируют к нулевому offset.
+
+Создан свежий локальный proof и ASTPAK размером 59 798 292 байта, SHA-256
+`74d1864eae2ba30491cd7ad9905d4ed365c6b54cc139936a3ff0f30e869d91d7`: пакет содержит
+оба `push-pull-stone` object/resource binding, level texture 128×128
+`it_bloc2_01_mt` и исходные transforms; артефакт и извлечённые ресурсы остались
+вне Git. Архитектурное описание: [push_pull_stone.md](../architecture/push_pull_stone.md).
+Pipeline/native regressions фиксируют material и transform до push, движение
+вдоль authored path, collision поперёк него, состояние после push и restore.
+Прошли `make check`, native XCTest, macOS debug build, diff review и resource
+policy.
+
 ## П. 71 — Бег по умолчанию при старте gameplay
 
 **Выполнено:** 22 июля 2026.

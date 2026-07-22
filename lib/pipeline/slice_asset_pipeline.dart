@@ -455,8 +455,102 @@ final class SliceAssetPipeline {
       }
     }
 
-    final levelTextureDirectory = Directory('${proof.path}/textures');
     final outputs = root['outputs'];
+    final pushPullPath = outputs is Map && outputs['pushPull'] is String
+        ? '${proof.path}/${outputs['pushPull']}'
+        : null;
+    if (pushPullPath != null) {
+      final document = await _jsonFile(File(pushPullPath));
+      final bindings = _objectList(document, 'bindings', path: pushPullPath);
+      if (document['schemaVersion'] != 1 || bindings.isEmpty) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidSchema,
+          'Push/pull bindings must use schema 1 and contain an object.',
+          path: pushPullPath,
+        );
+      }
+      for (final binding in bindings) {
+        final hookId = _integer(binding, 'objectId');
+        final mesh = binding['visualMesh'];
+        if (mesh is! Map<String, Object?>) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidSchema,
+            'Push/pull binding is missing its visual mesh.',
+            path: pushPullPath,
+            details: {'hook': hookId},
+          );
+        }
+        final materials = _list(mesh, 'materials', pushPullPath, hookId);
+        final pathValues = _finiteNumberList(
+          binding,
+          'pathValues',
+          pushPullPath,
+        );
+        if (pathValues.length < 2 ||
+            pathValues.first != 0 ||
+            pathValues.indexed.any(
+              (entry) => entry.$1 > 0 && entry.$2 <= pathValues[entry.$1 - 1],
+            )) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidRange,
+            'Push/pull flagged path must be a strictly increasing authored range.',
+            path: pushPullPath,
+            details: {'hook': hookId, 'pathValues': pathValues},
+          );
+        }
+        final stone = materials.any(
+          (value) =>
+              value is Map<String, Object?> &&
+              value['texture'] == 'it_bloc2_01_mt',
+        );
+        if (!stone) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidReference,
+            'Push/pull visual must retain the authored stone material.',
+            path: pushPullPath,
+            details: {'hook': hookId},
+          );
+        }
+        final meshPayload = AssetPayloadInput(
+          kind: 'mesh',
+          sourcePath: _levelSource,
+          sourceKey: 'push-pull:$hookId:stone-mesh',
+          bytes: await cache.transform(
+            kind: 'mesh-json',
+            input: encodeCanonicalJson(mesh),
+            transform: encodeCanonicalJson,
+            value: mesh,
+          ),
+          metadata: {
+            'objectId': _integer(mesh, 'objectId'),
+            'interactiveKind': 'push-pull-stone',
+            'hookId': hookId,
+          },
+        );
+        payloads.add(meshPayload);
+        final object = RuntimeObjectInput(
+          kind: 'scene-node',
+          sourcePath: _levelSource,
+          sourceKey: 'push-pull:$hookId:node',
+          payloadIds: [meshPayload.id],
+          metadata: {
+            'classId': 3,
+            'transform': _matrix(binding, 'transform', pushPullPath),
+            'section': sectors.first['source']! as String,
+            'interactiveKind': 'push-pull-stone',
+            'hookId': hookId,
+            'axis': _finiteVector(binding, 'axis', pushPullPath),
+            'origin': _finiteVector(binding, 'origin', pushPullPath),
+            'minimumOffset': pathValues.first,
+            'maximumOffset': pathValues.last,
+          },
+        );
+        objects.add(object);
+        allNodeObjectIds.add(object.id);
+      }
+    }
+
+    final levelTextureDirectory = Directory('${proof.path}/textures');
     final hasLevelTextures =
         root['schemaVersion'] == 2 &&
         outputs is Map &&
@@ -731,6 +825,38 @@ List<double> _matrix(Map<String, Object?> map, String key, String path) {
   matrix[11] = 0;
   matrix[15] = 1;
   return matrix;
+}
+
+List<double> _finiteVector(Map<String, Object?> map, String key, String path) {
+  final value = map[key];
+  if (value is! List ||
+      value.length != 3 ||
+      value.any((item) => item is! num || !item.isFinite)) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidRange,
+      'Interactive vector must contain three finite numbers.',
+      path: path,
+      details: {'field': key},
+    );
+  }
+  return value.cast<num>().map((item) => item.toDouble()).toList();
+}
+
+List<double> _finiteNumberList(
+  Map<String, Object?> map,
+  String key,
+  String path,
+) {
+  final value = map[key];
+  if (value is! List || value.any((item) => item is! num || !item.isFinite)) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidRange,
+      'Interactive range must contain finite numbers.',
+      path: path,
+      details: {'field': key},
+    );
+  }
+  return value.cast<num>().map((item) => item.toDouble()).toList();
 }
 
 final class _PipelineCache {

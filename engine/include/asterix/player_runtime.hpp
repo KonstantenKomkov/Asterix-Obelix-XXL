@@ -99,6 +99,10 @@ class Runtime {
   }
 
   void setCheckpoint(collision::Vec3 position) { snapshot_.body.checkpoint=position; }
+  void resolveInteractivePosition(collision::Vec3 position) {
+    if(!finite(position))throw std::invalid_argument("interactive position is invalid");
+    snapshot_.body.position=position;
+  }
   void respawn(collision::Vec3 position) {
     snapshot_.body.position=position; snapshot_.body.checkpoint=position;
     snapshot_.body.velocity={}; snapshot_.body.grounded=false;

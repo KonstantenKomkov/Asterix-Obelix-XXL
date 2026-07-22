@@ -248,6 +248,23 @@ List<SceneMeshRecord> extractXxl1LevelSkinGeometryRecords(
     )
     .toList();
 
+List<SceneMeshRecord> extractXxl1LevelStaticGeometryRecords(
+  Uint8List bytes,
+  Xxl1LevelScan scan, {
+  required String path,
+}) => scan.objects
+    .where((object) => object.category == 10 && object.classId == 2)
+    .map(
+      (object) => SceneMeshRecord(
+        objectId: object.objectId,
+        mesh: parseXxl1StaticGeometry(
+          Uint8List.sublistView(bytes, object.payloadOffset, object.endOffset),
+          path: '$path#10:2:${object.objectIndex}',
+        ),
+      ),
+    )
+    .toList();
+
 SceneMesh parseXxl1StaticGeometry(Uint8List payload, {String? path}) {
   final reader = BinaryReader(payload, path: path);
   reader.readUint32(); // next CKAnyGeometry reference

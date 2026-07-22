@@ -304,6 +304,94 @@ void main() {
       'clock': 'simulation-time',
     });
   });
+
+  test('packages authored stone push block at its level transform', () async {
+    final temporary = await Directory.systemTemp.createTemp('asset-push-');
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    await File('${proof.path}/manifest.json').writeAsString(
+      jsonEncode({
+        'schemaVersion': 2,
+        'slice': 'gaul-stage-1',
+        'sectors': [
+          {'source': 'LVL001/STR01_00.KWN', 'directory': '.'},
+        ],
+        'outputs': {'pushPull': 'push_pull.json'},
+      }),
+    );
+    await File('${proof.path}/push_pull.json').writeAsString(
+      jsonEncode({
+        'schemaVersion': 1,
+        'bindings': [
+          {
+            'objectId': 0,
+            'origin': [-7.82, 3.079, -5.31],
+            'axis': [0.0, 0.0, 1.0],
+            'pathValues': [0.0, 11.863],
+            'transform': [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              -7.82,
+              3.079,
+              -5.31,
+              1.0,
+            ],
+            'visualMesh': {
+              'objectId': 17,
+              'frames': <Object>[],
+              'vertices': <Object>[],
+              'triangles': <Object>[],
+              'materials': [
+                {'texture': 'it_bloc2_01_mt'},
+              ],
+            },
+          },
+        ],
+      }),
+    );
+
+    final package = AsterixAssetPackage.parse(
+      await const SliceAssetPipeline().buildFromProof(proof),
+    );
+    final objects = (package.manifest['objects']! as List)
+        .cast<Map<String, Object?>>();
+    final block = objects.singleWhere(
+      (value) =>
+          (value['metadata'] as Map?)?['interactiveKind'] == 'push-pull-stone',
+    );
+    final metadata = block['metadata']! as Map<String, Object?>;
+    expect(
+      metadata['transform'],
+      containsAllInOrder([-7.82, 3.079, -5.31, 1.0]),
+    );
+    expect(metadata['axis'], [0.0, 0.0, 1.0]);
+    expect(metadata['maximumOffset'], 11.863);
+    final resource = (package.manifest['resources']! as List)
+        .cast<Map<String, Object?>>()
+        .singleWhere(
+          (value) =>
+              (value['metadata'] as Map?)?['interactiveKind'] ==
+              'push-pull-stone',
+        );
+    final mesh =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    expect(
+      ((mesh['materials']! as List).single as Map)['texture'],
+      'it_bloc2_01_mt',
+    );
+  });
 }
 
 Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:asterix_xxl/importer/importer.dart';
 
@@ -19,11 +20,14 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'extract-collision';
     final extractsLevelSpatial =
         arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
+    final extractsPushPull =
+        arguments.isNotEmpty && arguments.first == 'extract-push-pull';
     final decodesRws = arguments.isNotEmpty && arguments.first == 'decode-rws';
     final expectedLength =
         extractsAnimations ||
             inventoriesAnimations ||
             extractsLevelSpatial ||
+            extractsPushPull ||
             extractsLevelTextures
         ? 4
         : extractsTextures ||
@@ -46,6 +50,7 @@ Future<void> main(List<String> arguments) async {
           'inventory-animations',
           'extract-collision',
           'extract-level-spatial',
+          'extract-push-pull',
           'inspect-rws',
           'inspect-rws-tree',
           'decode-rws',
@@ -77,6 +82,73 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (extractsPushPull) {
+      final modulePath = arguments[2];
+      final scan = scanProtectedXxl1Level(
+        bytes,
+        await File(modulePath).readAsBytes(),
+        levelNumber: 1,
+        levelPath: path,
+        gameModulePath: modulePath,
+      );
+      final bindings = extractXxl1PushPullBindings(bytes, scan, path: path);
+      final nodes = extractXxl1LevelSceneNodes(bytes, scan, path: path);
+      final meshes = extractXxl1LevelStaticGeometryRecords(
+        bytes,
+        scan,
+        path: path,
+      );
+      final output = File(arguments[3]);
+      final extracted = <Map<String, Object>>[];
+      for (final binding in bindings) {
+        final node = nodes.singleWhere(
+          (value) =>
+              value.classId == binding.node.classId &&
+              value.objectId == binding.node.objectId,
+        );
+        final visualMesh = meshes.singleWhere(
+          (value) => value.objectId == (node.geometry?.objectId ?? -1) + 1,
+        );
+        final pathObject = scan.objects.singleWhere(
+          (value) =>
+              value.category == binding.flaggedPath.category &&
+              value.classId == binding.flaggedPath.classId &&
+              value.objectId == binding.flaggedPath.objectId,
+        );
+        final pathValues = parseXxl1FlaggedPathValues(
+          Uint8List.sublistView(
+            bytes,
+            pathObject.payloadOffset,
+            pathObject.endOffset,
+          ),
+          path: '$path#12:23:${pathObject.objectId}',
+        );
+        final textures = visualMesh.mesh.materials
+            .map((value) => value.textureName)
+            .whereType<String>()
+            .toSet();
+        if (!textures.contains('it_bloc2_01_mt')) {
+          throw ImportException(
+            code: ImportErrorCode.invalidValue,
+            message: 'Push/pull visual mesh is not the authored stone block.',
+            path: path,
+            details: {'hook': binding.objectId, 'textures': textures.toList()},
+          );
+        }
+        extracted.add({
+          ...binding.toJson(),
+          'transform': node.transform,
+          'visualMesh': visualMesh.toJson(),
+          'pathValues': pathValues,
+        });
+      }
+      await output.parent.create(recursive: true);
+      await output.writeAsString(
+        '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'bindings': extracted})}\n',
+        flush: true,
+      );
+      return;
+    }
     if (inventoriesAnimations) {
       final levelName = file.uri.pathSegments.last;
       final match = RegExp(

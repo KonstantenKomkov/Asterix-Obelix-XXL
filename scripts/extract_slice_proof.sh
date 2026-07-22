@@ -43,6 +43,7 @@ for suffix in 00 01 02 03; do
 done
 fvm dart run bin/importer.dart extract-level-textures "$level" "$module" "$output/textures"
 fvm dart run bin/importer.dart extract-animations "$level" "$module" "$output/animations"
+fvm dart run bin/importer.dart extract-push-pull "$level" "$module" "$output/push_pull.json"
 cp "$repo_root/assets/animation_bindings.v1.json" "$output/animations/bindings.json"
 fvm dart run bin/importer.dart decode-rws "$audio" "$output/audio.wav"
 
@@ -60,6 +61,7 @@ printf '%s\n' \
   '  "outputs": {' \
   '    "textures": "textures/manifest.json",' \
   '    "animations": "animations/manifest.json",' \
+  '    "pushPull": "push_pull.json",' \
   '    "audio": "audio.wav"' \
   '  }' \
   '}' > "$output/manifest.json"

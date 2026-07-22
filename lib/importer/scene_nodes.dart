@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'binary_reader.dart';
 import 'kwn_structure.dart';
+import 'protected_level.dart';
 
 final class KwnObjectReference {
   const KwnObjectReference({
@@ -103,6 +104,19 @@ List<SceneNodeRecord> extractXxl1SectorSceneNodes(
     );
   }).toList();
 }
+
+List<SceneNodeRecord> extractXxl1LevelSceneNodes(
+  Uint8List bytes,
+  Xxl1LevelScan scan, {
+  required String path,
+}) => scan.objects.where((object) => object.category == 11).map((object) {
+  return parseXxl1SceneNode(
+    Uint8List.sublistView(bytes, object.payloadOffset, object.endOffset),
+    classId: object.classId,
+    objectId: object.objectId,
+    path: '$path#11:${object.classId}:${object.objectId}',
+  );
+}).toList();
 
 SceneNodeRecord parseXxl1SceneNode(
   Uint8List payload, {

@@ -187,6 +187,13 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       {-simd_dot(right,eye),-simd_dot(up,eye),-simd_dot(backward,eye),1}}};
 }
 
+struct AsterixPushMesh {
+  std::uint32_t id=0;
+  NSUInteger vertexStart=0;
+  NSUInteger vertexCount=0;
+  float appliedOffset=0;
+};
+
 @implementation AsterixMetalRenderer {
   __weak MTKView* _view;
   id<MTLCommandQueue> _commandQueue;
@@ -216,6 +223,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   NSUInteger _enemyMarkerVertexStart;
   std::vector<std::vector<AsterixMeshRange>> _sceneMeshRanges;
   std::vector<AsterixFireEmitter> _fireEmitters;
+  std::vector<AsterixPushMesh> _pushMeshes;
   std::unique_ptr<asterix::scene::Runtime> _sceneRuntime;
   NSString* _sceneError;
   vector_float3 _sceneCenter;
@@ -469,6 +477,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   for(bool value:world.rewards_available)[available addObject:@(value)];
   NSMutableArray* collected=[NSMutableArray array];
   for(bool value:world.rewards_collected)[collected addObject:@(value)];
+  NSMutableArray* pushBlocks=[NSMutableArray array];
+  for(float value:world.push_block_offsets)[pushBlocks addObject:@(value)];
   return @{ @"player":@{ @"position":AsterixVec3Array(player.body.position),
                            @"checkpoint":AsterixVec3Array(player.body.checkpoint),
                            @"health":@(player.health)},
@@ -478,7 +488,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
             @"world":@{ @"rewards":@(world.snapshot.rewards),
                           @"checkpoint":@(world.snapshot.active_checkpoint),
                           @"triggers":triggers,@"levers":levers,@"objects":objects,
-                          @"rewardAvailable":available,@"rewardCollected":collected} };
+                          @"rewardAvailable":available,@"rewardCollected":collected,
+                          @"pushBlocks":pushBlocks} };
 } }
 
 - (BOOL)restoreGameplaySaveState:(NSDictionary*)state { @synchronized(self) {
@@ -521,6 +532,16 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   for(id item in (NSArray*)world[@"objects"]) {
     if(![item isKindOfClass:NSNumber.class])return NO;
     persistent.destructible_health.push_back([item intValue]);
+  }
+  id pushValues=world[@"pushBlocks"];
+  if(pushValues==nil)persistent.push_block_offsets.assign(
+      _interactiveRuntime->pushBlocks().size(),0);
+  else {
+    if(![pushValues isKindOfClass:NSArray.class])return NO;
+    for(id item in (NSArray*)pushValues) {
+      if(![item isKindOfClass:NSNumber.class]||!std::isfinite([item doubleValue]))return NO;
+      persistent.push_block_offsets.push_back([item floatValue]);
+    }
   }
   const int playerHealth=[player[@"health"] intValue];
   const int enemyHealth=[enemy[@"health"] intValue];
@@ -669,6 +690,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   asterix::scene::Runtime transformGraph;
   std::unordered_map<std::string, std::string> payloadNodes;
   std::unordered_map<std::string, std::string> payloadSections;
+  NSMutableDictionary<NSString*, NSDictionary*>* pushMetadata=[NSMutableDictionary dictionary];
   std::unordered_map<std::string, vector_float3> sectionMinimums;
   std::unordered_map<std::string, vector_float3> sectionMaximums;
   for (NSDictionary* resource in manifest[@"resources"]) {
@@ -812,6 +834,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     NSString* section=object[@"metadata"][@"section"];
     if([section isKindOfClass:NSString.class])
       payloadSections[payloadId.UTF8String]=section.UTF8String;
+    if([object[@"metadata"][@"interactiveKind"] isEqual:@"push-pull-stone"])
+      pushMetadata[payloadId]=object[@"metadata"];
   }
   try {
     transformGraph.resolveHierarchy();
@@ -820,6 +844,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     return NO;
   }
   std::unordered_map<std::string, asterix::scene::Matrix4> worldTransforms;
+  std::vector<AsterixPushMesh> pushMeshes;
   for (const auto& node : transformGraph.nodes()) worldTransforms[node.id] = node.world;
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"mesh"]) continue;
@@ -965,6 +990,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     }
     if (vertexData.length > before) {
       const NSUInteger count = (vertexData.length - before) / sizeof(AsterixVertex);
+      NSDictionary* push=[resourceId isKindOfClass:NSString.class]?pushMetadata[resourceId]:nil;
+      if(push!=nil)pushMeshes.push_back({
+          (uint32_t)(7400+[push[@"hookId"] unsignedIntValue]),
+          before/sizeof(AsterixVertex),count,0});
       meshRanges.push_back(std::move(materialRanges));
       asterix::scene::Node node;
       node.id = [resourceId UTF8String] ?: "";
@@ -1044,6 +1073,17 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     interactiveRuntime->addDestructible({100,body.position+asterix::collision::Vec3{2,0,0},2,2,false});
     interactiveRuntime->addReward({12,body.position+asterix::collision::Vec3{2,0,0},100,1});
     interactiveRuntime->addCheckpoint({13,body.position,1.0f});
+    for(NSDictionary* metadata in pushMetadata.allValues) {
+      asterix::collision::Vec3 origin,axis;
+      if(!AsterixReadVec3(metadata[@"origin"],origin)||
+         !AsterixReadVec3(metadata[@"axis"],axis)||
+         ![metadata[@"minimumOffset"] isKindOfClass:NSNumber.class]||
+         ![metadata[@"maximumOffset"] isKindOfClass:NSNumber.class])continue;
+      interactiveRuntime->addPushBlock({
+          (uint32_t)(7400+[metadata[@"hookId"] unsignedIntValue]),origin,{},axis,
+          {1.06f,1.07f,1.16f},[metadata[@"minimumOffset"] floatValue],
+          [metadata[@"maximumOffset"] floatValue],0});
+    }
     interactiveRuntime->update(body.position,false);
     cameraRuntime=std::make_unique<asterix::camera::Runtime>();
     combatRuntime=std::make_unique<asterix::combat::Runtime>();
@@ -1167,6 +1207,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _collisionVertices = collisionBuffer;
     _fireVertices = fireBuffer;
     _fireEmitters = std::move(fireEmitters);
+    _pushMeshes = std::move(pushMeshes);
     _collisionTriangleCount = collisionVertexData.length / sizeof(AsterixVertex) / 3;
     _sceneTexture = selectedTexture;
     _sceneTextures = textures.allValues;
@@ -1361,8 +1402,15 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         _simulationClock.advance(elapsed, [&](double step) {
           _previousAnimationPhase = _currentAnimationPhase;
           _currentAnimationPhase += (float)step;
-          if (_playerRuntime) _playerRuntime->update((float)step,_playerInput);
+          asterix::collision::Vec3 previousPlayer{};
+          if (_playerRuntime) {
+            previousPlayer=_playerRuntime->snapshot().body.position;
+            _playerRuntime->update((float)step,_playerInput);
+          }
           if(_interactiveRuntime&&_playerRuntime) {
+            const auto playerPosition=_playerRuntime->snapshot().body.position;
+            _playerRuntime->resolveInteractivePosition(
+                _interactiveRuntime->resolvePushBlocks(previousPlayer,playerPosition));
             const bool interactEdge=_interactPressed&&!_interactWasPressed;
             _interactWasPressed=_interactPressed;
             if(_playerRuntime->snapshot().state==asterix::player::State::death&&interactEdge) {
@@ -1502,6 +1550,18 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       vector_float3 sceneCenter = {0, 0, 0};
       float sceneRadius = 1;
       @synchronized(self) {
+        if(_sceneVertices&&_interactiveRuntime) {
+          AsterixVertex* vertices=(AsterixVertex*)_sceneVertices.contents;
+          for(auto& mesh:_pushMeshes)for(const auto& block:_interactiveRuntime->pushBlocks())
+            if(block.id==mesh.id&&block.offset!=mesh.appliedOffset) {
+              const auto delta=block.axis*(block.offset-mesh.appliedOffset);
+              for(NSUInteger index=0;index<mesh.vertexCount;++index) {
+                auto& position=vertices[mesh.vertexStart+index].position;
+                position+=(vector_float3){delta.x,delta.y,delta.z};
+              }
+              mesh.appliedOffset=block.offset;
+            }
+        }
         if(_sceneVertices&&_playerRuntime&&_playerMarkerVertexStart!=NSNotFound)
           AsterixWriteMarker((AsterixVertex*)_sceneVertices.contents+_playerMarkerVertexStart,
                              _playerRuntime->snapshot().body.position,
