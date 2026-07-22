@@ -626,7 +626,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   // LVL01's Asterix set has 58 nodes. These source-stable clip numbers were
   // classified against the gameplay states; one-shots deliberately do not loop.
   NSDictionary<NSString*, NSString*>* animationKeys = @{
-    @"idle":@"0053.animation.json", @"run":@"0054.animation.json",
+    @"idle":@"0053.animation.json", @"run":@"0035.animation.json",
     @"jump":@"0031.animation.json", @"fall":@"0039.animation.json",
     @"attack":@"0000.animation.json", @"hurt":@"0009.animation.json",
     @"death":@"0033.animation.json"};
