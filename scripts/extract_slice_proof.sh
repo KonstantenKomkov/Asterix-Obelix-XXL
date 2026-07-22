@@ -45,6 +45,7 @@ fvm dart run bin/importer.dart extract-level-textures "$level" "$module" "$outpu
 fvm dart run bin/importer.dart extract-animations "$level" "$module" "$output/animations"
 fvm dart run bin/importer.dart extract-push-pull "$level" "$module" "$output/push_pull.json"
 fvm dart run bin/importer.dart extract-checkpoint "$level" "$module" "$output/checkpoint.json"
+fvm dart run bin/importer.dart extract-level-collision "$level" "$module" "$output/level_collision.json"
 fvm dart run bin/importer.dart extract-water-surfaces "$level" "$module" "$output/water_surfaces.json"
 cp "$repo_root/assets/animation_bindings.v1.json" "$output/animations/bindings.json"
 fvm dart run bin/importer.dart decode-rws "$audio" "$output/audio.wav"
@@ -65,6 +66,7 @@ printf '%s\n' \
   '    "animations": "animations/manifest.json",' \
   '    "pushPull": "push_pull.json",' \
   '    "checkpoint": "checkpoint.json",' \
+  '    "levelCollision": "level_collision.json",' \
   '    "waterSurfaces": "water_surfaces.json",' \
   '    "audio": "audio.wav"' \
   '  }' \

@@ -18,6 +18,7 @@ fvm dart run bin/importer.dart extract-geometry /path/to/STR01_00.KWN > "$HOME/a
 - абсолютный object ID внутри таблицы класса;
 - RenderWare frame list и parent index;
 - positions и normals;
+- authored vertex RGBA при RenderWare `rpGEOMETRYPRELIT` (`flags & 0x08`);
 - все UV sets;
 - triangle indices и material ID;
 - границы вложенных RenderWare chunks.

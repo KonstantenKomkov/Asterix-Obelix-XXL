@@ -107,8 +107,8 @@ final class CollisionMesh {
     'param2': param2,
     'infiniteWalls': infiniteWalls.map((wall) => wall.toJson()).toList(),
     'finiteWalls': finiteWalls.map((wall) => wall.toJson()).toList(),
-    if (param3 case final value?) 'param3': value,
-    if (param4 case final value?) 'param4': value,
+    if (param3 case final value? when value.isFinite) 'param3': value,
+    if (param4 case final value? when value.isFinite) 'param4': value,
     if (position case final value?) 'position': value,
     if (rotation case final value?) 'rotation': value,
     if (nodeId case final value?) 'nodeId': value,
@@ -122,6 +122,28 @@ List<CollisionMesh> extractXxl1SectorCollision(
   Uint8List bytes, {
   required String path,
 }) => scanXxl1SectorObjects(bytes, path: path)
+    .where(
+      (object) =>
+          object.category == 12 &&
+          (object.classId == 18 ||
+              object.classId == 19 ||
+              object.classId == 20),
+    )
+    .map(
+      (object) => parseXxl1CollisionMesh(
+        Uint8List.sublistView(bytes, object.payloadOffset, object.endOffset),
+        objectId: object.objectId,
+        classId: object.classId,
+        path: '$path#12:${object.classId}:${object.objectIndex}',
+      ),
+    )
+    .toList();
+
+List<CollisionMesh> extractXxl1LevelCollision(
+  Uint8List bytes,
+  Xxl1LevelScan scan, {
+  required String path,
+}) => scan.objects
     .where(
       (object) =>
           object.category == 12 &&
@@ -298,12 +320,15 @@ CollisionMesh parseXxl1CollisionMesh(
     rotation = List<double>.generate(3, (_) => reader.readFloat32());
     nodeId = reader.readUint32();
     transform = List<double>.generate(16, (_) => reader.readFloat32());
+    _normalizeRwMatrixPadding(transform);
   } else if (kind == CollisionMeshKind.wall) {
     wallTransform = List<double>.generate(16, (_) => reader.readFloat32());
+    _normalizeRwMatrixPadding(wallTransform);
     wallInverseTransform = List<double>.generate(
       16,
       (_) => reader.readFloat32(),
     );
+    _normalizeRwMatrixPadding(wallInverseTransform);
   }
   if (reader.offset != reader.length) {
     _invalid(reader, 'Collision mesh boundary does not match its payload.', {
@@ -331,6 +356,11 @@ CollisionMesh parseXxl1CollisionMesh(
     wallTransform: wallTransform,
     wallInverseTransform: wallInverseTransform,
   );
+}
+
+void _normalizeRwMatrixPadding(List<double> matrix) {
+  matrix[3] = matrix[7] = matrix[11] = 0;
+  matrix[15] = 1;
 }
 
 CollisionWallEdge _readWallEdge(BinaryReader reader, int vertexCount) {

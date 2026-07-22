@@ -19,7 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
-| 76 | **Восстановить тени и затемнение внутри домов:** определить точный источник интерьерного освещения оригинала и перенести authored prelight/lightmap либо иной подтверждённый shadow path в asset pipeline и Metal renderer | Lighting fidelity | P0 | L | После п. 52; подтверждённый дефект pipeline — при RenderWare-флаге pre-lit импортёр пропускает `vertexCount × 4` байта RGBA, а ASTPAK/Metal их не получают; текущий shader использует только глобальный ambient и один направленный Lambert-свет без shadow/lightmap path. Аудит исходных sector/level geometry, material и extension payload устанавливает точный механизм и связанные object/material/texture IDs; запрещена эвристическая маркировка по именам mesh/material без исходной binding chain. Выбранный prelight/lightmap/shadow path сохраняет RGBA/alpha и transforms без потерь, корректно комбинируется с texture/material lighting и даёт соответствующее оригиналу устойчивое затемнение внутри всех домов первого уровня без чрезмерного затемнения улицы. Post-build gate проверяет payload свежего установленного ASTPAK: ненулевые authored lighting bindings, vertex/material/draw-range counts, hashes, отсутствие silent global-light fallback и фактическое потребление данных Metal shader; clean/cached packages идентичны либо cache version инвалидируется. Importer/pipeline regressions и cold-start indoor/outdoor visual captures покрывают каждый дом, улицу, alpha/cutout материалы, pause/restore/streaming и исключают как прежний равномерный свет, так и ложное глобальное затемнение |
 | 77 | **Провести и закрыть полный аудит non-skeletal FX первого уровня:** повторно извлечь все scene-node class IDs и их payload, включая 11 обнаруженных particle-node записей из локального proof, классифицировать enabled emitters, water/UV или texture-sequence данные, vertex/material/light animation и сопоставить каждый объект с ASTPAK и Metal draw path; для каждого неподдержанного механизма создать отдельный runtime/importer backlog item и исключить silent static fallback | Environment FX audit | P0 | M | После п. 72; машинно проверенный отчёт содержит object ID, section, source payload, animation mechanism, imported resource и renderer path для каждого объекта; ноль необъяснённых non-skeletal animated objects, а все остаточные пропуски имеют отдельные номера задач и visual/runtime regression criteria |
 
 ---
@@ -123,7 +122,7 @@
 - [x] П. 73 — анимация движения воды
 - [x] П. 74 — позиция и каменный ассет передвигаемого блока первого уровня
 - [x] П. 75 — устранение провалов капсулы сквозь поверхность карты
-- [ ] П. 76 — тени и интерьерное затемнение внутри домов
+- [x] П. 76 — тени и интерьерное затемнение внутри домов
 - [ ] П. 77 — полный аудит non-skeletal FX первого уровня
 - [x] П. 78 — реальная ASTPAK-интеграция воды и повторная post-build приёмка артефактов п. 74
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
@@ -132,7 +131,9 @@
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 75 выполнен: capsule ground contact использует footprint на каждом fixed-tick substep, реальный `CKHkAsterixCheckpoint` и его scene transform входят в ASTPAK и заменили синтетический spawn; post-build gate принял collision всех четырёх секторов (212 meshes / 9423 triangles), а clean/cached packages и cold-start runtime smoke подтвердили единый пакет без провалов на seam/slope/step regressions.
+**Последнее обновление:** 22 июля 2026 — п. 76 выполнен: RenderWare `rpGEOMETRYPRELIT` RGBA перенесён без потерь в ASTPAK/Metal как authored baked lighting для 668 mesh / 132 268 vertices / 668 draw ranges; level-local collision восстановил cold start внутри дома, а post-build audit, идентичные clean/cached packages и visual smoke исключили silent Lambert fallback и двойное глобальное затемнение.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 75 выполнен: capsule ground contact использует footprint на каждом fixed-tick substep, реальный `CKHkAsterixCheckpoint` и его scene transform входят в ASTPAK и заменили синтетический spawn; post-build gate принял collision всех четырёх секторов (212 meshes / 9423 triangles), а clean/cached packages и cold-start runtime smoke подтвердили единый пакет без провалов на seam/slope/step regressions.
 
 **Предыдущее обновление:** 22 июля 2026 — критерии п. 75–76 усилены по результатам п. 78: collision/checkpoint и authored lighting должны быть доказаны по исходным binding chains и payload свежего установленного ASTPAK; обязательны post-build counts/hashes, cold-start runtime/visual acceptance и проверка clean/cached идентичности без эвристического или синтетического fallback.
 

@@ -15,6 +15,11 @@ void main() {
       [1.0, 0.0, 0.0],
       [0.0, 1.0, 0.0],
     ]);
+    expect(mesh.prelightColors, [
+      [16 / 255, 32 / 255, 48 / 255, 64 / 255],
+      [80 / 255, 96 / 255, 112 / 255, 128 / 255],
+      [144 / 255, 160 / 255, 176 / 255, 192 / 255],
+    ]);
     expect(mesh.uvSets.single, [
       [0.0, 0.0],
       [1.0, 0.0],
@@ -72,10 +77,13 @@ Uint8List _staticGeometryPayload({
   ]);
 
   final geometryStruct = BytesBuilder(copy: false);
-  _u32(geometryStruct, 0x06); // positions + one UV set
+  _u32(geometryStruct, 0x0e); // positions + prelight + one UV set
   _u32(geometryStruct, 1);
   _u32(geometryStruct, 3);
   _u32(geometryStruct, 1);
+  geometryStruct.add(
+    Uint8List.fromList([16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192]),
+  );
   for (final value in <double>[0, 0, 1, 0, 0, 1]) {
     _f32(geometryStruct, value);
   }

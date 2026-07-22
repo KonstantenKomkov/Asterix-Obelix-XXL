@@ -58,6 +58,67 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
   final resourcesById = {
     for (final resource in resources) resource['id']! as String: resource,
   };
+  var prelitMeshes = 0;
+  var prelitVertices = 0;
+  var prelitDrawRanges = 0;
+  var invalidPrelightBindings = 0;
+  var darkestPrelight = 1.0;
+  var brightestPrelight = 0.0;
+  final prelightPayloads = <Map<String, Object?>>[];
+  for (final resource in resources.where((item) => item['kind'] == 'mesh')) {
+    final id = resource['id']! as String;
+    final mesh = jsonDecode(utf8.decode(package.payload(id)));
+    if (mesh is! Map<String, Object?>) continue;
+    final vertices = mesh['vertices'];
+    final colors = mesh['prelightColors'];
+    if (colors is! List<Object?> || colors.isEmpty) continue;
+    prelitMeshes++;
+    var valid = vertices is List<Object?> && colors.length == vertices.length;
+    final materialIds = <int>{};
+    for (final value in colors) {
+      if (value is! List<Object?> ||
+          value.length != 4 ||
+          value.any(
+            (channel) =>
+                channel is! num ||
+                !channel.isFinite ||
+                channel < 0 ||
+                channel > 1,
+          )) {
+        valid = false;
+        continue;
+      }
+      final rgba = value.cast<num>();
+      for (var channel = 0; channel < 3; channel++) {
+        darkestPrelight = rgba[channel].toDouble() < darkestPrelight
+            ? rgba[channel].toDouble()
+            : darkestPrelight;
+        brightestPrelight = rgba[channel].toDouble() > brightestPrelight
+            ? rgba[channel].toDouble()
+            : brightestPrelight;
+      }
+    }
+    for (final triangle in mesh['triangles'] as List<Object?>? ?? const []) {
+      if (triangle is List<Object?> &&
+          triangle.length == 4 &&
+          triangle[3] is int) {
+        materialIds.add(triangle[3]! as int);
+      }
+    }
+    if (!valid) invalidPrelightBindings++;
+    prelitVertices += colors.length;
+    prelitDrawRanges += materialIds.length;
+    prelightPayloads.add({
+      'resourceId': id,
+      'objectId': mesh['objectId'],
+      'sourceSector': (resource['source'] as Map<String, Object?>)['path'],
+      'sha256': resource['sha256'],
+      'vertexCount': (vertices as List<Object?>?)?.length ?? 0,
+      'prelightVertexCount': colors.length,
+      'materialDrawRangeCount': materialIds.length,
+      'valid': valid,
+    });
+  }
   final collisionAudit = <Map<String, Object?>>[];
   var collisionMeshes = 0;
   var collisionTriangles = 0;
@@ -236,7 +297,7 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
     if (!hasStoneTexture) invalidPushBlocks++;
   }
   final passed =
-      collisionAudit.length == 4 &&
+      collisionAudit.length == 5 &&
       collisionMeshes > 0 &&
       collisionTriangles > 0 &&
       invalidCollisionTransforms == 0 &&
@@ -250,7 +311,12 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
       pushBlocks.length == 2 &&
       invalidPushBlocks == 0 &&
       pushTextures.length == 1 &&
-      pushTextures.single == 'it_bloc2_01_mt';
+      pushTextures.single == 'it_bloc2_01_mt' &&
+      prelitMeshes > 0 &&
+      prelitVertices > 0 &&
+      prelitDrawRanges > 0 &&
+      invalidPrelightBindings == 0 &&
+      darkestPrelight < brightestPrelight;
   return {
     'format': 'asterix-slice-asset-audit',
     'collisionSectors': collisionAudit,
@@ -279,6 +345,19 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
     'pushPullInteractionBindings': pushBlocks.length,
     'pushPullTextures': pushTextures.toList()..sort(),
     'invalidPushPullBindings': invalidPushBlocks,
+    'authoredLighting': {
+      'mechanism': 'RenderWare-rpGEOMETRYPRELIT-vertex-rgba',
+      'binding': 'geometry-object-id-to-scene-node-payload-id',
+      'metalConsumption':
+          'vertex-prelight-is-baked-lighting-for-texture-material-rgba',
+      'meshCount': prelitMeshes,
+      'vertexCount': prelitVertices,
+      'materialDrawRangeCount': prelitDrawRanges,
+      'darkestRgb': darkestPrelight,
+      'brightestRgb': brightestPrelight,
+      'invalidBindings': invalidPrelightBindings,
+      'payloads': prelightPayloads,
+    },
     'passed': passed,
   };
 }

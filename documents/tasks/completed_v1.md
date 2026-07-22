@@ -1,5 +1,40 @@
 # Выполненные задачи первой итерации
 
+## П. 76 — Authored тени и интерьерное затемнение домов Gaul
+
+**Выполнено:** 22 июля 2026.
+
+Точный исходный механизм подтверждён без эвристик по именам: все 668 static
+geometry первого уровня имеют RenderWare `rpGEOMETRYPRELIT` (`flags & 0x08`) и
+хранят RGBA по четыре байта на вершину. Importer теперь сохраняет 132 268
+нормализованных RGBA вместе с geometry object ID, scene-node transform,
+triangle material slot и texture binding. Pipeline требует точного совпадения
+vertex counts и конечных каналов `0…1`; cache version повышена.
+
+Metal переносит prelight в vertex buffer, интерполирует и модулирует им
+texture/material RGBA с сохранением authored alpha и cutout/blended path.
+Поскольку prelight уже является результатом RenderWare fixed-function lighting,
+повторный Lambert для таких mesh отключён; non-prelit geometry сохраняет прежний
+ambient + directional Lambert и нейтральный RGBA. Runtime отклоняет malformed
+или неполный authored payload вместо silent global-light fallback.
+
+Cold-start review обнаружил старый пропуск п. 75: package не содержал
+level-local collision пола дома под реальным checkpoint. В pipeline добавлены
+13 ground и 62 dynamic-ground mesh из `LVL01.KWN`; итоговые 287 collision mesh /
+10 558 triangles разрешают checkpoint на authored floor без синтетического
+spawn. Indoor cold start проверен локальным capture; alpha/cutout и
+pause/restore/streaming остаются в общих material/runtime regressions, а
+машинный audit охватывает authored lighting всех sector mesh, включая улицу.
+Изображения и игровые данные в Git не добавлялись.
+
+Post-build gate принял 668 lighting bindings / 132 268 vertices / 668 material
+draw ranges, RGB range `0…1`, ноль invalid bindings и payload hashes. Clean и
+полностью cached ASTPAK побайтно совпали: 68 578 756 байт, SHA-256
+`0d6bcaf988d3f84086290757fa0d46c6d8d3dcf88b606a83f6b4c6614372c56c`.
+Описание: [authored_lighting.md](../architecture/authored_lighting.md). Прошли
+`make check`, native XCTest, cold-start debug build, resource policy и отдельное
+diff review.
+
 ## П. 75 — Устойчивый контакт капсулы с поверхностью Gaul
 
 **Выполнено:** 22 июля 2026.

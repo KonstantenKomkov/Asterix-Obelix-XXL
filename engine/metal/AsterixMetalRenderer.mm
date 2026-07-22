@@ -25,6 +25,7 @@ typedef struct {
   float alpha;
   float ambient;
   float diffuse;
+  vector_float4 prelight;
   vector_uint4 joints;
   vector_float4 weights;
   uint32_t objectId;
@@ -75,7 +76,7 @@ static void AsterixWriteMarker(AsterixVertex* vertices,
       p+(vector_float3){-.35f,0,0},p+(vector_float3){.35f,0,0},p+(vector_float3){0,1.4f,0},
       p+(vector_float3){0,0,-.35f},p+(vector_float3){0,0,.35f},p+(vector_float3){0,1.4f,0}};
   for(NSUInteger i=0;i<6;++i)
-    vertices[i]={points[i],color,{0,1,0},{0,0},1,1,0,{0,0,0,0},{1,0,0,0},objectId};
+    vertices[i]={points[i],color,{0,1,0},{0,0},1,1,0,{1,1,1,1},{0,0,0,0},{1,0,0,0},objectId};
 }
 
 static asterix::scene::Frustum AsterixFrustum(matrix_float4x4 matrix) {
@@ -285,10 +286,10 @@ struct AsterixPushMesh {
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; float effectTime; uint effect; float2 uvOffset; };\n"
-      "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; };\n"
-      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv+u.uvOffset; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
-      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<u.alphaCutoff) discard_fragment(); if(u.effect==1u){ float pulse=.82+.18*sin(u.effectTime*12.566+i.uv.y*3.14159); base.rgb*=pulse; return base; } float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
+      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; float4 prelight; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; float effectTime; uint effect; float2 uvOffset; };\n"
+      "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; float4 prelight; };\n"
+      "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv+u.uvOffset; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; o.prelight=v[i].prelight; return o; }\n"
+      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); base*=i.prelight; if(base.a<u.alphaCutoff) discard_fragment(); if(u.effect==1u){ float pulse=.82+.18*sin(u.effectTime*12.566+i.uv.y*3.14159); base.rgb*=pulse; return base; } float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
   if (library == nil) {
@@ -326,9 +327,9 @@ struct AsterixPushMesh {
   defaultSampler.sAddressMode=defaultSampler.tAddressMode=MTLSamplerAddressModeRepeat;
   _defaultSampler=[device newSamplerStateWithDescriptor:defaultSampler];
   const AsterixVertex vertices[] = {
-      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0, 0, 1}, {0.5f, 0}, 1, .35f, .65f, {1,0,0,0}, {1,0,0,0}, 1},
-      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 0, 1}, {0, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}, 1},
-      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}, {0, 0, 1}, {1, 1}, 1, .35f, .65f, {0,0,0,0}, {1,0,0,0}, 1},
+      {{0.0f, 0.9f, 0.0f}, {1.0f, 0.75f, 0.12f}, {0, 0, 1}, {0.5f, 0}, 1, .35f, .65f, {1,1,1,1}, {1,0,0,0}, {1,0,0,0}, 1},
+      {{-0.8f, -0.65f, 0.0f}, {0.12f, 0.65f, 1.0f}, {0, 0, 1}, {0, 1}, 1, .35f, .65f, {1,1,1,1}, {0,0,0,0}, {1,0,0,0}, 1},
+      {{0.8f, -0.65f, 0.0f}, {0.95f, 0.2f, 0.15f}, {0, 0, 1}, {1, 1}, 1, .35f, .65f, {1,1,1,1}, {0,0,0,0}, {1,0,0,0}, 1},
   };
   _vertices = [device newBufferWithBytes:vertices length:sizeof(vertices)
                                   options:MTLResourceStorageModeShared];
@@ -819,7 +820,7 @@ struct AsterixPushMesh {
         collisionTriangles.push_back(collisionTriangle);
         for (vector_float3 point : points) {
           AsterixVertex vertex = {point,{1,.08f,.12f},{0,1,0},{0,0},1,1,0,
-                                  {0,0,0,0},{1,0,0,0},objectId};
+                                  {1,1,1,1},{0,0,0,0},{1,0,0,0},objectId};
           [collisionVertexData appendBytes:&vertex length:sizeof(vertex)];
         }
       }
@@ -867,10 +868,38 @@ struct AsterixPushMesh {
     NSDictionary* mesh = [NSJSONSerialization JSONObjectWithData:meshData options:0 error:nil];
     NSArray* positions = mesh[@"vertices"];
     NSArray* normals = mesh[@"normals"];
+    id prelightValue=mesh[@"prelightColors"];
+    if(prelightValue!=nil&&![prelightValue isKindOfClass:NSArray.class]) {
+      [self reportSceneError:@"Authored prelight payload is not an array"];
+      return NO;
+    }
+    NSArray* prelightColors=(NSArray*)prelightValue;
     NSArray* triangles = mesh[@"triangles"];
     NSArray* materials = mesh[@"materials"];
     NSArray* uvSets = mesh[@"uvSets"];
     NSArray* uvs = uvSets.count > 0 ? uvSets[0] : nil;
+    if (prelightColors.count > 0 && prelightColors.count != positions.count) {
+      [self reportSceneError:[NSString stringWithFormat:
+          @"Authored prelight vertex count mismatch for mesh %@", resource[@"id"]]];
+      return NO;
+    }
+    for (NSArray* rgba in prelightColors) {
+      if (![rgba isKindOfClass:NSArray.class] || rgba.count != 4) {
+        [self reportSceneError:@"Authored prelight contains malformed RGBA"];
+        return NO;
+      }
+      for (id channel in rgba) {
+        if (![channel isKindOfClass:NSNumber.class]) {
+          [self reportSceneError:@"Authored prelight channel is outside 0...1"];
+          return NO;
+        }
+        const double value=[(NSNumber*)channel doubleValue];
+        if (!std::isfinite(value) || value < 0 || value > 1) {
+          [self reportSceneError:@"Authored prelight channel is outside 0...1"];
+          return NO;
+        }
+      }
+    }
     NSString* resourceId = resource[@"id"];
     matrix_float4x4 model = matrix_identity_float4x4;
     if ([resourceId isKindOfClass:NSString.class]) {
@@ -962,6 +991,10 @@ struct AsterixPushMesh {
       const NSUInteger triangleStart=vertexData.length/sizeof(AsterixVertex);
       if ([material[@"ambient"] isKindOfClass:NSNumber.class]) ambient = [material[@"ambient"] floatValue];
       if ([material[@"diffuse"] isKindOfClass:NSNumber.class]) diffuse = [material[@"diffuse"] floatValue];
+      // rpGEOMETRYPRELIT is already the authored fixed-function lighting
+      // result. Applying Lambert again would double-darken both interiors and
+      // streets. Non-prelit geometry retains material ambient + diffuse.
+      if(prelightColors.count>0) { ambient=1; diffuse=0; }
       for (NSUInteger corner = 0; corner < 3; ++corner) {
         NSUInteger index = [triangle[corner] unsignedIntegerValue];
         if (index >= positions.count || [positions[index] count] < 3) continue;
@@ -980,8 +1013,14 @@ struct AsterixPushMesh {
           normal = simd_normalize(simd_mul((matrix_float3x3){model.columns[0].xyz, model.columns[1].xyz, model.columns[2].xyz},
                                            (vector_float3){[n[0] floatValue], [n[1] floatValue], [n[2] floatValue]}));
         }
+        vector_float4 prelight={1,1,1,1};
+        if(index<prelightColors.count&&[prelightColors[index] count]==4) {
+          NSArray* rgba=prelightColors[index];
+          prelight={(float)[rgba[0] doubleValue],(float)[rgba[1] doubleValue],
+                    (float)[rgba[2] doubleValue],(float)[rgba[3] doubleValue]};
+        }
         AsterixVertex vertex = {{world.x, world.y, world.z}, c, normal, uv,
-                                alpha, ambient, diffuse, {0,0,0,0}, {1,0,0,0},
+                                alpha, ambient, diffuse, prelight, {0,0,0,0}, {1,0,0,0},
                                 (uint32_t)[mesh[@"objectId"] unsignedIntValue]};
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
       }
@@ -1185,6 +1224,7 @@ struct AsterixPushMesh {
         }
         AsterixVertex vertex={local,
             {1,1,1},normal,uv,1,1,1,
+            {1,1,1,1},
             {binding.joints[0],binding.joints[1],binding.joints[2],binding.joints[3]},
             {binding.weights[0],binding.weights[1],binding.weights[2],binding.weights[3]},900001};
         [vertexData appendBytes:&vertex length:sizeof(vertex)];

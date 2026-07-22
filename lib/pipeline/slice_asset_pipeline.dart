@@ -11,7 +11,7 @@ import '../runtime/animation_binding_registry.dart';
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
-const _pipelineCacheVersion = 'slice-assets-v3-authored-checkpoint';
+const _pipelineCacheVersion = 'slice-assets-v4-prelight-level-collision';
 
 enum AssetPipelineErrorCode {
   missingInput,
@@ -278,6 +278,7 @@ final class SliceAssetPipeline {
 
       for (final mesh in meshes) {
         final objectId = _integer(mesh, 'objectId');
+        final prelight = mesh['prelightColors'] as List? ?? const [];
         final payload = AssetPayloadInput(
           kind: 'mesh',
           sourcePath: sectorSource,
@@ -288,7 +289,13 @@ final class SliceAssetPipeline {
             transform: encodeCanonicalJson,
             value: mesh,
           ),
-          metadata: {'objectId': objectId},
+          metadata: {
+            'objectId': objectId,
+            if (prelight.isNotEmpty) ...{
+              'authoredLighting': 'RenderWare-rpGEOMETRYPRELIT',
+              'prelightVertexCount': prelight.length,
+            },
+          },
         );
         payloads.add(payload);
         meshPayloadIds[objectId] = payload.id;
@@ -414,6 +421,73 @@ final class SliceAssetPipeline {
     }
 
     final outputs = root['outputs'];
+    final levelCollisionPath =
+        outputs is Map && outputs['levelCollision'] is String
+        ? '${proof.path}/${outputs['levelCollision']}'
+        : null;
+    if (levelCollisionPath != null) {
+      final collision = await _jsonFile(File(levelCollisionPath));
+      final meshes = _objectList(collision, 'meshes', path: levelCollisionPath);
+      if (collision['schemaVersion'] != 1 || meshes.isEmpty) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidSchema,
+          'Level collision must contain authored ground meshes.',
+          path: levelCollisionPath,
+        );
+      }
+      for (var meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
+        final vertices = _list(
+          meshes[meshIndex],
+          'vertices',
+          levelCollisionPath,
+          meshIndex,
+        );
+        final triangles = _list(
+          meshes[meshIndex],
+          'triangles',
+          levelCollisionPath,
+          meshIndex,
+        );
+        for (
+          var triangleIndex = 0;
+          triangleIndex < triangles.length;
+          triangleIndex++
+        ) {
+          final triangle = triangles[triangleIndex];
+          if (triangle is! List ||
+              triangle.length != 3 ||
+              triangle.any(
+                (value) =>
+                    value is! int || value < 0 || value >= vertices.length,
+              )) {
+            throw AssetPipelineException(
+              AssetPipelineErrorCode.invalidRange,
+              'Level collision triangle is outside its vertex range.',
+              path: levelCollisionPath,
+              details: {'mesh': meshIndex, 'triangle': triangleIndex},
+            );
+          }
+        }
+      }
+      payloads.add(
+        AssetPayloadInput(
+          kind: 'collision',
+          sourcePath: _levelSource,
+          sourceKey: 'level-collision',
+          bytes: await cache.transform(
+            kind: 'level-collision-json',
+            input: encodeCanonicalJson(collision),
+            transform: encodeCanonicalJson,
+            value: collision,
+          ),
+          metadata: {
+            'meshCount': meshes.length,
+            'section': _levelSource,
+            'scope': 'level-authored',
+          },
+        ),
+      );
+    }
     final checkpointPath = outputs is Map && outputs['checkpoint'] is String
         ? '${proof.path}/${outputs['checkpoint']}'
         : null;
@@ -1099,6 +1173,28 @@ void _validateScene(
       );
     }
     final vertices = _list(mesh, 'vertices', path, meshIndex);
+    final prelight = mesh['prelightColors'] ?? const <Object>[];
+    if (prelight is! List ||
+        (prelight.isNotEmpty && prelight.length != vertices.length) ||
+        prelight.any(
+          (color) =>
+              color is! List ||
+              color.length != 4 ||
+              color.any(
+                (channel) =>
+                    channel is! num ||
+                    !channel.isFinite ||
+                    channel < 0 ||
+                    channel > 1,
+              ),
+        )) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidRange,
+        'RenderWare prelight must contain one finite normalized RGBA per vertex.',
+        path: path,
+        details: {'mesh': meshIndex, 'vertexCount': vertices.length},
+      );
+    }
     final triangles = _list(mesh, 'triangles', path, meshIndex);
     final materials = _list(mesh, 'materials', path, meshIndex);
     for (

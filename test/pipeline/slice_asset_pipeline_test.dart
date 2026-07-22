@@ -186,6 +186,60 @@ void main() {
   });
 
   test(
+    'packages level-local collision used by the authored checkpoint',
+    () async {
+      final temporary = await Directory.systemTemp.createTemp(
+        'asset-level-collision-',
+      );
+      addTearDown(() => temporary.delete(recursive: true));
+      final proof = Directory('${temporary.path}/proof');
+      await _writeProof(proof, reverseOrder: false);
+      await File('${proof.path}/manifest.json').writeAsString(
+        jsonEncode({
+          'schemaVersion': 2,
+          'slice': 'gaul-stage-1',
+          'sectors': [
+            {'source': 'LVL001/STR01_00.KWN', 'directory': '.'},
+          ],
+          'outputs': {'levelCollision': 'level_collision.json'},
+        }),
+      );
+      await File('${proof.path}/level_collision.json').writeAsString(
+        jsonEncode({
+          'schemaVersion': 1,
+          'source': 'LVL01.KWN',
+          'meshes': [
+            {
+              'objectId': 10,
+              'kind': 'ground',
+              'vertices': [
+                [60.0, 2.0, 75.0],
+                [67.0, 2.0, 75.0],
+                [60.0, 2.0, 82.0],
+              ],
+              'triangles': [
+                [0, 1, 2],
+              ],
+            },
+          ],
+        }),
+      );
+
+      final package = AsterixAssetPackage.parse(
+        await const SliceAssetPipeline().buildFromProof(proof),
+      );
+      final resources = (package.manifest['resources']! as List)
+          .cast<Map<String, Object?>>();
+      final levelCollision = resources.singleWhere(
+        (value) =>
+            value['kind'] == 'collision' &&
+            (value['metadata'] as Map)['scope'] == 'level-authored',
+      );
+      expect((levelCollision['metadata'] as Map)['meshCount'], 1);
+    },
+  );
+
+  test(
     'packages sector-local IDs and collision from every slice sector',
     () async {
       final temporary = await Directory.systemTemp.createTemp('asset-sectors-');

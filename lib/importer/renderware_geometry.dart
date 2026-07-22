@@ -152,6 +152,7 @@ final class SceneMesh {
     required this.frames,
     required this.vertices,
     required this.normals,
+    required this.prelightColors,
     required this.uvSets,
     required this.triangles,
     required this.materials,
@@ -162,6 +163,9 @@ final class SceneMesh {
   final List<SceneFrame> frames;
   final List<List<double>> vertices;
   final List<List<double>> normals;
+
+  /// Authored RenderWare rpGEOMETRYPRELIT RGBA, normalized to 0...1.
+  final List<List<double>> prelightColors;
   final List<List<List<double>>> uvSets;
   final List<SceneTriangle> triangles;
   final List<SceneMaterial> materials;
@@ -172,6 +176,7 @@ final class SceneMesh {
     'frameCount': frames.length,
     'vertexCount': vertices.length,
     'normalCount': normals.length,
+    'prelightVertexCount': prelightColors.length,
     'uvSetCount': uvSets.length,
     'triangleCount': triangles.length,
     'materialCount': materials.length,
@@ -183,6 +188,7 @@ final class SceneMesh {
     'frames': frames.map((frame) => frame.toJson()).toList(),
     'vertices': vertices,
     'normals': normals,
+    'prelightColors': prelightColors,
     'uvSets': uvSets,
     'triangles': triangles.map((triangle) => triangle.toJson()).toList(),
     'materials': materials.map((material) => material.toJson()).toList(),
@@ -397,9 +403,17 @@ SceneMesh _parseGeometry(
       'morphCount': morphCount,
     });
   }
-  if ((flags & 0x08) != 0) {
-    reader.readBytes(vertexCount * 4); // pre-lit RGBA
-  }
+  final prelightColors = (flags & 0x08) != 0
+      ? List.generate(
+          vertexCount,
+          (_) => [
+            reader.readUint8() / 255.0,
+            reader.readUint8() / 255.0,
+            reader.readUint8() / 255.0,
+            reader.readUint8() / 255.0,
+          ],
+        )
+      : <List<double>>[];
   var uvSetCount = (flags >> 16) & 0xFF;
   if (uvSetCount == 0) {
     uvSetCount = (flags & 0x80) != 0
@@ -496,6 +510,7 @@ SceneMesh _parseGeometry(
     frames: frames,
     vertices: vertices,
     normals: normals,
+    prelightColors: prelightColors,
     uvSets: uvSets,
     triangles: resolvedTriangles,
     materials: materialList.materials,

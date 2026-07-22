@@ -20,6 +20,8 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'extract-collision';
     final extractsLevelSpatial =
         arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
+    final extractsLevelCollision =
+        arguments.isNotEmpty && arguments.first == 'extract-level-collision';
     final extractsPushPull =
         arguments.isNotEmpty && arguments.first == 'extract-push-pull';
     final extractsCheckpoint =
@@ -30,6 +32,7 @@ Future<void> main(List<String> arguments) async {
     final expectedLength =
         extractsAnimations ||
             inventoriesAnimations ||
+            extractsLevelCollision ||
             extractsLevelSpatial ||
             extractsPushPull ||
             extractsCheckpoint ||
@@ -55,6 +58,7 @@ Future<void> main(List<String> arguments) async {
           'extract-animations',
           'inventory-animations',
           'extract-collision',
+          'extract-level-collision',
           'extract-level-spatial',
           'extract-push-pull',
           'extract-checkpoint',
@@ -160,6 +164,8 @@ Future<void> main(List<String> arguments) async {
         '${const JsonEncoder.withIndent('  ').convert({
           'schemaVersion': 1,
           ...checkpoint.toJson(),
+          'nodeRecord': byReference[checkpoint.node.raw]!.toJson(),
+          'referenceNodes': checkpoint.references.where((reference) => reference.category == 11).map((reference) => {'reference': reference.toJson(), 'record': byReference[reference.raw]?.toJson(), if (byReference.containsKey(reference.raw)) 'worldTransform': worldTransform(reference)}).toList(),
           'nodeTransform': transform,
           'position': [transform[12], transform[13], transform[14]],
         })}\n',
@@ -424,7 +430,7 @@ Future<void> main(List<String> arguments) async {
       stdout.writeln('Decoded first RWS segment into ${output.path}');
       return;
     }
-    if (extractsLevelSpatial) {
+    if (extractsLevelSpatial || extractsLevelCollision) {
       final match = RegExp(
         r'^LVL(\d{2})\.KWN$',
         caseSensitive: false,
@@ -444,9 +450,20 @@ Future<void> main(List<String> arguments) async {
         levelPath: path,
         gameModulePath: modulePath,
       );
-      final regions = extractXxl1LevelSpatialRegions(bytes, scan, path: path);
       final output = File(arguments[3]);
       await output.parent.create(recursive: true);
+      if (extractsLevelCollision) {
+        final meshes = extractXxl1LevelCollision(bytes, scan, path: path);
+        await output.writeAsString(
+          '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'source': file.uri.pathSegments.last, 'meshes': meshes.map((mesh) => mesh.toJson()).toList()})}\n',
+          flush: true,
+        );
+        stdout.writeln(
+          'Extracted ${meshes.length} level collision meshes into ${output.path}',
+        );
+        return;
+      }
+      final regions = extractXxl1LevelSpatialRegions(bytes, scan, path: path);
       await output.writeAsString(
         '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'spatialRegions': regions.map((region) => region.toJson()).toList()})}\n',
         flush: true,
