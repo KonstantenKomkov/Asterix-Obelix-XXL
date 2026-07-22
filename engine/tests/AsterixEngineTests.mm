@@ -391,6 +391,31 @@
   XCTAssertEqualWithAccuracy(spawn->z,-1.0f/6.0f,.001f);
 }
 
+- (void)testGroundedSpawnSnapsCapsuleToSurfaceAndSurvivesFirstTick {
+  using namespace asterix::collision;
+  const std::vector<Triangle> triangles = {
+      {{-2,1,-2},{2,2,-2},{-2,1,2},17},
+      {{2,2,-2},{2,2,2},{-2,1,2},17},
+  };
+  World world(triangles);
+  CapsuleConfig config;
+  const auto spawn=groundedSpawnState(world,triangles,config);
+  XCTAssertTrue(spawn.has_value());
+  const auto ground=world.groundAt(spawn->position.x,spawn->position.z,
+                                   spawn->position.y,0.0f);
+  XCTAssertTrue(ground.has_value());
+  XCTAssertEqualWithAccuracy(
+      spawn->position.y-config.half_height-config.radius,ground->height,.0001f);
+  XCTAssertTrue(spawn->grounded);
+  XCTAssertEqual(spawn->ground_object_id,17);
+
+  CapsuleController controller(world,config);
+  const auto afterTick=controller.move(*spawn,{},1.0f/60.0f);
+  XCTAssertTrue(afterTick.grounded);
+  XCTAssertEqualWithAccuracy(afterTick.position.y,spawn->position.y,.0001f);
+  XCTAssertEqualWithAccuracy(afterTick.velocity.y,0.0f,.0001f);
+}
+
 - (void)testFixedTimestepMatchesAtThirtySixtyAndOneTwentyHertz {
   using asterix::simulation::FixedTimestep;
   auto scenario = [](double renderRate) {

@@ -131,6 +131,27 @@ class World {
   std::vector<Triangle> triangles_;
 };
 
+inline std::optional<CapsuleState> groundedSpawnState(
+    const World& world, const std::vector<Triangle>& spawn_triangles,
+    CapsuleConfig config = {}) {
+  const auto candidate = safeSpawnPoint(
+      spawn_triangles, 0.0f, config.maximum_slope_degrees);
+  if (!candidate) return std::nullopt;
+  const float minimum_up = std::cos(config.maximum_slope_degrees *
+                                    3.14159265358979323846f / 180.0f);
+  const auto ground = world.groundAt(
+      candidate->x, candidate->z, candidate->y + config.step_height, minimum_up);
+  if (!ground) return std::nullopt;
+  CapsuleState state;
+  state.position = {candidate->x,
+                    ground->height + config.half_height + config.radius,
+                    candidate->z};
+  state.checkpoint = state.position;
+  state.grounded = true;
+  state.ground_object_id = ground->object_id;
+  return state;
+}
+
 class CapsuleController {
  public:
   CapsuleController(World& world, CapsuleConfig config = {})

@@ -898,14 +898,12 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::array<asterix::animation::Clip,7> playerClips;
   std::array<bool,7> playerClipAvailable{};
   if (!collisionTriangles.empty()) {
-    const auto spawn=asterix::collision::safeSpawnPoint(
-        startCollisionTriangles.empty()?collisionTriangles:startCollisionTriangles);
     collisionWorld=std::make_unique<asterix::collision::World>(std::move(collisionTriangles));
+    const auto spawn=asterix::collision::groundedSpawnState(
+        *collisionWorld,
+        startCollisionTriangles.empty()?collisionWorld->triangles():startCollisionTriangles);
     capsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
-    asterix::collision::CapsuleState body;
-    body.position=spawn.value_or(asterix::collision::Vec3{});
-    body.checkpoint=body.position;
-    body.grounded=spawn.has_value();
+    asterix::collision::CapsuleState body=spawn.value_or(asterix::collision::CapsuleState{});
     playerRuntime=std::make_unique<asterix::player::Runtime>(*capsuleController,body);
     enemyCapsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
     asterix::collision::CapsuleState enemyBody=body;
