@@ -315,6 +315,99 @@ final class AnimationBindingRegistry {
         );
       }
     }
+    if (value['worldGraphVersion'] != null) {
+      if (value['worldGraphVersion'] != 1 ||
+          value['worldProfiles'] is! List ||
+          value['worldCatalog'] is! Map<String, Object?>) {
+        throw const AnimationBindingException(
+          'worldGraphVersion 1 requires profiles and catalog totals',
+        );
+      }
+      final profiles = value['worldProfiles']! as List;
+      final catalog = value['worldCatalog']! as Map<String, Object?>;
+      final keys = <String>{};
+      final clips = <Object?>{};
+      var contexts = 0;
+      for (var index = 0; index < profiles.length; index++) {
+        final raw = profiles[index];
+        if (raw is! Map<String, Object?> ||
+            raw['actor'] is! String ||
+            raw['skin'] is! int ||
+            raw['skinProfile'] is! String ||
+            raw['costume'] is! String ||
+            raw['context'] != 'world' ||
+            raw['entryState'] is! String ||
+            raw['requiredStates'] is! List ||
+            raw['eventBindings'] is! Map<String, Object?> ||
+            raw['restorePolicy'] != 'snapshot-without-replay') {
+          throw AnimationBindingException('worldProfiles[$index] is invalid');
+        }
+        final key = '${raw['actor']}|${raw['skin']}';
+        if (!keys.add(key)) {
+          throw AnimationBindingException('duplicate world profile $key');
+        }
+        final candidates = bindings.where(
+          (binding) =>
+              binding['actor'] == raw['actor'] &&
+              binding['skin'] == raw['skin'] &&
+              binding['costume'] == raw['costume'] &&
+              binding['context'] == 'world',
+        );
+        final actions = candidates
+            .map((binding) => binding['action']! as String)
+            .toSet();
+        final required = (raw['requiredStates']! as List)
+            .cast<String>()
+            .toSet();
+        final entry = raw['entryState']! as String;
+        final events = raw['eventBindings']! as Map<String, Object?>;
+        if (!actions.containsAll(required) ||
+            !required.contains(entry) ||
+            events.isEmpty ||
+            events.values.any(
+              (action) => action is! String || !actions.contains(action),
+            ) ||
+            candidates.any(
+              (binding) =>
+                  binding['trigger'] is! String ||
+                  events[binding['trigger']] != binding['action'] ||
+                  (binding['transitions']! as List).any(
+                    (target) => !actions.contains(target),
+                  ),
+            )) {
+          throw AnimationBindingException(
+            'world profile $key has incomplete event/state bindings',
+          );
+        }
+        final reachable = <String>{entry};
+        final pending = <String>[entry];
+        while (pending.isNotEmpty) {
+          final action = pending.removeLast();
+          for (final binding in candidates.where(
+            (candidate) => candidate['action'] == action,
+          )) {
+            for (final target in binding['transitions']! as List) {
+              if (target is String && reachable.add(target)) {
+                pending.add(target);
+              }
+            }
+          }
+        }
+        if (!reachable.containsAll(required)) {
+          throw AnimationBindingException(
+            'world graph $key has unreachable actions',
+          );
+        }
+        contexts += candidates.length;
+        clips.addAll(candidates.map((binding) => binding['clip']));
+      }
+      if (catalog['contextCount'] != contexts ||
+          catalog['clipCount'] != clips.length) {
+        throw const AnimationBindingException(
+          'world graph catalog totals do not match bindings',
+        );
+      }
+    }
     return registry;
   }
 

@@ -9051,6 +9051,1347 @@
       "trigger": "script-event",
       "dictionaryId": 10,
       "slot": 0
+    },
+    {
+      "actor": "mechanism:machinegun",
+      "skin": 19,
+      "skinProfile": "mechanism:machinegun-hanim-11",
+      "costume": "default",
+      "action": "combat.recoil",
+      "context": "world",
+      "variant": "dictionary-19-slot-1",
+      "clip": "0242.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 11,
+      "transitions": [
+        "combat.fire",
+        "combat.recoil"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:combat.recoil",
+      "dictionaryId": 19,
+      "slot": 1
+    },
+    {
+      "actor": "mechanism:machinegun",
+      "skin": 19,
+      "skinProfile": "mechanism:machinegun-hanim-11",
+      "costume": "default",
+      "action": "combat.fire",
+      "context": "world",
+      "variant": "dictionary-19-slot-0",
+      "clip": "0243.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 11,
+      "transitions": [
+        "combat.fire",
+        "combat.recoil"
+      ],
+      "phases": {
+        "windup": 0.25,
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:combat.fire",
+      "dictionaryId": 19,
+      "slot": 0
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.start",
+      "context": "world",
+      "variant": "dictionary-23-slot-9",
+      "clip": "0244.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.start",
+      "dictionaryId": 23,
+      "slot": 9
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.activate",
+      "context": "world",
+      "variant": "dictionary-23-slot-1",
+      "clip": "0245.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "world-event:mechanism.activate",
+      "dictionaryId": 23,
+      "slot": 1
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.reset",
+      "context": "world",
+      "variant": "dictionary-23-slot-11",
+      "clip": "0246.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.reset",
+      "dictionaryId": 23,
+      "slot": 11
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.deactivate",
+      "context": "world",
+      "variant": "dictionary-23-slot-2",
+      "clip": "0247.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "world-event:mechanism.deactivate",
+      "dictionaryId": 23,
+      "slot": 2
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.active-loop",
+      "context": "world",
+      "variant": "dictionary-23-slot-3",
+      "clip": "0248.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:mechanism.active-loop",
+      "dictionaryId": 23,
+      "slot": 3
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.reverse",
+      "context": "world",
+      "variant": "dictionary-23-slot-5",
+      "clip": "0249.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.reverse",
+      "dictionaryId": 23,
+      "slot": 5
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.forward",
+      "context": "world",
+      "variant": "dictionary-23-slot-4",
+      "clip": "0250.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.forward",
+      "dictionaryId": 23,
+      "slot": 4
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.stop",
+      "context": "world",
+      "variant": "dictionary-23-slot-10",
+      "clip": "0251.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.stop",
+      "dictionaryId": 23,
+      "slot": 10
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.transition-a",
+      "context": "world",
+      "variant": "dictionary-23-slot-6",
+      "clip": "0252.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.transition-a",
+      "dictionaryId": 23,
+      "slot": 6
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.transition-b",
+      "context": "world",
+      "variant": "dictionary-23-slot-7",
+      "clip": "0253.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.transition-b",
+      "dictionaryId": 23,
+      "slot": 7
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.transition-c",
+      "context": "world",
+      "variant": "dictionary-23-slot-8",
+      "clip": "0254.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:mechanism.transition-c",
+      "dictionaryId": 23,
+      "slot": 8
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "action": "mechanism.idle",
+      "context": "world",
+      "variant": "dictionary-23-slot-0",
+      "clip": "0255.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 50,
+      "transitions": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:mechanism.idle",
+      "dictionaryId": 23,
+      "slot": 0
+    },
+    {
+      "actor": "fauna:wild-boar",
+      "skin": 30,
+      "skinProfile": "fauna:wild-boar-hanim-30",
+      "costume": "default",
+      "action": "fauna.idle",
+      "context": "world",
+      "variant": "dictionary-30-slot-0",
+      "clip": "0256.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "fauna.attack",
+        "fauna.hit-reaction",
+        "fauna.idle"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:fauna.idle",
+      "dictionaryId": 30,
+      "slot": 0
+    },
+    {
+      "actor": "fauna:wild-boar",
+      "skin": 30,
+      "skinProfile": "fauna:wild-boar-hanim-30",
+      "costume": "default",
+      "action": "fauna.hit-reaction",
+      "context": "world",
+      "variant": "dictionary-30-slot-2",
+      "clip": "0257.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "fauna.attack",
+        "fauna.hit-reaction",
+        "fauna.idle"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "world-event:fauna.hit-reaction",
+      "dictionaryId": 30,
+      "slot": 2
+    },
+    {
+      "actor": "fauna:wild-boar",
+      "skin": 30,
+      "skinProfile": "fauna:wild-boar-hanim-30",
+      "costume": "default",
+      "action": "fauna.attack",
+      "context": "world",
+      "variant": "dictionary-30-slot-1",
+      "clip": "0258.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "fauna.attack",
+        "fauna.hit-reaction",
+        "fauna.idle"
+      ],
+      "phases": {
+        "windup": 0.25,
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "world-event:fauna.attack",
+      "dictionaryId": 30,
+      "slot": 1
+    },
+    {
+      "actor": "activator:world-switch",
+      "skin": 22,
+      "skinProfile": "activator:world-switch-hanim-3",
+      "costume": "default",
+      "action": "activator.activate",
+      "context": "world",
+      "variant": "dictionary-22-slot-0",
+      "clip": "0259.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 3,
+      "transitions": [
+        "activator.activate"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "world-event:activator.activate",
+      "dictionaryId": 22,
+      "slot": 0
+    },
+    {
+      "actor": "checkpoint:asterix",
+      "skin": 29,
+      "skinProfile": "checkpoint:asterix-hanim-31",
+      "costume": "default",
+      "action": "checkpoint.idle",
+      "context": "world",
+      "variant": "dictionary-29-slot-0",
+      "clip": "0295.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "checkpoint.activate",
+        "checkpoint.activated",
+        "checkpoint.idle"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:checkpoint.idle",
+      "dictionaryId": 29,
+      "slot": 0
+    },
+    {
+      "actor": "checkpoint:asterix",
+      "skin": 29,
+      "skinProfile": "checkpoint:asterix-hanim-31",
+      "costume": "default",
+      "action": "checkpoint.activated",
+      "context": "world",
+      "variant": "dictionary-29-slot-2",
+      "clip": "0296.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "checkpoint.activate",
+        "checkpoint.activated",
+        "checkpoint.idle"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "checkpoint-event:checkpoint.activated",
+      "dictionaryId": 29,
+      "slot": 2
+    },
+    {
+      "actor": "checkpoint:asterix",
+      "skin": 29,
+      "skinProfile": "checkpoint:asterix-hanim-31",
+      "costume": "default",
+      "action": "checkpoint.activate",
+      "context": "world",
+      "variant": "dictionary-29-slot-1",
+      "clip": "0297.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 31,
+      "transitions": [
+        "checkpoint.activate",
+        "checkpoint.activated",
+        "checkpoint.idle"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "checkpoint-event:checkpoint.activate",
+      "dictionaryId": 29,
+      "slot": 1
+    },
+    {
+      "actor": "fx:lightning-object-node",
+      "skin": 49,
+      "skinProfile": "fx:lightning-object-node-hanim-5",
+      "costume": "default",
+      "action": "fx.lightning-loop",
+      "context": "world",
+      "variant": "dictionary-49-slot-0",
+      "clip": "0304.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 5,
+      "transitions": [
+        "fx.lightning-loop"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "environment-event:fx.lightning-loop",
+      "dictionaryId": 49,
+      "slot": 0
+    },
+    {
+      "actor": "interface:in-game-primary",
+      "skin": 50,
+      "skinProfile": "interface:in-game-primary-hanim-4",
+      "costume": "default",
+      "action": "interface.transition",
+      "context": "world",
+      "variant": "dictionary-50-slot-0",
+      "clip": "0305.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 4,
+      "transitions": [
+        "interface.transition"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "ui-event:interface.transition",
+      "dictionaryId": 50,
+      "slot": 0
+    },
+    {
+      "actor": "interface:in-game-secondary",
+      "skin": 51,
+      "skinProfile": "interface:in-game-secondary-hanim-2",
+      "costume": "default",
+      "action": "interface.transition",
+      "context": "world",
+      "variant": "dictionary-51-slot-0",
+      "clip": "0306.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 2,
+      "transitions": [
+        "interface.transition"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "ui-event:interface.transition",
+      "dictionaryId": 51,
+      "slot": 0
+    },
+    {
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "skinProfile": "fauna:square-turtle-a-hanim-21",
+      "costume": "default",
+      "action": "fauna.move",
+      "context": "world",
+      "variant": "dictionary-24-slot-1",
+      "clip": "0307.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 21,
+      "transitions": [
+        "fauna.hide",
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react",
+        "fauna.turn-left",
+        "fauna.turn-right"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.move",
+      "dictionaryId": 24,
+      "slot": 1
+    },
+    {
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "skinProfile": "fauna:square-turtle-a-hanim-21",
+      "costume": "default",
+      "action": "fauna.turn-right",
+      "context": "world",
+      "variant": "dictionary-24-slot-3",
+      "clip": "0308.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 21,
+      "transitions": [
+        "fauna.hide",
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react",
+        "fauna.turn-left",
+        "fauna.turn-right"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.turn-right",
+      "dictionaryId": 24,
+      "slot": 3
+    },
+    {
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "skinProfile": "fauna:square-turtle-a-hanim-21",
+      "costume": "default",
+      "action": "fauna.idle",
+      "context": "world",
+      "variant": "dictionary-24-slot-0",
+      "clip": "0309.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 21,
+      "transitions": [
+        "fauna.hide",
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react",
+        "fauna.turn-left",
+        "fauna.turn-right"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:fauna.idle",
+      "dictionaryId": 24,
+      "slot": 0
+    },
+    {
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "skinProfile": "fauna:square-turtle-a-hanim-21",
+      "costume": "default",
+      "action": "fauna.react",
+      "context": "world",
+      "variant": "dictionary-24-slot-4",
+      "clip": "0310.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 21,
+      "transitions": [
+        "fauna.hide",
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react",
+        "fauna.turn-left",
+        "fauna.turn-right"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.react",
+      "dictionaryId": 24,
+      "slot": 4
+    },
+    {
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "skinProfile": "fauna:square-turtle-a-hanim-21",
+      "costume": "default",
+      "action": "fauna.turn-left",
+      "context": "world",
+      "variant": "dictionary-24-slot-2",
+      "clip": "0311.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 21,
+      "transitions": [
+        "fauna.hide",
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react",
+        "fauna.turn-left",
+        "fauna.turn-right"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.turn-left",
+      "dictionaryId": 24,
+      "slot": 2
+    },
+    {
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "skinProfile": "fauna:square-turtle-a-hanim-21",
+      "costume": "default",
+      "action": "fauna.hide",
+      "context": "world",
+      "variant": "dictionary-24-slot-5",
+      "clip": "0312.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 21,
+      "transitions": [
+        "fauna.hide",
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react",
+        "fauna.turn-left",
+        "fauna.turn-right"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "world-event:fauna.hide",
+      "dictionaryId": 24,
+      "slot": 5
+    },
+    {
+      "actor": "fauna:square-turtle-b",
+      "skin": 25,
+      "skinProfile": "fauna:square-turtle-b-hanim-4",
+      "costume": "default",
+      "action": "fauna.idle",
+      "context": "world",
+      "variant": "dictionary-25-slot-0",
+      "clip": "0313.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 4,
+      "transitions": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:fauna.idle",
+      "dictionaryId": 25,
+      "slot": 0
+    },
+    {
+      "actor": "fauna:square-turtle-b",
+      "skin": 25,
+      "skinProfile": "fauna:square-turtle-b-hanim-4",
+      "costume": "default",
+      "action": "fauna.move",
+      "context": "world",
+      "variant": "dictionary-25-slot-1",
+      "clip": "0314.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 4,
+      "transitions": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.move",
+      "dictionaryId": 25,
+      "slot": 1
+    },
+    {
+      "actor": "fauna:square-turtle-b",
+      "skin": 25,
+      "skinProfile": "fauna:square-turtle-b-hanim-4",
+      "costume": "default",
+      "action": "fauna.react",
+      "context": "world",
+      "variant": "dictionary-25-slot-2",
+      "clip": "0315.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 4,
+      "transitions": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.react",
+      "dictionaryId": 25,
+      "slot": 2
+    },
+    {
+      "actor": "fauna:square-turtle-c",
+      "skin": 26,
+      "skinProfile": "fauna:square-turtle-c-hanim-5",
+      "costume": "default",
+      "action": "fauna.move",
+      "context": "world",
+      "variant": "dictionary-26-slot-1",
+      "clip": "0316.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 5,
+      "transitions": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.move",
+      "dictionaryId": 26,
+      "slot": 1
+    },
+    {
+      "actor": "fauna:square-turtle-c",
+      "skin": 26,
+      "skinProfile": "fauna:square-turtle-c-hanim-5",
+      "costume": "default",
+      "action": "fauna.idle",
+      "context": "world",
+      "variant": "dictionary-26-slot-0",
+      "clip": "0317.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 5,
+      "transitions": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:fauna.idle",
+      "dictionaryId": 26,
+      "slot": 0
+    },
+    {
+      "actor": "fauna:square-turtle-c",
+      "skin": 26,
+      "skinProfile": "fauna:square-turtle-c-hanim-5",
+      "costume": "default",
+      "action": "fauna.react",
+      "context": "world",
+      "variant": "dictionary-26-slot-2",
+      "clip": "0318.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 5,
+      "transitions": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-event:fauna.react",
+      "dictionaryId": 26,
+      "slot": 2
+    },
+    {
+      "actor": "shop:asterix-kiosk",
+      "skin": 20,
+      "skinProfile": "shop:asterix-kiosk-hanim-28",
+      "costume": "default",
+      "action": "shop.open",
+      "context": "world",
+      "variant": "dictionary-20-slot-3",
+      "clip": "0319.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "interaction-event:shop.open",
+      "dictionaryId": 20,
+      "slot": 3
+    },
+    {
+      "actor": "shop:asterix-kiosk",
+      "skin": 20,
+      "skinProfile": "shop:asterix-kiosk-hanim-28",
+      "costume": "default",
+      "action": "shop.close",
+      "context": "world",
+      "variant": "dictionary-20-slot-2",
+      "clip": "0320.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "authored",
+      "trigger": "interaction-event:shop.close",
+      "dictionaryId": 20,
+      "slot": 2
+    },
+    {
+      "actor": "shop:asterix-kiosk",
+      "skin": 20,
+      "skinProfile": "shop:asterix-kiosk-hanim-28",
+      "costume": "default",
+      "action": "shop.transaction",
+      "context": "world",
+      "variant": "dictionary-20-slot-1",
+      "clip": "0321.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "interaction-event:shop.transaction",
+      "dictionaryId": 20,
+      "slot": 1
+    },
+    {
+      "actor": "shop:asterix-kiosk",
+      "skin": 20,
+      "skinProfile": "shop:asterix-kiosk-hanim-28",
+      "costume": "default",
+      "action": "shop.transaction",
+      "context": "world",
+      "variant": "dictionary-20-slot-4",
+      "clip": "0321.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "interaction-event:shop.transaction",
+      "dictionaryId": 20,
+      "slot": 4
+    },
+    {
+      "actor": "shop:asterix-kiosk",
+      "skin": 20,
+      "skinProfile": "shop:asterix-kiosk-hanim-28",
+      "costume": "default",
+      "action": "shop.idle",
+      "context": "world",
+      "variant": "dictionary-20-slot-0",
+      "clip": "0322.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:shop.idle",
+      "dictionaryId": 20,
+      "slot": 0
+    },
+    {
+      "actor": "shop:asterix-counter",
+      "skin": 21,
+      "skinProfile": "shop:asterix-counter-hanim-45",
+      "costume": "default",
+      "action": "shop.open",
+      "context": "world",
+      "variant": "dictionary-21-slot-3",
+      "clip": "0323.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 45,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.offer",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "interaction-event:shop.open",
+      "dictionaryId": 21,
+      "slot": 3
+    },
+    {
+      "actor": "shop:asterix-counter",
+      "skin": 21,
+      "skinProfile": "shop:asterix-counter-hanim-45",
+      "costume": "default",
+      "action": "shop.transaction",
+      "context": "world",
+      "variant": "dictionary-21-slot-4",
+      "clip": "0324.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 45,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.offer",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "interaction-event:shop.transaction",
+      "dictionaryId": 21,
+      "slot": 4
+    },
+    {
+      "actor": "shop:asterix-counter",
+      "skin": 21,
+      "skinProfile": "shop:asterix-counter-hanim-45",
+      "costume": "default",
+      "action": "shop.offer",
+      "context": "world",
+      "variant": "dictionary-21-slot-1",
+      "clip": "0325.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 45,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.offer",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "interaction-event:shop.offer",
+      "dictionaryId": 21,
+      "slot": 1
+    },
+    {
+      "actor": "shop:asterix-counter",
+      "skin": 21,
+      "skinProfile": "shop:asterix-counter-hanim-45",
+      "costume": "default",
+      "action": "shop.close",
+      "context": "world",
+      "variant": "dictionary-21-slot-2",
+      "clip": "0326.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 45,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.offer",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "interaction-event:shop.close",
+      "dictionaryId": 21,
+      "slot": 2
+    },
+    {
+      "actor": "shop:asterix-counter",
+      "skin": 21,
+      "skinProfile": "shop:asterix-counter-hanim-45",
+      "costume": "default",
+      "action": "shop.idle",
+      "context": "world",
+      "variant": "dictionary-21-slot-0",
+      "clip": "0327.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 45,
+      "transitions": [
+        "shop.close",
+        "shop.idle",
+        "shop.offer",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "phases": {
+        "cycle": 1.0
+      },
+      "rootMotion": "none",
+      "trigger": "world-state:shop.idle",
+      "dictionaryId": 21,
+      "slot": 0
     }
   ],
   "characterGraphVersion": 1,
@@ -9500,6 +10841,272 @@
         "despawn": "death.variant",
         "special": "special.enemy-state"
       }
+    }
+  ],
+  "worldGraphVersion": 1,
+  "worldCatalog": {
+    "clipCount": 45,
+    "contextCount": 46
+  },
+  "worldProfiles": [
+    {
+      "actor": "mechanism:machinegun",
+      "skin": 19,
+      "skinProfile": "mechanism:machinegun-hanim-11",
+      "costume": "default",
+      "context": "world",
+      "entryState": "combat.fire",
+      "requiredStates": [
+        "combat.fire",
+        "combat.recoil"
+      ],
+      "eventBindings": {
+        "world-event:combat.recoil": "combat.recoil",
+        "world-event:combat.fire": "combat.fire"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "shop:asterix-kiosk",
+      "skin": 20,
+      "skinProfile": "shop:asterix-kiosk-hanim-28",
+      "costume": "default",
+      "context": "world",
+      "entryState": "shop.idle",
+      "requiredStates": [
+        "shop.close",
+        "shop.idle",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "eventBindings": {
+        "interaction-event:shop.open": "shop.open",
+        "interaction-event:shop.close": "shop.close",
+        "interaction-event:shop.transaction": "shop.transaction",
+        "world-state:shop.idle": "shop.idle"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "shop:asterix-counter",
+      "skin": 21,
+      "skinProfile": "shop:asterix-counter-hanim-45",
+      "costume": "default",
+      "context": "world",
+      "entryState": "shop.idle",
+      "requiredStates": [
+        "shop.close",
+        "shop.idle",
+        "shop.offer",
+        "shop.open",
+        "shop.transaction"
+      ],
+      "eventBindings": {
+        "interaction-event:shop.open": "shop.open",
+        "interaction-event:shop.transaction": "shop.transaction",
+        "interaction-event:shop.offer": "shop.offer",
+        "interaction-event:shop.close": "shop.close",
+        "world-state:shop.idle": "shop.idle"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "activator:world-switch",
+      "skin": 22,
+      "skinProfile": "activator:world-switch-hanim-3",
+      "costume": "default",
+      "context": "world",
+      "entryState": "activator.activate",
+      "requiredStates": [
+        "activator.activate"
+      ],
+      "eventBindings": {
+        "world-event:activator.activate": "activator.activate"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "mechanism:component",
+      "skin": 23,
+      "skinProfile": "mechanism:component-hanim-50",
+      "costume": "default",
+      "context": "world",
+      "entryState": "mechanism.idle",
+      "requiredStates": [
+        "mechanism.activate",
+        "mechanism.active-loop",
+        "mechanism.deactivate",
+        "mechanism.forward",
+        "mechanism.idle",
+        "mechanism.reset",
+        "mechanism.reverse",
+        "mechanism.start",
+        "mechanism.stop",
+        "mechanism.transition-a",
+        "mechanism.transition-b",
+        "mechanism.transition-c"
+      ],
+      "eventBindings": {
+        "world-event:mechanism.start": "mechanism.start",
+        "world-event:mechanism.activate": "mechanism.activate",
+        "world-event:mechanism.reset": "mechanism.reset",
+        "world-event:mechanism.deactivate": "mechanism.deactivate",
+        "world-state:mechanism.active-loop": "mechanism.active-loop",
+        "world-event:mechanism.reverse": "mechanism.reverse",
+        "world-event:mechanism.forward": "mechanism.forward",
+        "world-event:mechanism.stop": "mechanism.stop",
+        "world-event:mechanism.transition-a": "mechanism.transition-a",
+        "world-event:mechanism.transition-b": "mechanism.transition-b",
+        "world-event:mechanism.transition-c": "mechanism.transition-c",
+        "world-state:mechanism.idle": "mechanism.idle"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "skinProfile": "fauna:square-turtle-a-hanim-21",
+      "costume": "default",
+      "context": "world",
+      "entryState": "fauna.idle",
+      "requiredStates": [
+        "fauna.hide",
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react",
+        "fauna.turn-left",
+        "fauna.turn-right"
+      ],
+      "eventBindings": {
+        "world-event:fauna.move": "fauna.move",
+        "world-event:fauna.turn-right": "fauna.turn-right",
+        "world-state:fauna.idle": "fauna.idle",
+        "world-event:fauna.react": "fauna.react",
+        "world-event:fauna.turn-left": "fauna.turn-left",
+        "world-event:fauna.hide": "fauna.hide"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "fauna:square-turtle-b",
+      "skin": 25,
+      "skinProfile": "fauna:square-turtle-b-hanim-4",
+      "costume": "default",
+      "context": "world",
+      "entryState": "fauna.idle",
+      "requiredStates": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "eventBindings": {
+        "world-state:fauna.idle": "fauna.idle",
+        "world-event:fauna.move": "fauna.move",
+        "world-event:fauna.react": "fauna.react"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "fauna:square-turtle-c",
+      "skin": 26,
+      "skinProfile": "fauna:square-turtle-c-hanim-5",
+      "costume": "default",
+      "context": "world",
+      "entryState": "fauna.idle",
+      "requiredStates": [
+        "fauna.idle",
+        "fauna.move",
+        "fauna.react"
+      ],
+      "eventBindings": {
+        "world-event:fauna.move": "fauna.move",
+        "world-state:fauna.idle": "fauna.idle",
+        "world-event:fauna.react": "fauna.react"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "checkpoint:asterix",
+      "skin": 29,
+      "skinProfile": "checkpoint:asterix-hanim-31",
+      "costume": "default",
+      "context": "world",
+      "entryState": "checkpoint.idle",
+      "requiredStates": [
+        "checkpoint.activate",
+        "checkpoint.activated",
+        "checkpoint.idle"
+      ],
+      "eventBindings": {
+        "world-state:checkpoint.idle": "checkpoint.idle",
+        "checkpoint-event:checkpoint.activated": "checkpoint.activated",
+        "checkpoint-event:checkpoint.activate": "checkpoint.activate"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "fauna:wild-boar",
+      "skin": 30,
+      "skinProfile": "fauna:wild-boar-hanim-30",
+      "costume": "default",
+      "context": "world",
+      "entryState": "fauna.idle",
+      "requiredStates": [
+        "fauna.attack",
+        "fauna.hit-reaction",
+        "fauna.idle"
+      ],
+      "eventBindings": {
+        "world-state:fauna.idle": "fauna.idle",
+        "world-event:fauna.hit-reaction": "fauna.hit-reaction",
+        "world-event:fauna.attack": "fauna.attack"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "fx:lightning-object-node",
+      "skin": 49,
+      "skinProfile": "fx:lightning-object-node-hanim-5",
+      "costume": "default",
+      "context": "world",
+      "entryState": "fx.lightning-loop",
+      "requiredStates": [
+        "fx.lightning-loop"
+      ],
+      "eventBindings": {
+        "environment-event:fx.lightning-loop": "fx.lightning-loop"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "interface:in-game-primary",
+      "skin": 50,
+      "skinProfile": "interface:in-game-primary-hanim-4",
+      "costume": "default",
+      "context": "world",
+      "entryState": "interface.transition",
+      "requiredStates": [
+        "interface.transition"
+      ],
+      "eventBindings": {
+        "ui-event:interface.transition": "interface.transition"
+      },
+      "restorePolicy": "snapshot-without-replay"
+    },
+    {
+      "actor": "interface:in-game-secondary",
+      "skin": 51,
+      "skinProfile": "interface:in-game-secondary-hanim-2",
+      "costume": "default",
+      "context": "world",
+      "entryState": "interface.transition",
+      "requiredStates": [
+        "interface.transition"
+      ],
+      "eventBindings": {
+        "ui-event:interface.transition": "interface.transition"
+      },
+      "restorePolicy": "snapshot-without-replay"
     }
   ]
 }

@@ -12,6 +12,7 @@
 #include "asterix/combat_runtime.hpp"
 #include "asterix/enemy_runtime.hpp"
 #include "asterix/interactive_runtime.hpp"
+#include "asterix/world_animation_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
 
@@ -19,6 +20,27 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testWorldAnimationEventsAreIdempotentAndRestoreWithoutReplay {
+  using namespace asterix::world_animation;
+  Runtime runtime;
+  runtime.add(7,{"mechanism.idle",{{"activate","mechanism.activate"},
+                                    {"active","mechanism.active-loop"},
+                                    {"break","mechanism.break"}}});
+  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.idle");
+  XCTAssertTrue(runtime.dispatch(7,"activate",10));
+  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.activate");
+  XCTAssertFalse(runtime.dispatch(7,"activate",10));
+  XCTAssertFalse(runtime.dispatch(7,"active",9));
+  XCTAssertTrue(runtime.dispatch(7,"active",11));
+  const Snapshot checkpoint=*runtime.snapshot(7);
+  XCTAssertTrue(runtime.dispatch(7,"break",12));
+  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.break");
+  XCTAssertTrue(runtime.restore(7,checkpoint));
+  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.active-loop");
+  XCTAssertEqual(runtime.snapshot(7)->last_event_sequence,11u);
+  XCTAssertFalse(runtime.dispatch(7,"active",11));
+}
 
 - (void)testInteractivesTriggerLeverDestructionAndReward {
   using namespace asterix::interactive;

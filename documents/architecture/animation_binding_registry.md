@@ -56,3 +56,18 @@ actions are explicit event triggers in the registry. Variant selection combines
 the stable entity seed and transition counter, while attack impact uses the
 same normalized phase as the gameplay damage window. Rich fixed-tick event
 track delivery remains deliberately assigned to task 68.
+
+`worldGraphVersion: 1` adds 13 exact world/UI/FX profiles for all 45 confirmed
+clips and 46 dictionary contexts. Every mechanism, shop, activator, checkpoint,
+fauna, interface and environmental FX binding has a concrete world/state event,
+loop policy, legal transition set and normalized phase. Profiles use
+`snapshot-without-replay`: checkpoint/save restore selects the persisted visual
+state directly instead of emitting activate, break, collect or respawn effects
+again.
+
+The native world-animation runtime consumes monotonically increasing persistent
+event sequence numbers. Repeated or stale delivery is ignored, making one-shot
+transitions idempotent across fixed ticks and checkpoint restoration. Binding
+validation rejects missing event targets, cross-profile transitions,
+unreachable states and catalog count drift. Sub-frame event-track sampling is
+still owned by task 68.

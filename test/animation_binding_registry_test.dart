@@ -163,6 +163,98 @@ void main() {
     }
   });
 
+  test('world graph covers every world event context and clip', () async {
+    final decoded =
+        jsonDecode(
+              await File('assets/animation_bindings.v1.json').readAsString(),
+            )
+            as Map<String, Object?>;
+    final registry = AnimationBindingRegistry.parse(decoded);
+    expect(decoded['worldGraphVersion'], 1);
+    expect(decoded['worldCatalog'], {'clipCount': 45, 'contextCount': 46});
+    final profiles = (decoded['worldProfiles']! as List)
+        .cast<Map<String, Object?>>();
+    expect(profiles, hasLength(13));
+    final clips = <Object?>{};
+    var contexts = 0;
+    for (final profile in profiles) {
+      final bindings = registry.profileBindings(
+        actor: profile['actor']! as String,
+        skin: profile['skin']! as int,
+        costume: profile['costume']! as String,
+        context: 'world',
+      );
+      expect(bindings, isNotEmpty);
+      expect(
+        bindings.map((binding) => binding['action']).toSet(),
+        containsAll(profile['requiredStates']! as List),
+      );
+      expect(
+        bindings.every(
+          (binding) =>
+              binding['trigger'] is String &&
+              (binding['trigger']! as String).isNotEmpty,
+        ),
+        isTrue,
+      );
+      contexts += bindings.length;
+      clips.addAll(bindings.map((binding) => binding['clip']));
+    }
+    expect(contexts, 46);
+    expect(clips, hasLength(45));
+  });
+
+  test(
+    'world graph rejects an unbound event and a cross-profile transition',
+    () {
+      final value = manifest();
+      value.addAll({
+        'worldGraphVersion': 1,
+        'worldCatalog': {'clipCount': 1, 'contextCount': 1},
+        'worldProfiles': [
+          {
+            'actor': 'lever',
+            'skin': 22,
+            'skinProfile': 'lever-hanim-1',
+            'costume': 'default',
+            'context': 'world',
+            'entryState': 'idle',
+            'requiredStates': ['idle'],
+            'eventBindings': {'activate': 'missing'},
+            'restorePolicy': 'snapshot-without-replay',
+          },
+        ],
+      });
+      (value['bindings']! as List).add({
+        ...(value['bindings']! as List).first as Map<String, Object?>,
+        'actor': 'lever',
+        'skin': 22,
+        'context': 'world',
+        'action': 'idle',
+        'clip': '0002.animation.json',
+        'transitions': ['foreign'],
+      });
+      expect(
+        () => AnimationBindingRegistry.parse(value),
+        throwsA(isA<AnimationBindingException>()),
+      );
+
+      final missingTrigger = jsonDecode(jsonEncode(value));
+      final worldBinding = (missingTrigger['bindings']! as List).last;
+      (worldBinding as Map<String, Object?>)
+        ..['transitions'] = <String>[]
+        ..remove('trigger');
+      ((missingTrigger['worldProfiles']! as List).first
+          as Map<String, Object?>)['eventBindings'] = {
+        'idle': 'idle',
+      };
+      expect(
+        () => AnimationBindingRegistry.parse(missingTrigger),
+        throwsA(isA<AnimationBindingException>()),
+      );
+    },
+  );
+
   test('enemy variants and gameplay phases are deterministic', () async {
     final registry = AnimationBindingRegistry.parse(
       jsonDecode(

@@ -1,5 +1,32 @@
 # Выполненные задачи первой итерации
 
+## П. 66 — World animation graphs объектов, окружения и механизмов
+
+**Выполнено:** 22 июля 2026.
+
+Versioned binding registry расширен 13 exact world/UI/FX profiles, которые
+покрывают все подтверждённые 45 clips и 46 dictionary contexts machinegun,
+двух shop, activator, mechanism component, трёх turtles, checkpoint, wild boar,
+lightning FX и двух interface dictionaries. Каждый context получил конкретный
+world/state/UI/environment trigger, loop policy, допустимые transitions,
+root-motion policy и нормализованные phases; общий shop clip сохраняет обе
+независимые привязки.
+
+Добавлен идемпотентный генератор graph из локального каталога п. 62.5 и строгая
+валидация profile isolation, event targets, trigger presence, достижимости,
+skeleton compatibility и totals. Native world-animation runtime принимает
+монотонные persistent event sequence IDs, игнорирует повторные и устаревшие
+события и восстанавливает сохранённый action напрямую по политике
+`snapshot-without-replay`, не повторяя activate/break/collect/respawn side
+effects.
+
+Regressions проверяют все 46 runtime triggers / 45 clips, повторную доставку,
+save/checkpoint restore и malformed graphs. Пройдены `flutter analyze`, все 86
+Flutter tests, 40 native XCTest и resource-policy gate. Генератор повторно
+создаёт byte-identical manifest; оригинальные ресурсы и производные игровые
+данные в Git не добавлялись. Детальная fixed-tick доставка animation event
+tracks остаётся п. 68.
+
 ## П. 65 — Animation graphs врагов, NPC и персонажей
 
 **Выполнено:** 22 июля 2026.
