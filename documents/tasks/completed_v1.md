@@ -1,5 +1,35 @@
 # Выполненные задачи первой итерации
 
+## П. 78 — Реальная ASTPAK-интеграция воды и повторная приёмка push/pull-блоков
+
+**Выполнено:** 22 июля 2026.
+
+Дефект п. 73 подтверждён на локальной PC-копии: sector meshes
+`tr_sabl_river_*` являются дном/берегами и не содержат water texture bindings.
+Видимую поверхность создают два level hook `CKHkWaterFall`, связанные с branch
+nodes 108/109 и geometry 44–46. Importer теперь извлекает эти три поверхности
+(449 vertices, 628 triangles), их transforms, материалы `sfx_riviere` /
+`a_tr_eau_mer_f01_p0`, textures и authored UV-множители `(0,3; 0,6)` /
+`(1,0; 0,5)` в отдельный proof artifact. Неявная маркировка sector materials
+удалена, поэтому статические берега больше не могут стать water fallback.
+
+Pipeline создаёт три level mesh/scene-node bindings и три Metal material draw
+ranges с `uv-scroll` от simulation time. Существующая native visual regression
+подтверждает движение после холодного старта и сохранение фазы при pause,
+restore и streaming. Cache version повышена: clean, первый cached и полностью
+cached builds дали идентичный ASTPAK размером 59 862 260 байт и SHA-256
+`5d564cc01a63a683f505beb7b9654cd4eca09721ed312f75566184e925e1cb9b`.
+
+Новый post-build `audit-slice-assets` проверяет payload готового пакета и принял
+3 water surface bindings / Metal draw ranges, 628 water triangles, два texture,
+ноль invalid/sector fallback. Тем же установленным ASTPAK повторно приняты оба
+`push-pull-stone` scene object и по два render/collision/interaction binding,
+authored transforms/ranges и единственный каменный texture `it_bloc2_01_mt`;
+native regression покрывает состояния до/после push и restore. Пакет установлен
+в стандартный Application Support, исходные и производные ресурсы остались вне
+Git. Прошли 98 Flutter tests, 51 native XCTest, `flutter analyze`, macOS debug
+build, resource-policy gate и отдельное diff review.
+
 ## П. 74 — Каменный push/pull-блок первого уровня
 
 **Выполнено:** 22 июля 2026.

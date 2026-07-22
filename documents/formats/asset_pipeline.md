@@ -8,6 +8,17 @@ scripts/build_slice_assets.sh /path/to/game /path/to/gaul-stage-1.astpak
 
 The command extracts a temporary, portable importer proof and packages it as the deterministic ASTPAK 1.0 format. Existing output is never overwritten.
 
+Post-build acceptance for the level-hook water surfaces and Gaul push/pull
+blocks runs against the packaged payloads:
+
+```sh
+fvm dart run bin/asset_package.dart audit-slice-assets build/gaul.astpak
+```
+
+The gate rejects missing water draw ranges, sector-mesh water fallbacks,
+non-authored UV multipliers, metallic block fallback, or incomplete
+render/collision/interaction bindings.
+
 For incremental local builds, pass a persistent cache directory as the third
 argument. In this mode the output may be replaced explicitly, while unchanged
 mesh, texture, animation, skin and audio transforms are reused:

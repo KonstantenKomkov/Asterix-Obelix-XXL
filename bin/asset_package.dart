@@ -6,10 +6,14 @@ import 'package:asterix_xxl/runtime/asset_package.dart';
 
 Future<void> main(List<String> arguments) async {
   if (arguments.length != 2 ||
-      !const {'inspect', 'audit-materials'}.contains(arguments.first)) {
+      !const {
+        'inspect',
+        'audit-materials',
+        'audit-slice-assets',
+      }.contains(arguments.first)) {
     stderr.writeln(
       'usage: dart run bin/asset_package.dart '
-      '<inspect|audit-materials> FILE.astpak',
+      '<inspect|audit-materials|audit-slice-assets> FILE.astpak',
     );
     exitCode = 64;
     return;
@@ -24,10 +28,13 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final package = AsterixAssetPackage.parse(await file.readAsBytes());
-    final output = arguments.first == 'inspect'
-        ? package.manifest
-        : _auditMaterials(package);
+    final output = switch (arguments.first) {
+      'inspect' => package.manifest,
+      'audit-materials' => _auditMaterials(package),
+      _ => _auditSliceAssets(package),
+    };
     stdout.writeln(const JsonEncoder.withIndent('  ').convert(output));
+    if (output['passed'] == false) exitCode = 65;
   } on AssetPackageException catch (error) {
     stderr.writeln(error);
     exitCode = 65;
@@ -41,6 +48,143 @@ Future<void> main(List<String> arguments) async {
     );
     exitCode = 74;
   }
+}
+
+Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
+  final resources = (package.manifest['resources']! as List<Object?>)
+      .cast<Map<String, Object?>>();
+  final objects = (package.manifest['objects']! as List<Object?>)
+      .cast<Map<String, Object?>>();
+  final resourcesById = {
+    for (final resource in resources) resource['id']! as String: resource,
+  };
+  final water = objects.where(
+    (object) =>
+        (object['metadata'] as Map<String, Object?>?)?['environmentKind'] ==
+        'water-surface',
+  );
+  final pushBlocks = objects.where(
+    (object) =>
+        (object['metadata'] as Map<String, Object?>?)?['interactiveKind'] ==
+        'push-pull-stone',
+  );
+  final waterTextures = <String>{};
+  final waterMultipliers = <String>{};
+  var waterDrawRanges = 0;
+  var waterTriangles = 0;
+  var invalidWaterBindings = 0;
+  for (final object in water) {
+    final metadata = object['metadata']! as Map<String, Object?>;
+    final payloadIds = object['payloadIds']! as List<Object?>;
+    if (payloadIds.length != 1) {
+      invalidWaterBindings++;
+      continue;
+    }
+    final resource = resourcesById[payloadIds.single];
+    if (resource == null || resource['kind'] != 'mesh') {
+      invalidWaterBindings++;
+      continue;
+    }
+    final mesh =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    final materials = (mesh['materials']! as List<Object?>)
+        .cast<Map<String, Object?>>();
+    final triangles = mesh['triangles']! as List<Object?>;
+    waterTriangles += triangles.length;
+    waterDrawRanges += materials.length;
+    for (final material in materials) {
+      final animation = material['waterAnimation'];
+      if (material['texture'] case final String texture) {
+        waterTextures.add(texture);
+      }
+      if (animation is! Map<String, Object?> ||
+          animation['mechanism'] != 'uv-scroll' ||
+          animation['clock'] != 'simulation-time' ||
+          animation['source'] != 'CKHkWaterFall' ||
+          material['uAddressing'] != 1 ||
+          material['vAddressing'] != 1 ||
+          animation['uSpeed'] != metadata['uMultiplier'] ||
+          animation['vSpeed'] != metadata['vMultiplier']) {
+        invalidWaterBindings++;
+      } else {
+        waterMultipliers.add('${animation['uSpeed']},${animation['vSpeed']}');
+      }
+    }
+  }
+  var sectorWaterFallbacks = 0;
+  for (final resource in resources.where((item) => item['kind'] == 'mesh')) {
+    final metadata = resource['metadata'] as Map<String, Object?>?;
+    if (metadata?['environmentKind'] == 'water-surface') continue;
+    final mesh = jsonDecode(
+      utf8.decode(package.payload(resource['id']! as String)),
+    );
+    if (mesh is! Map<String, Object?>) continue;
+    for (final material in (mesh['materials'] as List<Object?>? ?? const [])) {
+      if (material is Map<String, Object?> &&
+          material['waterAnimation'] != null) {
+        sectorWaterFallbacks++;
+      }
+    }
+  }
+  var invalidPushBlocks = 0;
+  final pushTextures = <String>{};
+  for (final object in pushBlocks) {
+    final metadata = object['metadata']! as Map<String, Object?>;
+    final payloadIds = object['payloadIds']! as List<Object?>;
+    if (payloadIds.length != 1 ||
+        metadata['axis'] is! List<Object?> ||
+        metadata['origin'] is! List<Object?> ||
+        metadata['minimumOffset'] != 0 ||
+        metadata['maximumOffset'] is! num) {
+      invalidPushBlocks++;
+      continue;
+    }
+    final resource = resourcesById[payloadIds.single];
+    if (resource == null) {
+      invalidPushBlocks++;
+      continue;
+    }
+    final mesh =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    var hasStoneTexture = false;
+    for (final material
+        in (mesh['materials']! as List<Object?>).cast<Map<String, Object?>>()) {
+      if (material['texture'] case final String texture) {
+        pushTextures.add(texture);
+        hasStoneTexture |= texture == 'it_bloc2_01_mt';
+      }
+    }
+    if (!hasStoneTexture) invalidPushBlocks++;
+  }
+  final passed =
+      water.length == 3 &&
+      waterDrawRanges == 3 &&
+      waterTriangles == 628 &&
+      invalidWaterBindings == 0 &&
+      sectorWaterFallbacks == 0 &&
+      pushBlocks.length == 2 &&
+      invalidPushBlocks == 0 &&
+      pushTextures.length == 1 &&
+      pushTextures.single == 'it_bloc2_01_mt';
+  return {
+    'format': 'asterix-slice-asset-audit',
+    'waterSurfaceBindings': water.length,
+    'waterMetalDrawRanges': waterDrawRanges,
+    'waterTriangles': waterTriangles,
+    'waterTextures': waterTextures.toList()..sort(),
+    'waterUvMultipliers': waterMultipliers.toList()..sort(),
+    'invalidWaterBindings': invalidWaterBindings,
+    'sectorWaterFallbacks': sectorWaterFallbacks,
+    'pushPullSceneObjects': pushBlocks.length,
+    'pushPullRenderBindings': pushBlocks.length,
+    'pushPullCollisionBindings': pushBlocks.length,
+    'pushPullInteractionBindings': pushBlocks.length,
+    'pushPullTextures': pushTextures.toList()..sort(),
+    'invalidPushPullBindings': invalidPushBlocks,
+    'passed': passed,
+  };
 }
 
 Map<String, Object> _auditMaterials(AsterixAssetPackage package) {

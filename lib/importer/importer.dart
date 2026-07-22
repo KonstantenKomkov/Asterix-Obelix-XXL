@@ -10,3 +10,4 @@ export 'rws.dart';
 export 'scene_nodes.dart';
 export 'synthetic_container.dart';
 export 'texture_dictionary.dart';
+export 'water_surface.dart';

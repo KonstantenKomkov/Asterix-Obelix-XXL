@@ -22,12 +22,15 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
     final extractsPushPull =
         arguments.isNotEmpty && arguments.first == 'extract-push-pull';
+    final extractsWater =
+        arguments.isNotEmpty && arguments.first == 'extract-water-surfaces';
     final decodesRws = arguments.isNotEmpty && arguments.first == 'decode-rws';
     final expectedLength =
         extractsAnimations ||
             inventoriesAnimations ||
             extractsLevelSpatial ||
             extractsPushPull ||
+            extractsWater ||
             extractsLevelTextures
         ? 4
         : extractsTextures ||
@@ -51,6 +54,7 @@ Future<void> main(List<String> arguments) async {
           'extract-collision',
           'extract-level-spatial',
           'extract-push-pull',
+          'extract-water-surfaces',
           'inspect-rws',
           'inspect-rws-tree',
           'decode-rws',
@@ -82,6 +86,95 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (extractsWater) {
+      final modulePath = arguments[2];
+      final scan = scanProtectedXxl1Level(
+        bytes,
+        await File(modulePath).readAsBytes(),
+        levelNumber: 1,
+        levelPath: path,
+        gameModulePath: modulePath,
+      );
+      final bindings = extractXxl1WaterSurfaceBindings(bytes, scan, path: path);
+      final nodes = extractXxl1LevelSceneNodes(bytes, scan, path: path);
+      final meshes = extractXxl1LevelStaticGeometryRecords(
+        bytes,
+        scan,
+        path: path,
+      );
+      SceneNodeRecord resolve(KwnObjectReference reference) =>
+          nodes.singleWhere(
+            (value) =>
+                value.classId == reference.classId &&
+                value.objectId == reference.objectId,
+          );
+      final extracted = <Map<String, Object>>[];
+      for (final binding in bindings) {
+        final root = resolve(binding.surfaceBranch);
+        final surfaceNodes = <SceneNodeRecord>[];
+        final visited = <int>{};
+        void visitChain(KwnObjectReference? reference) {
+          while (reference != null && !reference.isNull) {
+            if (!visited.add(reference.raw)) {
+              throw ImportException(
+                code: ImportErrorCode.invalidValue,
+                message: 'Water surface scene branch contains a cycle.',
+                path: path,
+                details: {'hook': binding.objectId, 'reference': reference.raw},
+              );
+            }
+            final node = resolve(reference);
+            if (node.geometry case final geometry?) {
+              if (!geometry.isNull) {
+                if (geometry.category != 10 || geometry.classId != 2) {
+                  throw ImportException(
+                    code: ImportErrorCode.invalidValue,
+                    message: 'Water surface references unsupported geometry.',
+                    path: path,
+                    details: {
+                      'hook': binding.objectId,
+                      'geometry': geometry.toJson(),
+                    },
+                  );
+                }
+                surfaceNodes.add(node);
+              }
+            }
+            visitChain(node.child);
+            reference = node.next;
+          }
+        }
+
+        visitChain(root.child);
+        final surfaces = surfaceNodes.map((node) {
+          final geometry = node.geometry!;
+          final mesh = meshes.singleWhere(
+            (value) => value.objectId == geometry.objectId,
+          );
+          return <String, Object>{'node': node.toJson(), 'mesh': mesh.toJson()};
+        }).toList();
+        if (surfaces.isEmpty) {
+          throw ImportException(
+            code: ImportErrorCode.invalidValue,
+            message: 'Water hook branch contains no renderable surface.',
+            path: path,
+            details: {'hook': binding.objectId},
+          );
+        }
+        extracted.add({
+          ...binding.toJson(),
+          'branch': root.toJson(),
+          'surfaces': surfaces,
+        });
+      }
+      final output = File(arguments[3]);
+      await output.parent.create(recursive: true);
+      await output.writeAsString(
+        '${const JsonEncoder.withIndent('  ').convert({'schemaVersion': 1, 'bindings': extracted})}\n',
+        flush: true,
+      );
+      return;
+    }
     if (extractsPushPull) {
       final modulePath = arguments[2];
       final scan = scanProtectedXxl1Level(

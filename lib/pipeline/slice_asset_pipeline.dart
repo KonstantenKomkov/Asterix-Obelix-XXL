@@ -11,20 +11,7 @@ import '../runtime/animation_binding_registry.dart';
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
-const _pipelineCacheVersion = 'slice-assets-v1';
-
-// XXL1 water is a material UV transform, not a skeletal/vertex animation or
-// a texture flipbook. These names are the authored Gaul water materials; the
-// rates preserve the two axes exposed by CKHkWaterFall and use repeat
-// addressing so the phase remains continuous.
-const _gaulWaterUv = <String, (double, double)>{
-  'a_tr_eau_mer_f01_p0': (0.025, 0.015),
-  'sfx_riviere': (0.0, -0.08),
-  'sfx_water_ani04': (0.04, -0.02),
-  'sfx_water_2': (-0.025, -0.04),
-  'sfx_cascade06a': (0.0, -0.18),
-  'ecume01_modif': (0.06, 0.0),
-};
+const _pipelineCacheVersion = 'slice-assets-v2-water-hook';
 
 enum AssetPipelineErrorCode {
   missingInput,
@@ -291,35 +278,6 @@ final class SliceAssetPipeline {
 
       for (final mesh in meshes) {
         final objectId = _integer(mesh, 'objectId');
-        final materials = _list(mesh, 'materials', scenePath, objectId);
-        for (final value in materials) {
-          if (value is! Map<String, Object?>) continue;
-          final texture = value['texture'];
-          if (texture is! String) continue;
-          final key = texture
-              .replaceAll('\\', '/')
-              .split('/')
-              .last
-              .replaceFirst(RegExp(r'\.[^.]+$'), '')
-              .toLowerCase();
-          final speed = _gaulWaterUv[key];
-          if (speed == null) continue;
-          if (value['uAddressing'] != 1 || value['vAddressing'] != 1) {
-            throw AssetPipelineException(
-              AssetPipelineErrorCode.invalidSchema,
-              'Animated water material must use repeat addressing.',
-              path: scenePath,
-              details: {'objectId': objectId, 'texture': texture},
-            );
-          }
-          value['waterAnimation'] = {
-            'mechanism': 'uv-scroll',
-            'uSpeed': speed.$1,
-            'vSpeed': speed.$2,
-            'phase': 0.0,
-            'clock': 'simulation-time',
-          };
-        }
         final payload = AssetPayloadInput(
           kind: 'mesh',
           sourcePath: sectorSource,
@@ -456,6 +414,126 @@ final class SliceAssetPipeline {
     }
 
     final outputs = root['outputs'];
+    final waterPath = outputs is Map && outputs['waterSurfaces'] is String
+        ? '${proof.path}/${outputs['waterSurfaces']}'
+        : null;
+    if (waterPath != null) {
+      final document = await _jsonFile(File(waterPath));
+      final bindings = _objectList(document, 'bindings', path: waterPath);
+      if (document['schemaVersion'] != 1 || bindings.isEmpty) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidSchema,
+          'Water surface bindings must use schema 1 and contain an object.',
+          path: waterPath,
+        );
+      }
+      for (final binding in bindings) {
+        final hookId = _integer(binding, 'objectId');
+        final uMultiplier = _finiteNumber(binding, 'uMultiplier', waterPath);
+        final vMultiplier = _finiteNumber(binding, 'vMultiplier', waterPath);
+        if (uMultiplier == 0 && vMultiplier == 0) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidRange,
+            'Water hook UV multipliers must produce visible movement.',
+            path: waterPath,
+            details: {'hook': hookId},
+          );
+        }
+        final surfaces = _objectList(binding, 'surfaces', path: waterPath);
+        if (surfaces.isEmpty) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidReference,
+            'Water hook must reference at least one surface.',
+            path: waterPath,
+            details: {'hook': hookId},
+          );
+        }
+        for (
+          var surfaceIndex = 0;
+          surfaceIndex < surfaces.length;
+          surfaceIndex++
+        ) {
+          final surface = surfaces[surfaceIndex];
+          final node = surface['node'];
+          final mesh = surface['mesh'];
+          if (node is! Map<String, Object?> || mesh is! Map<String, Object?>) {
+            throw AssetPipelineException(
+              AssetPipelineErrorCode.invalidSchema,
+              'Water surface must contain its scene node and mesh.',
+              path: waterPath,
+              details: {'hook': hookId, 'surface': surfaceIndex},
+            );
+          }
+          final materials = _list(mesh, 'materials', waterPath, hookId);
+          if (materials.isEmpty) {
+            throw AssetPipelineException(
+              AssetPipelineErrorCode.invalidReference,
+              'Water surface mesh has no authored material.',
+              path: waterPath,
+              details: {'hook': hookId, 'surface': surfaceIndex},
+            );
+          }
+          for (final value in materials) {
+            if (value is! Map<String, Object?> ||
+                value['texture'] is! String ||
+                (value['texture']! as String).isEmpty ||
+                value['uAddressing'] != 1 ||
+                value['vAddressing'] != 1) {
+              throw AssetPipelineException(
+                AssetPipelineErrorCode.invalidSchema,
+                'Animated water material must retain a texture and repeat addressing.',
+                path: waterPath,
+                details: {'hook': hookId, 'surface': surfaceIndex},
+              );
+            }
+            value['waterAnimation'] = {
+              'mechanism': 'uv-scroll',
+              'uSpeed': uMultiplier,
+              'vSpeed': vMultiplier,
+              'phase': 0.0,
+              'clock': 'simulation-time',
+              'source': 'CKHkWaterFall',
+            };
+          }
+          final meshPayload = AssetPayloadInput(
+            kind: 'mesh',
+            sourcePath: _levelSource,
+            sourceKey: 'water:$hookId:$surfaceIndex:mesh',
+            bytes: await cache.transform(
+              kind: 'mesh-json',
+              input: encodeCanonicalJson(mesh),
+              transform: encodeCanonicalJson,
+              value: mesh,
+            ),
+            metadata: {
+              'objectId': _integer(mesh, 'objectId'),
+              'environmentKind': 'water-surface',
+              'hookId': hookId,
+              'surfaceIndex': surfaceIndex,
+            },
+          );
+          payloads.add(meshPayload);
+          final object = RuntimeObjectInput(
+            kind: 'scene-node',
+            sourcePath: _levelSource,
+            sourceKey: 'water:$hookId:$surfaceIndex:node',
+            payloadIds: [meshPayload.id],
+            metadata: {
+              'classId': _integer(node, 'classId'),
+              'transform': _matrix(node, 'transform', waterPath),
+              'section': sectors.first['source']! as String,
+              'environmentKind': 'water-surface',
+              'hookId': hookId,
+              'surfaceIndex': surfaceIndex,
+              'uMultiplier': uMultiplier,
+              'vMultiplier': vMultiplier,
+            },
+          );
+          objects.add(object);
+          allNodeObjectIds.add(object.id);
+        }
+      }
+    }
     final pushPullPath = outputs is Map && outputs['pushPull'] is String
         ? '${proof.path}/${outputs['pushPull']}'
         : null;
@@ -840,6 +918,19 @@ List<double> _finiteVector(Map<String, Object?> map, String key, String path) {
     );
   }
   return value.cast<num>().map((item) => item.toDouble()).toList();
+}
+
+double _finiteNumber(Map<String, Object?> map, String key, String path) {
+  final value = map[key];
+  if (value is! num || !value.isFinite) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidRange,
+      'Expected a finite number.',
+      path: path,
+      details: {'field': key},
+    );
+  }
+  return value.toDouble();
 }
 
 List<double> _finiteNumberList(

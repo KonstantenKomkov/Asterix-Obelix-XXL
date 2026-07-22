@@ -272,38 +272,133 @@ void main() {
     expect(resources.where((value) => value['kind'] == 'mesh'), hasLength(1));
   });
 
-  test('marks authored Gaul water as deterministic UV scroll', () async {
-    final temporary = await Directory.systemTemp.createTemp('asset-water-');
-    addTearDown(() => temporary.delete(recursive: true));
-    final proof = Directory('${temporary.path}/proof');
-    await _writeProof(proof, reverseOrder: false);
-    final sceneFile = File('${proof.path}/scene.json');
-    final scene =
-        jsonDecode(await sceneFile.readAsString()) as Map<String, Object?>;
-    final mesh = (scene['meshes']! as List).single as Map<String, Object?>;
-    mesh['materials'] = [
-      {'texture': 'sfx_riviere', 'uAddressing': 1, 'vAddressing': 1},
-    ];
-    await sceneFile.writeAsString(jsonEncode(scene));
+  test(
+    'packages level-hook water surface with authored UV multipliers',
+    () async {
+      final temporary = await Directory.systemTemp.createTemp('asset-water-');
+      addTearDown(() => temporary.delete(recursive: true));
+      final proof = Directory('${temporary.path}/proof');
+      await _writeProof(proof, reverseOrder: false);
+      final sectorSceneFile = File('${proof.path}/scene.json');
+      final sectorScene =
+          jsonDecode(await sectorSceneFile.readAsString())
+              as Map<String, Object?>;
+      final sectorMesh =
+          (sectorScene['meshes']! as List).single as Map<String, Object?>;
+      sectorMesh['materials'] = [
+        {'texture': 'sfx_riviere', 'uAddressing': 1, 'vAddressing': 1},
+      ];
+      await sectorSceneFile.writeAsString(jsonEncode(sectorScene));
+      await File('${proof.path}/manifest.json').writeAsString(
+        jsonEncode({
+          'schemaVersion': 2,
+          'slice': 'gaul-stage-1',
+          'sectors': [
+            {'source': 'LVL001/STR01_00.KWN', 'directory': '.'},
+          ],
+          'outputs': {'waterSurfaces': 'water_surfaces.json'},
+        }),
+      );
+      await File('${proof.path}/water_surfaces.json').writeAsString(
+        jsonEncode({
+          'schemaVersion': 1,
+          'bindings': [
+            {
+              'objectId': 0,
+              'uMultiplier': 0.3,
+              'vMultiplier': 0.6,
+              'surfaces': [
+                {
+                  'node': {
+                    'classId': 3,
+                    'objectId': 24,
+                    'transform': [
+                      1.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      1.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      1.0,
+                      0.0,
+                      259.84,
+                      2.797,
+                      128.16,
+                      1.0,
+                    ],
+                  },
+                  'mesh': {
+                    'objectId': 44,
+                    'frames': <Object>[],
+                    'vertices': <Object>[],
+                    'triangles': <Object>[],
+                    'materials': [
+                      {
+                        'texture': 'sfx_riviere',
+                        'uAddressing': 1,
+                        'vAddressing': 1,
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      );
 
-    final package = AsterixAssetPackage.parse(
-      await const SliceAssetPipeline().buildFromProof(proof),
-    );
-    final resource = (package.manifest['resources']! as List)
-        .cast<Map<String, Object?>>()
-        .singleWhere((value) => value['kind'] == 'mesh');
-    final packed =
-        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
-            as Map<String, Object?>;
-    final material = (packed['materials']! as List).single as Map;
-    expect(material['waterAnimation'], {
-      'mechanism': 'uv-scroll',
-      'uSpeed': 0.0,
-      'vSpeed': -0.08,
-      'phase': 0.0,
-      'clock': 'simulation-time',
-    });
-  });
+      final package = AsterixAssetPackage.parse(
+        await const SliceAssetPipeline().buildFromProof(proof),
+      );
+      final resource = (package.manifest['resources']! as List)
+          .cast<Map<String, Object?>>()
+          .singleWhere(
+            (value) =>
+                value['kind'] == 'mesh' &&
+                (value['metadata'] as Map?)?['environmentKind'] ==
+                    'water-surface',
+          );
+      final packed =
+          jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+              as Map<String, Object?>;
+      final material = (packed['materials']! as List).single as Map;
+      expect(material['waterAnimation'], {
+        'mechanism': 'uv-scroll',
+        'uSpeed': 0.3,
+        'vSpeed': 0.6,
+        'phase': 0.0,
+        'clock': 'simulation-time',
+        'source': 'CKHkWaterFall',
+      });
+      final object = (package.manifest['objects']! as List)
+          .cast<Map<String, Object?>>()
+          .singleWhere(
+            (value) =>
+                (value['metadata'] as Map?)?['environmentKind'] ==
+                'water-surface',
+          );
+      expect((object['metadata'] as Map)['transform'], contains(259.84));
+      final sectorResource = (package.manifest['resources']! as List)
+          .cast<Map<String, Object?>>()
+          .singleWhere(
+            (value) =>
+                value['kind'] == 'mesh' &&
+                (value['metadata'] as Map?)?['environmentKind'] == null,
+          );
+      final packedSector =
+          jsonDecode(
+                utf8.decode(package.payload(sectorResource['id']! as String)),
+              )
+              as Map<String, Object?>;
+      final sectorMaterial = (packedSector['materials']! as List).single as Map;
+      expect(sectorMaterial['texture'], 'sfx_riviere');
+      expect(sectorMaterial, isNot(contains('waterAnimation')));
+    },
+  );
 
   test('packages authored stone push block at its level transform', () async {
     final temporary = await Directory.systemTemp.createTemp('asset-push-');
