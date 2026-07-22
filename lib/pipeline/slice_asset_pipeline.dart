@@ -11,7 +11,7 @@ import '../runtime/animation_binding_registry.dart';
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
-const _pipelineCacheVersion = 'slice-assets-v2-water-hook';
+const _pipelineCacheVersion = 'slice-assets-v3-authored-checkpoint';
 
 enum AssetPipelineErrorCode {
   missingInput,
@@ -414,6 +414,62 @@ final class SliceAssetPipeline {
     }
 
     final outputs = root['outputs'];
+    final checkpointPath = outputs is Map && outputs['checkpoint'] is String
+        ? '${proof.path}/${outputs['checkpoint']}'
+        : null;
+    if (checkpointPath != null) {
+      final checkpoint = await _jsonFile(File(checkpointPath));
+      if (checkpoint['schemaVersion'] != 1 ||
+          checkpoint['classId'] != 193 ||
+          checkpoint['objectId'] is! int) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidSchema,
+          'Authored checkpoint must identify CKHkAsterixCheckpoint.',
+          path: checkpointPath,
+        );
+      }
+      final position = _finiteVector(checkpoint, 'position', checkpointPath);
+      final transform = _matrix(checkpoint, 'nodeTransform', checkpointPath);
+      final node = checkpoint['node'];
+      if (node is! Map<String, Object?> ||
+          node['category'] != 11 ||
+          node['objectId'] is! int) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidReference,
+          'Checkpoint must retain its authored scene-node binding.',
+          path: checkpointPath,
+        );
+      }
+      final payload = <String, Object?>{
+        'schemaVersion': 1,
+        'kind': 'asterix-checkpoint',
+        'hookClassId': 193,
+        'hookObjectId': checkpoint['objectId'],
+        'node': node,
+        'position': position,
+        'transform': transform,
+      };
+      payloads.add(
+        AssetPayloadInput(
+          kind: 'checkpoint',
+          sourcePath: _levelSource,
+          sourceKey: 'asterix-checkpoint:${checkpoint['objectId']}',
+          bytes: await cache.transform(
+            kind: 'checkpoint-json',
+            input: encodeCanonicalJson(payload),
+            transform: encodeCanonicalJson,
+            value: payload,
+          ),
+          metadata: {
+            'hookClassId': 193,
+            'hookObjectId': checkpoint['objectId'],
+            'nodeObjectId': node['objectId'],
+            'position': position,
+            'transform': transform,
+          },
+        ),
+      );
+    }
     final waterPath = outputs is Map && outputs['waterSurfaces'] is String
         ? '${proof.path}/${outputs['waterSurfaces']}'
         : null;

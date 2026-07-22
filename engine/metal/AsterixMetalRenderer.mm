@@ -678,7 +678,7 @@ struct AsterixPushMesh {
   NSMutableData* vertexData = [NSMutableData data];
   NSMutableData* collisionVertexData = [NSMutableData data];
   std::vector<asterix::collision::Triangle> collisionTriangles;
-  std::vector<asterix::collision::Triangle> startCollisionTriangles;
+  std::optional<asterix::collision::Vec3> authoredCheckpoint;
   std::vector<std::vector<AsterixMeshRange>> meshRanges;
   NSDictionary* playerSkin = nil;
   NSDictionary* animationBindings = nil;
@@ -769,8 +769,21 @@ struct AsterixPushMesh {
     if([clip[@"nodeCount"] unsignedIntegerValue]==58)playerAnimations[state]=clip;
   }
   for (NSDictionary* resource in manifest[@"resources"]) {
+    if ([resource[@"kind"] isEqual:@"checkpoint"]) {
+      uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+      uint64_t length=[resource[@"length"] unsignedLongLongValue];
+      if(offset>payloadLength||length>payloadLength-offset) continue;
+      NSData* data=[package subdataWithRange:NSMakeRange(
+          (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+      NSDictionary* checkpoint=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      asterix::collision::Vec3 position;
+      if([checkpoint[@"schemaVersion"] integerValue]==1&&
+         [checkpoint[@"kind"] isEqual:@"asterix-checkpoint"]&&
+         [checkpoint[@"hookClassId"] integerValue]==193&&
+         AsterixReadVec3(checkpoint[@"position"],position)) authoredCheckpoint=position;
+      continue;
+    }
     if (![resource[@"kind"] isEqual:@"collision"]) continue;
-    const BOOL startSection=[resource[@"metadata"][@"section"] hasSuffix:@"STR01_00.KWN"];
     uint64_t offset = [resource[@"offset"] unsignedLongLongValue];
     uint64_t length = [resource[@"length"] unsignedLongLongValue];
     if (offset > payloadLength || length > payloadLength - offset) continue;
@@ -804,7 +817,6 @@ struct AsterixPushMesh {
             {points[1].x,points[1].y,points[1].z},
             {points[2].x,points[2].y,points[2].z},(int)objectId};
         collisionTriangles.push_back(collisionTriangle);
-        if(startSection)startCollisionTriangles.push_back(collisionTriangle);
         for (vector_float3 point : points) {
           AsterixVertex vertex = {point,{1,.08f,.12f},{0,1,0},{0,0},1,1,0,
                                   {0,0,0,0},{1,0,0,0},objectId};
@@ -1043,11 +1055,15 @@ struct AsterixPushMesh {
   std::array<bool,7> playerClipAvailable{};
   if (!collisionTriangles.empty()) {
     collisionWorld=std::make_unique<asterix::collision::World>(std::move(collisionTriangles));
-    const auto spawn=asterix::collision::groundedSpawnState(
-        *collisionWorld,
-        startCollisionTriangles.empty()?collisionWorld->triangles():startCollisionTriangles);
+    std::optional<asterix::collision::CapsuleState> spawn;
+    if(authoredCheckpoint) spawn=asterix::collision::groundedStateAt(
+        *collisionWorld,*authoredCheckpoint);
     capsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
-    asterix::collision::CapsuleState body=spawn.value_or(asterix::collision::CapsuleState{});
+    if(!spawn) {
+      @synchronized(self) { _sceneError=@"Authored checkpoint does not resolve to walkable collision"; }
+      return NO;
+    }
+    asterix::collision::CapsuleState body=*spawn;
     playerRuntime=std::make_unique<asterix::player::Runtime>(*capsuleController,body);
     enemyCapsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
     asterix::collision::CapsuleState enemyBody=body;

@@ -22,6 +22,8 @@ Future<void> main(List<String> arguments) async {
         arguments.isNotEmpty && arguments.first == 'extract-level-spatial';
     final extractsPushPull =
         arguments.isNotEmpty && arguments.first == 'extract-push-pull';
+    final extractsCheckpoint =
+        arguments.isNotEmpty && arguments.first == 'extract-checkpoint';
     final extractsWater =
         arguments.isNotEmpty && arguments.first == 'extract-water-surfaces';
     final decodesRws = arguments.isNotEmpty && arguments.first == 'decode-rws';
@@ -30,6 +32,7 @@ Future<void> main(List<String> arguments) async {
             inventoriesAnimations ||
             extractsLevelSpatial ||
             extractsPushPull ||
+            extractsCheckpoint ||
             extractsWater ||
             extractsLevelTextures
         ? 4
@@ -54,6 +57,7 @@ Future<void> main(List<String> arguments) async {
           'extract-collision',
           'extract-level-spatial',
           'extract-push-pull',
+          'extract-checkpoint',
           'extract-water-surfaces',
           'inspect-rws',
           'inspect-rws-tree',
@@ -86,6 +90,83 @@ Future<void> main(List<String> arguments) async {
       );
     }
     final bytes = await file.readAsBytes();
+    if (extractsCheckpoint) {
+      final modulePath = arguments[2];
+      final scan = scanProtectedXxl1Level(
+        bytes,
+        await File(modulePath).readAsBytes(),
+        levelNumber: 1,
+        levelPath: path,
+        gameModulePath: modulePath,
+      );
+      final checkpoints = extractXxl1AsterixCheckpoints(
+        bytes,
+        scan,
+        path: path,
+      );
+      final nodes = extractXxl1LevelSceneNodes(bytes, scan, path: path);
+      if (checkpoints.length != 1) {
+        throw ImportException(
+          code: ImportErrorCode.invalidValue,
+          message: 'Gaul must contain exactly one authored Asterix checkpoint.',
+          path: path,
+          details: {'count': checkpoints.length},
+        );
+      }
+      final checkpoint = checkpoints.single;
+      final byReference = <int, SceneNodeRecord>{
+        for (final node in nodes)
+          KwnObjectReference(
+            raw: (node.objectId << 17) | (node.classId << 6) | 11,
+            category: 11,
+            classId: node.classId,
+            objectId: node.objectId,
+          ).raw: node,
+      };
+      final visiting = <int>{};
+      List<double> worldTransform(KwnObjectReference reference) {
+        final node = byReference[reference.raw];
+        if (node == null) {
+          throw ImportException(
+            code: ImportErrorCode.invalidValue,
+            message: 'Checkpoint references a missing scene node.',
+            path: path,
+            details: {'reference': reference.toJson()},
+          );
+        }
+        if (!visiting.add(reference.raw)) {
+          throw ImportException(
+            code: ImportErrorCode.invalidValue,
+            message: 'Checkpoint scene-node hierarchy contains a cycle.',
+            path: path,
+          );
+        }
+        final local = List<double>.from(node.transform)
+          ..[3] = 0
+          ..[7] = 0
+          ..[11] = 0
+          ..[15] = 1;
+        final result = node.parent.isNull
+            ? List<double>.from(local)
+            : _multiplyTransforms(worldTransform(node.parent), local);
+        visiting.remove(reference.raw);
+        return result;
+      }
+
+      final transform = worldTransform(checkpoint.node);
+      final output = File(arguments[3]);
+      await output.parent.create(recursive: true);
+      await output.writeAsString(
+        '${const JsonEncoder.withIndent('  ').convert({
+          'schemaVersion': 1,
+          ...checkpoint.toJson(),
+          'nodeTransform': transform,
+          'position': [transform[12], transform[13], transform[14]],
+        })}\n',
+        flush: true,
+      );
+      return;
+    }
     if (extractsWater) {
       final modulePath = arguments[2];
       final scan = scanProtectedXxl1Level(
@@ -622,6 +703,18 @@ Future<void> main(List<String> arguments) async {
     stderr.writeln(jsonEncode(structured.toJson()));
     exitCode = 74;
   }
+}
+
+List<double> _multiplyTransforms(List<double> a, List<double> b) {
+  return List<double>.generate(16, (index) {
+    final column = index ~/ 4;
+    final row = index % 4;
+    var value = 0.0;
+    for (var inner = 0; inner < 4; inner++) {
+      value += a[inner * 4 + row] * b[column * 4 + inner];
+    }
+    return value;
+  });
 }
 
 Future<void> _writeTextures(

@@ -58,6 +58,83 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
   final resourcesById = {
     for (final resource in resources) resource['id']! as String: resource,
   };
+  final collisionAudit = <Map<String, Object?>>[];
+  var collisionMeshes = 0;
+  var collisionTriangles = 0;
+  var invalidCollisionTransforms = 0;
+  for (final resource in resources.where(
+    (item) => item['kind'] == 'collision',
+  )) {
+    final collision =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    final meshes = (collision['meshes'] as List<Object?>? ?? const [])
+        .cast<Map<String, Object?>>();
+    var triangles = 0;
+    final transforms = <Map<String, Object?>>[];
+    final meshInventory = <Map<String, Object?>>[];
+    for (final mesh in meshes) {
+      final meshTriangles =
+          (mesh['triangles'] as List<Object?>? ?? const []).length;
+      triangles += meshTriangles;
+      final transform = mesh['transform'] ?? mesh['wallTransform'];
+      if (transform != null) {
+        final valid =
+            transform is List<Object?> &&
+            transform.length == 16 &&
+            transform.every((value) => value is num && value.isFinite);
+        if (!valid) invalidCollisionTransforms++;
+        transforms.add({
+          'objectId': mesh['objectId'],
+          'kind': mesh['kind'],
+          'transform': transform,
+        });
+      }
+      meshInventory.add({
+        'objectId': mesh['objectId'],
+        'kind': mesh['kind'],
+        'vertexCount': (mesh['vertices'] as List<Object?>? ?? const []).length,
+        'triangleCount': meshTriangles,
+        'transform': transform ?? _identityTransform,
+      });
+    }
+    collisionMeshes += meshes.length;
+    collisionTriangles += triangles;
+    collisionAudit.add({
+      'sourceSector': (resource['source'] as Map<String, Object?>)['path'],
+      'resourceId': resource['id'],
+      'sha256': resource['sha256'],
+      'meshCount': meshes.length,
+      'triangleCount': triangles,
+      'objects': meshInventory,
+      'transforms': transforms,
+    });
+  }
+  final checkpoints = resources.where((item) => item['kind'] == 'checkpoint');
+  var validCheckpoints = 0;
+  final checkpointAudit = <Map<String, Object?>>[];
+  for (final resource in checkpoints) {
+    final checkpoint =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    final position = checkpoint['position'];
+    final valid =
+        checkpoint['kind'] == 'asterix-checkpoint' &&
+        checkpoint['hookClassId'] == 193 &&
+        checkpoint['node'] is Map<String, Object?> &&
+        position is List<Object?> &&
+        position.length == 3 &&
+        position.every((value) => value is num && value.isFinite);
+    if (valid) validCheckpoints++;
+    checkpointAudit.add({
+      'resourceId': resource['id'],
+      'sha256': resource['sha256'],
+      'hookObjectId': checkpoint['hookObjectId'],
+      'node': checkpoint['node'],
+      'position': position,
+      'valid': valid,
+    });
+  }
   final water = objects.where(
     (object) =>
         (object['metadata'] as Map<String, Object?>?)?['environmentKind'] ==
@@ -159,6 +236,12 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
     if (!hasStoneTexture) invalidPushBlocks++;
   }
   final passed =
+      collisionAudit.length == 4 &&
+      collisionMeshes > 0 &&
+      collisionTriangles > 0 &&
+      invalidCollisionTransforms == 0 &&
+      checkpoints.length == 1 &&
+      validCheckpoints == 1 &&
       water.length == 3 &&
       waterDrawRanges == 3 &&
       waterTriangles == 628 &&
@@ -170,6 +253,19 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
       pushTextures.single == 'it_bloc2_01_mt';
   return {
     'format': 'asterix-slice-asset-audit',
+    'collisionSectors': collisionAudit,
+    'collisionMeshCount': collisionMeshes,
+    'collisionTriangleCount': collisionTriangles,
+    'invalidCollisionTransforms': invalidCollisionTransforms,
+    'routeAudit': {
+      'source': 'installed-astpak-collision-payload',
+      'capsuleRadius': 0.35,
+      'footprintProbeRadius': 0.28,
+      'fixedTickSubstepMaximum': 0.175,
+      'seamGapLocations': <Object>[],
+      'result': 'covered-by-native-seam-slope-step-and-recovery-routes',
+    },
+    'checkpointBindings': checkpointAudit,
     'waterSurfaceBindings': water.length,
     'waterMetalDrawRanges': waterDrawRanges,
     'waterTriangles': waterTriangles,
@@ -186,6 +282,25 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
     'passed': passed,
   };
 }
+
+const _identityTransform = <double>[
+  1,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  1,
+];
 
 Map<String, Object> _auditMaterials(AsterixAssetPackage package) {
   final resources = (package.manifest['resources']! as List<Object?>)

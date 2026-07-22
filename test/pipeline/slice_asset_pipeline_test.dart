@@ -125,6 +125,66 @@ void main() {
     },
   );
 
+  test('packages the authored checkpoint binding and transform', () async {
+    final temporary = await Directory.systemTemp.createTemp(
+      'asset-checkpoint-',
+    );
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    await File('${proof.path}/manifest.json').writeAsString(
+      jsonEncode({
+        'schemaVersion': 2,
+        'slice': 'gaul-stage-1',
+        'sectors': [
+          {'source': 'LVL001/STR01_00.KWN', 'directory': '.'},
+        ],
+        'outputs': {'checkpoint': 'checkpoint.json'},
+      }),
+    );
+    final transform = <double>[
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      63.5,
+      3.2,
+      78.2,
+      1,
+    ];
+    await File('${proof.path}/checkpoint.json').writeAsString(
+      jsonEncode({
+        'schemaVersion': 1,
+        'classId': 193,
+        'objectId': 0,
+        'node': {'raw': 3014859, 'category': 11, 'classId': 3, 'objectId': 23},
+        'nodeTransform': transform,
+        'position': [63.5, 3.2, 78.2],
+      }),
+    );
+
+    final package = AsterixAssetPackage.parse(
+      await const SliceAssetPipeline().buildFromProof(proof),
+    );
+    final resource = (package.manifest['resources']! as List)
+        .cast<Map<String, Object?>>()
+        .singleWhere((value) => value['kind'] == 'checkpoint');
+    final payload =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    expect(payload['hookClassId'], 193);
+    expect(payload['position'], [63.5, 3.2, 78.2]);
+    expect(payload['transform'], transform);
+  });
+
   test(
     'packages sector-local IDs and collision from every slice sector',
     () async {

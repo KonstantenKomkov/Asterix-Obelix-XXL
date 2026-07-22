@@ -127,6 +127,28 @@ class World {
     return best;
   }
 
+  // Probe the capsule's circular footprint, not only its centre. This keeps
+  // support across triangle/sector seams and ledges narrower than the capsule
+  // while preserving the centre hit (and therefore slope height) when present.
+  std::optional<GroundHit> groundUnderFootprint(
+      float x, float z, float radius, float maximum_y,
+      float minimum_normal_y) const {
+    if (auto centre = groundAt(x, z, maximum_y, minimum_normal_y)) return centre;
+    constexpr std::array<std::array<float, 2>, 12> directions = {{
+        {1,0},{.8660254f,.5f},{.5f,.8660254f},{0,1},{-.5f,.8660254f},
+        {-.8660254f,.5f},{-1,0},{-.8660254f,-.5f},{-.5f,-.8660254f},
+        {0,-1},{.5f,-.8660254f},{.8660254f,-.5f}}};
+    std::optional<GroundHit> best;
+    const float probe_radius = radius * .8f;
+    for (const auto& direction : directions) {
+      const auto hit = groundAt(x + direction[0] * probe_radius,
+                                z + direction[1] * probe_radius,
+                                maximum_y, minimum_normal_y);
+      if (hit && (!best || hit->height > best->height)) best = hit;
+    }
+    return best;
+  }
+
  private:
   std::vector<Triangle> triangles_;
 };
@@ -146,6 +168,26 @@ inline std::optional<CapsuleState> groundedSpawnState(
   state.position = {candidate->x,
                     ground->height + config.half_height + config.radius,
                     candidate->z};
+  state.checkpoint = state.position;
+  state.grounded = true;
+  state.ground_object_id = ground->object_id;
+  return state;
+}
+
+inline std::optional<CapsuleState> groundedStateAt(
+    const World& world, Vec3 authored_position, CapsuleConfig config = {}) {
+  const float minimum_up = std::cos(config.maximum_slope_degrees *
+                                    3.14159265358979323846f / 180.0f);
+  const auto ground = world.groundUnderFootprint(
+      authored_position.x, authored_position.z, config.radius,
+      authored_position.y + config.step_height + config.half_height +
+          config.radius,
+      minimum_up);
+  if (!ground) return std::nullopt;
+  CapsuleState state;
+  state.position = {authored_position.x,
+                    ground->height + config.half_height + config.radius,
+                    authored_position.z};
   state.checkpoint = state.position;
   state.grounded = true;
   state.ground_object_id = ground->object_id;
@@ -189,8 +231,8 @@ class CapsuleController {
       const float candidate_foot=candidate.y-config_.half_height-config_.radius;
       const float maximum_ground=std::max(foot+config_.step_height,
                                           candidate_foot+config_.probe_distance);
-      const auto ground=world_.groundAt(candidate.x,candidate.z,maximum_ground,
-                                         slopeCosine());
+      const auto ground=world_.groundUnderFootprint(
+          candidate.x,candidate.z,config_.radius,maximum_ground,slopeCosine());
       if (ground && candidate_foot<=ground->height+config_.probe_distance &&
           ground->height-foot<=config_.step_height+1e-4f) {
         candidate.y=ground->height+config_.half_height+config_.radius;

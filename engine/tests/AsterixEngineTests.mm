@@ -1040,6 +1040,51 @@
   XCTAssertEqualWithAccuracy(state.velocity.y,0,.001f);
 }
 
+- (void)testCapsuleFootprintCrossesTriangleAndSectorSeams {
+  using namespace asterix::collision;
+  // The 0.18 gap reproduces the centre-probe miss while remaining narrower
+  // than Asterix's authored capsule footprint.
+  World world({{{-3,0,-2},{-.09f,0,-2},{-3,0,2},75},
+               {{-.09f,0,-2},{-.09f,0,2},{-3,0,2},75},
+               {{.09f,0,-2},{3,0,-2},{.09f,0,2},76},
+               {{3,0,-2},{3,0,2},{.09f,0,2},76}});
+  CapsuleConfig config;
+  CapsuleController controller(world,config);
+  CapsuleState state;
+  state.position={-2,config.half_height+config.radius,0};
+  state.checkpoint=state.position;
+  state.grounded=true;
+  state.ground_object_id=75;
+  bool lostSupport=false;
+  for(int tick=0;tick<120;++tick) {
+    state=controller.move(state,{2,0,0},1.0f/60.0f);
+    lostSupport|=!state.grounded;
+  }
+  XCTAssertFalse(lostSupport);
+  XCTAssertGreaterThan(state.position.x,1.8f);
+  XCTAssertEqual(state.ground_object_id,76);
+}
+
+- (void)testAuthoredCheckpointSnapsToCollisionAndIsUsedForRecovery {
+  using namespace asterix::collision;
+  World world({{{60,2,75},{67,2,75},{60,2,82},193},
+               {{67,2,75},{67,2,82},{60,2,82},193}});
+  CapsuleConfig config;
+  config.kill_y=-2;
+  const auto spawn=groundedStateAt(world,{63.5f,3.2f,78.2f},config);
+  XCTAssertTrue(spawn.has_value());
+  XCTAssertEqualWithAccuracy(spawn->position.x,63.5f,.001f);
+  XCTAssertEqualWithAccuracy(spawn->position.y,2.9f,.001f);
+  XCTAssertEqualWithAccuracy(spawn->checkpoint.z,78.2f,.001f);
+  CapsuleController controller(world,config);
+  auto fallen=*spawn;
+  fallen.position={80,-3,90};
+  fallen=controller.move(fallen,{},1.0f/60.0f);
+  XCTAssertTrue(fallen.recovered_from_fall);
+  XCTAssertEqualWithAccuracy(fallen.position.x,63.5f,.001f);
+  XCTAssertEqualWithAccuracy(fallen.position.z,78.2f,.001f);
+}
+
 - (void)testSafeSpawnUsesWalkableSurfaceNearestSectorOrigin {
   using namespace asterix::collision;
   const std::vector<Triangle> triangles = {

@@ -1,5 +1,6 @@
 export 'animation.dart';
 export 'binary_reader.dart';
+export 'checkpoint.dart';
 export 'collision.dart';
 export 'import_error.dart';
 export 'kwn_structure.dart';

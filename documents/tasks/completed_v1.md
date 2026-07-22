@@ -1,5 +1,35 @@
 # Выполненные задачи первой итерации
 
+## П. 75 — Устойчивый контакт капсулы с поверхностью Gaul
+
+**Выполнено:** 22 июля 2026.
+
+Причина провалов устранена в collision runtime: вместо единственного `groundAt`
+под центром контроллер проверяет центр и 12 точек кругового footprint радиуса
+капсулы на каждом fixed-tick substep. Сохранились ограничения slope/step и
+obstacle resolution; межтреугольные и межсекторные seam больше не переводят
+капсулу в свободное падение. Native routes покрывают общий triangle edge,
+зазор 0,18 world unit между sector objects, slope, step, moving ground и
+состояния до/после настоящего выхода ниже `kill_y`.
+
+Importer читает единственный level `CKHkAsterixCheckpoint` (2/193), сохраняет
+все девять исходных references и разрешает scene node 23 до world position
+`(63,5; 3,2; 78,2)`. Pipeline упаковывает отдельный typed checkpoint payload,
+Metal требует его при cold start и привязывает fall recovery к скорректированной
+collision-позиции; прежний эвристический spawn по ближайшему треугольнику удалён
+из package runtime. Cache version повышена.
+
+Post-build gate прочитал свежий установленный ASTPAK и принял четыре sector
+collision payload: 212 meshes / 9423 triangles, source/object IDs, hashes и
+transforms без invalid binding. Clean и полностью cached builds побайтно
+совпали: 59 863 108 байт, SHA-256
+`0c8c826c2e9faea380c56b6ab7e4f35abd1b739b2ec25766ae37d1df97ade631`.
+Release cold-start smoke с этим пакетом прошёл без loader/runtime error.
+Архитектурное описание обновлено в
+[world_collision_capsule.md](../architecture/world_collision_capsule.md).
+Прошли `make check`, 53 native XCTest, macOS release build, resource policy и
+отдельное diff review; ASTPAK и исходные/производные игровые ресурсы не добавлялись.
+
 ## П. 78 — Реальная ASTPAK-интеграция воды и повторная приёмка push/pull-блоков
 
 **Выполнено:** 22 июля 2026.
