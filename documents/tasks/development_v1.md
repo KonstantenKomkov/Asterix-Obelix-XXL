@@ -19,6 +19,7 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
+| 80 | **Провести аудит составных render-ресурсов и устранить silent partial-asset fallback:** построить полные связи actor/object → atomic/skin/mesh/material/texture/skeleton, найти пропущенные аксессуары, overlay-геометрию и дочерние draw layers у всех импортируемых персонажей и объектов, заменить выбор ресурсов по жёстко заданному одному `objectId` на data-driven composition | Quality после M4 | P0 | L | Зафиксировать исходные binding chains и назначение каждого слоя; post-build audit свежего ASTPAK не допускает необъяснённых совместимых atomic/skin рядом с используемым actor; runtime рисует все обязательные слои с собственными материалами и общей совместимой palette; malformed/incompatible/ambiguous composition завершается диагностикой, а не частичной моделью; representative visual regressions покрывают Астерикса с крылатой шапкой, Обеликса и минимум по одному NPC/врагу/составному объекту; clean/cached package дают одинаковый composition manifest и кадр |
 
 ---
 
@@ -125,13 +126,16 @@
 - [x] П. 77 — полный аудит non-skeletal FX первого уровня
 - [x] П. 78 — реальная ASTPAK-интеграция воды и повторная post-build приёмка артефактов п. 74
 - [x] П. 79 — authored `CFogBoxNodeFx` без static fallback
+- [ ] П. 80 — аудит составных render-ресурсов и устранение partial-asset fallback
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 79 выполнен: полные payload семи `CFogBoxNodeFx` декодируются до object boundary и упаковываются отдельными ASTPAK resources; Metal семплирует authored volume color/density/transition по simulation clock, а regressions покрывают inside/outside/boundary, streaming, pause и restore без static fallback.
+**Последнее обновление:** 22 июля 2026 — добавлен п. 80: отсутствие шапки Астерикса локализовано в жёстком выборе только body skin `objectId=4`; крылатая шапка хранится отдельным совместимым 58-bone skin atomic `objectId=3`, который ASTPAK сохранял, но runtime молча не включал в draw composition. Задача требует построить data-driven связи всех составных render-слоёв, найти аналогичные пропуски у персонажей и объектов и закрыть их post-build audit, строгими diagnostics и representative visual regressions без partial-asset fallback.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 79 выполнен: полные payload семи `CFogBoxNodeFx` декодируются до object boundary и упаковываются отдельными ASTPAK resources; Metal семплирует authored volume color/density/transition по simulation clock, а regressions покрывают inside/outside/boundary, streaming, pause и restore без static fallback.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 77 выполнен: полный raw-payload audit классифицировал 60 scene nodes всех пяти секций, 12 particle emitters, 3 water UV-scroll draw ranges и 668 static prelit meshes; необъяснённых non-skeletal animation mechanisms нет. Семь `CFogBoxNodeFx` явно отключены вместо static fallback и вынесены в п. 79 с runtime/visual criteria.
 

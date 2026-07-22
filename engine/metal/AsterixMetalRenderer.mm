@@ -220,7 +220,7 @@ struct AsterixPushMesh {
   NSUInteger _playerMarkerVertexStart;
   NSUInteger _playerMeshVertexStart;
   NSUInteger _playerMeshVertexCount;
-  id<MTLTexture> _playerTexture;
+  std::vector<AsterixMeshRange> _playerMeshRanges;
   std::vector<asterix::animation::Joint> _playerJoints;
   std::array<asterix::animation::Clip, 7> _playerClips;
   std::array<bool, 7> _playerClipAvailable;
@@ -720,9 +720,11 @@ struct AsterixPushMesh {
   NSMutableData* vertexData = [NSMutableData data];
   NSMutableData* collisionVertexData = [NSMutableData data];
   std::vector<asterix::collision::Triangle> collisionTriangles;
+  std::vector<asterix::collision::Triangle> visibleGroundTriangles;
   std::optional<asterix::collision::Vec3> authoredCheckpoint;
   std::vector<std::vector<AsterixMeshRange>> meshRanges;
   NSDictionary* playerSkin = nil;
+  NSDictionary* playerAccessorySkin = nil;
   NSDictionary* animationBindings = nil;
   NSMutableDictionary<NSString*, NSDictionary*>* playerAnimations = [NSMutableDictionary dictionary];
   std::vector<asterix::scene::Node> runtimeNodes;
@@ -736,16 +738,18 @@ struct AsterixPushMesh {
   std::unordered_map<std::string, vector_float3> sectionMinimums;
   std::unordered_map<std::string, vector_float3> sectionMaximums;
   for (NSDictionary* resource in manifest[@"resources"]) {
-    if (![resource[@"kind"] isEqual:@"skin"] ||
-        [resource[@"metadata"][@"objectId"] integerValue] != 4) continue;
+    if (![resource[@"kind"] isEqual:@"skin"]) continue;
+    const NSInteger objectId=[resource[@"metadata"][@"objectId"] integerValue];
+    if(objectId!=3&&objectId!=4)continue;
     uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
     uint64_t length=[resource[@"length"] unsignedLongLongValue];
     if(offset<=payloadLength&&length<=payloadLength-offset) {
       NSData* data=[package subdataWithRange:NSMakeRange(
           (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
-      playerSkin=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      NSDictionary* skin=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      if(objectId==4)playerSkin=skin;
+      else playerAccessorySkin=skin;
     }
-    break;
   }
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"animation-bindings"]) continue;
@@ -1030,6 +1034,8 @@ struct AsterixPushMesh {
         waterPhase=(float)[water[@"phase"] doubleValue];
       }
       const NSUInteger triangleStart=vertexData.length/sizeof(AsterixVertex);
+      vector_float3 triangleWorld[3];
+      BOOL completeTriangle=YES;
       if ([material[@"ambient"] isKindOfClass:NSNumber.class]) ambient = [material[@"ambient"] floatValue];
       if ([material[@"diffuse"] isKindOfClass:NSNumber.class]) diffuse = [material[@"diffuse"] floatValue];
       // rpGEOMETRYPRELIT is already the authored fixed-function lighting
@@ -1038,9 +1044,13 @@ struct AsterixPushMesh {
       if(prelightColors.count>0) { ambient=1; diffuse=0; }
       for (NSUInteger corner = 0; corner < 3; ++corner) {
         NSUInteger index = [triangle[corner] unsignedIntegerValue];
-        if (index >= positions.count || [positions[index] count] < 3) continue;
+        if (index >= positions.count || [positions[index] count] < 3) {
+          completeTriangle=NO;
+          continue;
+        }
         NSArray* p = positions[index];
         vector_float4 world = simd_mul(model, (vector_float4){[p[0] floatValue], [p[1] floatValue], [p[2] floatValue], 1});
+        triangleWorld[corner]=world.xyz;
         minimum = simd_min(minimum, world.xyz);
         maximum = simd_max(maximum, world.xyz);
         meshMinimum = simd_min(meshMinimum, world.xyz);
@@ -1064,6 +1074,18 @@ struct AsterixPushMesh {
                                 alpha, ambient, diffuse, prelight, {0,0,0,0}, {1,0,0,0},
                                 (uint32_t)[mesh[@"objectId"] unsignedIntValue]};
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
+      }
+      if(completeTriangle) {
+        const vector_float3 ab=triangleWorld[1]-triangleWorld[0];
+        const vector_float3 ac=triangleWorld[2]-triangleWorld[0];
+        const vector_float3 surface=simd_cross(ab,ac);
+        if(simd_length_squared(surface)>1e-8f&&
+           fabsf(simd_normalize(surface).y)>=cosf(50.0f*3.14159265358979323846f/180.0f))
+          visibleGroundTriangles.push_back({
+              {triangleWorld[0].x,triangleWorld[0].y,triangleWorld[0].z},
+              {triangleWorld[1].x,triangleWorld[1].y,triangleWorld[1].z},
+              {triangleWorld[2].x,triangleWorld[2].y,triangleWorld[2].z},
+              (int)[mesh[@"objectId"] unsignedIntValue]});
       }
       const NSUInteger triangleCount=vertexData.length/sizeof(AsterixVertex)-triangleStart;
       if(triangleCount>0) {
@@ -1129,15 +1151,46 @@ struct AsterixPushMesh {
   std::unique_ptr<asterix::combat::Runtime> combatRuntime;
   NSUInteger playerMarkerVertexStart=NSNotFound,enemyMarkerVertexStart=NSNotFound;
   NSUInteger playerMeshVertexStart=NSNotFound,playerMeshVertexCount=0;
-  id<MTLTexture> playerTexture=nil;
+  std::vector<AsterixMeshRange> playerMeshRanges;
   std::vector<asterix::animation::Joint> playerJoints;
   std::array<asterix::animation::Clip,7> playerClips;
   std::array<bool,7> playerClipAvailable{};
   if (!collisionTriangles.empty()) {
     collisionWorld=std::make_unique<asterix::collision::World>(std::move(collisionTriangles));
     std::optional<asterix::collision::CapsuleState> spawn;
-    if(authoredCheckpoint) spawn=asterix::collision::groundedStateAt(
-        *collisionWorld,*authoredCheckpoint);
+    if(authoredCheckpoint) {
+      // Checkpoints from LVL01 can overlap gameplay collision that has no
+      // corresponding rendered surface. Never start or recover on one of
+      // those phantom floors: require visible geometry at the same height.
+      asterix::collision::World visibleWorld(visibleGroundTriangles);
+      const auto visible=asterix::collision::groundedStateAt(
+          visibleWorld,*authoredCheckpoint);
+      const auto collided=asterix::collision::groundedStateAt(
+          *collisionWorld,*authoredCheckpoint);
+      if(visible&&collided&&fabsf(visible->position.y-collided->position.y)<.2f)
+        spawn=collided;
+      if(!spawn) {
+        float bestDistance=INFINITY;
+        for(const auto& triangle:visibleGroundTriangles) {
+          const asterix::collision::Vec3 candidate={
+              (triangle.a.x+triangle.b.x+triangle.c.x)/3,
+              (triangle.a.y+triangle.b.y+triangle.c.y)/3,
+              (triangle.a.z+triangle.b.z+triangle.c.z)/3};
+          const float dx=candidate.x-authoredCheckpoint->x;
+          const float dz=candidate.z-authoredCheckpoint->z;
+          const float distance=dx*dx+dz*dz;
+          if(distance>=bestDistance)continue;
+          const auto visualState=asterix::collision::groundedStateAt(
+              visibleWorld,candidate);
+          const auto collisionState=asterix::collision::groundedStateAt(
+              *collisionWorld,candidate);
+          if(!visualState||!collisionState||
+             fabsf(visualState->position.y-collisionState->position.y)>=.2f)continue;
+          spawn=collisionState;
+          bestDistance=distance;
+        }
+      }
+    }
     capsuleController=std::make_unique<asterix::collision::CapsuleController>(*collisionWorld);
     if(!spawn) {
       @synchronized(self) { _sceneError=@"Authored checkpoint does not resolve to walkable collision"; }
@@ -1242,7 +1295,7 @@ struct AsterixPushMesh {
        bindingsValid) {
       playerMeshVertexStart=vertexData.length/sizeof(AsterixVertex);
       NSString* textureName=skinMaterials.count>0?skinMaterials[0][@"texture"]:nil;
-      playerTexture=[textureName isKindOfClass:NSString.class]
+      id<MTLTexture> playerTexture=[textureName isKindOfClass:NSString.class]
           ?textures[AsterixTextureKey(textureName)]:nil;
       for(NSArray* triangle in skinTriangles) for(NSUInteger corner=0;corner<3;++corner) {
         NSUInteger index=[triangle[corner] unsignedIntegerValue];
@@ -1271,6 +1324,63 @@ struct AsterixPushMesh {
         [vertexData appendBytes:&vertex length:sizeof(vertex)];
       }
       playerMeshVertexCount=vertexData.length/sizeof(AsterixVertex)-playerMeshVertexStart;
+      playerMeshRanges.push_back({playerMeshVertexStart,playerMeshVertexCount,
+                                  playerTexture,_defaultSampler,.01f,false,{0,0},0});
+      // Asterix's winged helmet is authored as a second skin atomic. It uses
+      // the same 58-joint palette as the body and must be skinned and drawn
+      // together with it.
+      if(playerAccessorySkin!=nil) {
+        NSArray* accessoryPositions=playerAccessorySkin[@"vertices"];
+        NSArray* accessoryNormals=playerAccessorySkin[@"normals"];
+        NSArray* accessoryUvSets=playerAccessorySkin[@"uvSets"];
+        NSArray* accessoryUvs=accessoryUvSets.count>0?accessoryUvSets[0]:nil;
+        NSArray* accessoryTriangles=playerAccessorySkin[@"triangles"];
+        NSArray* accessoryMaterials=playerAccessorySkin[@"materials"];
+        NSDictionary* accessorySkin=playerAccessorySkin[@"skin"];
+        NSArray* accessoryIndices=accessorySkin[@"vertexBoneIndices"];
+        NSArray* accessoryWeights=accessorySkin[@"vertexWeights"];
+        const NSUInteger accessoryStart=vertexData.length/sizeof(AsterixVertex);
+        if(accessoryIndices.count==accessoryPositions.count&&
+           accessoryWeights.count==accessoryPositions.count) {
+          for(NSArray* triangle in accessoryTriangles)for(NSUInteger corner=0;corner<3;++corner) {
+            const NSUInteger index=[triangle[corner] unsignedIntegerValue];
+            if(index>=accessoryPositions.count||[accessoryIndices[index] count]!=4||
+               [accessoryWeights[index] count]!=4)continue;
+            NSArray* p=accessoryPositions[index];
+            vector_float3 normal={0,1,0};
+            if(index<accessoryNormals.count) {
+              NSArray* n=accessoryNormals[index];
+              normal={(float)[n[0] doubleValue],(float)[n[1] doubleValue],(float)[n[2] doubleValue]};
+            }
+            vector_float2 uv={0,0};
+            if(index<accessoryUvs.count) {
+              NSArray* value=accessoryUvs[index];
+              uv={(float)[value[0] doubleValue],(float)[value[1] doubleValue]};
+            }
+            AsterixVertex vertex={
+                {(float)[p[0] doubleValue],(float)[p[1] doubleValue],(float)[p[2] doubleValue]},
+                {1,1,1},normal,uv,1,1,1,{1,1,1,1},
+                {(uint16_t)[accessoryIndices[index][0] unsignedIntegerValue],
+                 (uint16_t)[accessoryIndices[index][1] unsignedIntegerValue],
+                 (uint16_t)[accessoryIndices[index][2] unsignedIntegerValue],
+                 (uint16_t)[accessoryIndices[index][3] unsignedIntegerValue]},
+                {(float)[accessoryWeights[index][0] doubleValue],
+                 (float)[accessoryWeights[index][1] doubleValue],
+                 (float)[accessoryWeights[index][2] doubleValue],
+                 (float)[accessoryWeights[index][3] doubleValue]},900001};
+            [vertexData appendBytes:&vertex length:sizeof(vertex)];
+          }
+        }
+        const NSUInteger accessoryCount=vertexData.length/sizeof(AsterixVertex)-accessoryStart;
+        if(accessoryCount>0) {
+          NSString* accessoryName=accessoryMaterials.count>0?accessoryMaterials[0][@"texture"]:nil;
+          id<MTLTexture> accessoryTexture=[accessoryName isKindOfClass:NSString.class]
+              ?textures[AsterixTextureKey(accessoryName)]:nil;
+          playerMeshRanges.push_back({accessoryStart,accessoryCount,
+                                      accessoryTexture,_defaultSampler,.01f,false,{0,0},0});
+          playerMeshVertexCount+=accessoryCount;
+        }
+      }
     } else {
       playerMarkerVertexStart=vertexData.length/sizeof(AsterixVertex);
       AsterixWriteMarker(marker,body.position,(vector_float3){1.0f,.72f,.08f},900001);
@@ -1316,7 +1426,7 @@ struct AsterixPushMesh {
     _playerMarkerVertexStart=playerMarkerVertexStart;
     _playerMeshVertexStart=playerMeshVertexStart;
     _playerMeshVertexCount=playerMeshVertexCount;
-    _playerTexture=playerTexture;
+    _playerMeshRanges=std::move(playerMeshRanges);
     _playerJoints=std::move(playerJoints);
     _playerClips=std::move(playerClips);
     _playerClipAvailable=playerClipAvailable;
@@ -1769,14 +1879,18 @@ struct AsterixPushMesh {
                 : asterix::animation::skinningPalette(
                     _playerClips[state],_playerJoints,snapshot.state_seconds);
             playerBones.clear(); playerBones.reserve(palette.size());
-            const float yaw=snapshot.facing_radians;
+            // The authored bind pose faces -Z, while gameplay facing uses +Z.
+            const float yaw=snapshot.facing_radians+3.14159265358979323846f;
             const matrix_float4x4 facing=(matrix_float4x4){{
                 {cosf(yaw),0,-sinf(yaw),0},{0,1,0,0},
                 {sinf(yaw),0,cosf(yaw),0},{0,0,0,1}}};
             for(const auto& matrix:palette) {
               auto metal=simd_mul(facing,AsterixMetalMatrix(matrix));
+              // Gameplay stores the capsule centre; the authored skin origin
+              // is at the soles. Keep presentation on the collision ground.
+              constexpr float capsuleBottomOffset=.55f+.35f;
               metal.columns[3].xyz+=(vector_float3){snapshot.body.position.x,
-                                                    snapshot.body.position.y,
+                                                    snapshot.body.position.y-capsuleBottomOffset,
                                                     snapshot.body.position.z};
               playerBones.push_back(metal);
             }
@@ -1868,14 +1982,16 @@ struct AsterixPushMesh {
           [encoder setDepthStencilState:_depthState];
           [encoder setVertexBytes:playerBones.data()
                            length:playerBones.size()*sizeof(matrix_float4x4) atIndex:2];
-          AsterixUniforms playerUniforms=uniforms;
-          playerUniforms.textured=_playerTexture!=nil?1u:0u;
-          [encoder setVertexBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
-          [encoder setFragmentBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
-          [encoder setFragmentTexture:_playerTexture atIndex:0];
-          [encoder setFragmentSamplerState:_defaultSampler atIndex:0];
-          [encoder drawPrimitives:MTLPrimitiveTypeTriangle
-                      vertexStart:_playerMeshVertexStart vertexCount:_playerMeshVertexCount];
+          for(const auto& range:_playerMeshRanges) {
+            AsterixUniforms playerUniforms=uniforms;
+            playerUniforms.textured=range.texture!=nil?1u:0u;
+            [encoder setVertexBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
+            [encoder setFragmentBytes:&playerUniforms length:sizeof(playerUniforms) atIndex:1];
+            [encoder setFragmentTexture:range.texture atIndex:0];
+            [encoder setFragmentSamplerState:range.sampler?:_defaultSampler atIndex:0];
+            [encoder drawPrimitives:MTLPrimitiveTypeTriangle
+                        vertexStart:range.vertexStart vertexCount:range.vertexCount];
+          }
           [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
           [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
           [encoder setVertexBytes:&identityBone length:sizeof(identityBone) atIndex:2];
