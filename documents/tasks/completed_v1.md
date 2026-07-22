@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 71 — Бег по умолчанию при старте gameplay
+
+**Выполнено:** 22 июля 2026.
+
+Причина неверного gait локализована в `player::Runtime` и не зависит от уровня,
+spawn-сценария или animation registry: acceleration-based классификация
+оставляла первые fixed ticks полного ввода ниже run threshold, из-за чего запуск
+визуально начинался ходьбой. Gameplay locomotion теперь сразу принимает
+эталонные 4,32 world unit/s (2,4 H/s) и публикует `run`; аналоговый magnitude
+сохраняется, диагональ нормализуется, а collision-limited displacement
+по-прежнему определяет фактическую фазу анимации.
+
+Ходьба отделена от gameplay явным `LocomotionMode::scripted_walk` с authored
+скоростью 1,8 world unit/s. Возврат управления переводит runtime обратно в
+`gameplay`; respawn и restore также сбрасывают только в безопасный gameplay
+mode. Удалена неявная hysteresis-классификация, которая могла повторно включить
+walk без cinematic/scripted-команды.
+
+Native regression повторяет чистый старт Gaul и контрольный collision-сценарий
+с независимым object id, затем проверяет gameplay → scripted walk → gameplay,
+немедленный выбор эталонной скорости после возврата управления и respawn.
+Отдельное diff review подтвердило независимость от level data и устранило
+оставшиеся неиспользуемые gait thresholds. Пройдены 49 native XCTest, resource
+policy, native FFI build, `flutter analyze` и все 92 Flutter tests. Оригинальные
+ресурсы и производные игровые данные в Git не добавлялись.
+
 ## П. 70 — Collision-safe следование gameplay-камеры
 
 **Выполнено:** 22 июля 2026.

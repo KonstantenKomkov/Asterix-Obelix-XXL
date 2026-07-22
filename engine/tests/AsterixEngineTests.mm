@@ -784,7 +784,7 @@
       dt*player.snapshot().horizontal_speed/player.config().run_speed,.0001f);
 }
 
-- (void)testCalibratedRunUsesHeightScaleGaitThresholdAndReferenceCadence {
+- (void)testCalibratedRunUsesHeightScaleImmediateGaitAndReferenceCadence {
   using namespace asterix;
   collision::World world({{{-40,0,-40},{40,0,-40},{-40,0,40},1},
                           {{40,0,-40},{40,0,40},{-40,0,40},1}});
@@ -799,7 +799,9 @@
   XCTAssertEqualWithAccuracy(player.config().run_speed /
       player.config().world_units_per_height,2.4f,.0001f);
   player.update(dt,{1,0,false,false});
-  XCTAssertEqual(player.snapshot().gait,player::Gait::walk);
+  XCTAssertEqual(player.snapshot().gait,player::Gait::run);
+  XCTAssertEqualWithAccuracy(player.snapshot().horizontal_speed,
+                             player.config().run_speed,.0001f);
 
   int ticks=1;
   const float routeDistance=10.0f*player.config().world_units_per_height;
@@ -811,13 +813,57 @@
   XCTAssertEqual(player.snapshot().gait,player::Gait::run);
   XCTAssertEqualWithAccuracy(player.snapshot().horizontal_speed,
                              player.config().run_speed,.0001f);
-  XCTAssertGreaterThanOrEqual(routeSeconds,4.20f);
-  XCTAssertLessThanOrEqual(routeSeconds,4.40f);
+  XCTAssertGreaterThanOrEqual(routeSeconds,4.15f);
+  XCTAssertLessThanOrEqual(routeSeconds,4.20f);
   // Confirmed clip 0035 lasts 0.56 s. Distance-driven playback must produce
   // the same cadence as the original steady run within one fixed tick.
   const float expectedCycles=routeDistance/player.config().run_speed/.56f;
   const float actualCycles=player.snapshot().locomotion_seconds/.56f;
   XCTAssertEqualWithAccuracy(actualCycles,expectedCycles,.04f);
+}
+
+- (void)testGameplayRunAndScriptedWalkAreExplicitAndLevelIndependent {
+  using namespace asterix;
+  const auto verify=[&](std::int32_t groundObject) {
+    collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},groundObject},
+                            {{20,0,-20},{20,0,20},{-20,0,20},groundObject}});
+    collision::CapsuleConfig capsuleConfig;
+    collision::CapsuleController controller(world,capsuleConfig);
+    collision::CapsuleState body;
+    body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+    body.checkpoint=body.position; body.grounded=true;
+    body.ground_object_id=groundObject;
+    player::Runtime runtime(controller,body);
+    constexpr float dt=1.0f/60.0f;
+
+    runtime.update(dt,{1,0,false,false});
+    XCTAssertEqual(runtime.snapshot().locomotion_mode,
+                   player::LocomotionMode::gameplay);
+    XCTAssertEqual(runtime.snapshot().gait,player::Gait::run);
+    XCTAssertEqualWithAccuracy(runtime.snapshot().horizontal_speed,
+                               runtime.config().run_speed,.0001f);
+
+    runtime.setLocomotionMode(player::LocomotionMode::scripted_walk);
+    runtime.update(dt,{1,0,false,false});
+    XCTAssertEqual(runtime.snapshot().gait,player::Gait::walk);
+    for(int tick=0;tick<20;++tick)runtime.update(dt,{1,0,false,false});
+    XCTAssertEqualWithAccuracy(runtime.snapshot().horizontal_speed,
+                               runtime.config().scripted_walk_speed,.0001f);
+
+    runtime.setLocomotionMode(player::LocomotionMode::gameplay);
+    runtime.update(dt,{1,0,false,false});
+    XCTAssertEqual(runtime.snapshot().gait,player::Gait::run);
+    XCTAssertEqualWithAccuracy(runtime.snapshot().horizontal_speed,
+                               runtime.config().run_speed,.0001f);
+
+    runtime.respawn(body.position);
+    runtime.update(dt,{1,0,false,false});
+    XCTAssertEqual(runtime.snapshot().gait,player::Gait::run);
+    XCTAssertEqualWithAccuracy(runtime.snapshot().horizontal_speed,
+                               runtime.config().run_speed,.0001f);
+  };
+  verify(1);  // Gaul start.
+  verify(77); // Control scenario with a distinct level object id.
 }
 
 - (void)testCalibratedRunNormalizesDiagonalDistance {

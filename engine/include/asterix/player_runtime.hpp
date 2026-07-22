@@ -13,6 +13,7 @@ namespace asterix::player {
 enum class State : std::uint8_t { idle, run, jump, fall, attack, hurt, death };
 
 enum class Gait : std::uint8_t { idle, walk, run };
+enum class LocomotionMode : std::uint8_t { gameplay, scripted_walk };
 
 inline const char* stateName(State state) {
   switch (state) {
@@ -32,10 +33,9 @@ struct Config {
   // 1.8 world units tall, so 2.4 H/s is 4.32 world units/s.
   float world_units_per_height = 1.8f;
   float run_speed = 4.32f;
+  float scripted_walk_speed = 1.8f;
   float acceleration = 18.0f;
   float deceleration = 21.6f;
-  float run_gait_enter_speed = 3.24f;
-  float run_gait_exit_speed = 2.70f;
   float run_animation_rate = 1.0f;
   float jump_velocity = 8.4f;
   float jump_control_seconds = 0.2f;
@@ -56,6 +56,7 @@ struct Input {
 struct Snapshot {
   State state = State::idle;
   Gait gait = Gait::idle;
+  LocomotionMode locomotion_mode = LocomotionMode::gameplay;
   collision::CapsuleState body{};
   std::int32_t health = 3;
   float state_seconds = 0;
@@ -73,12 +74,10 @@ class Runtime {
           collision::CapsuleState body, Config config = {})
       : controller_(controller), config_(config) {
     if (config.world_units_per_height <= 0 || config.run_speed <= 0 ||
+        config.scripted_walk_speed <= 0 ||
+        config.scripted_walk_speed >= config.run_speed ||
         config.acceleration <= 0 ||
         config.deceleration <= 0 || config.jump_velocity <= 0 ||
-        config.run_gait_enter_speed <= 0 ||
-        config.run_gait_exit_speed <= 0 ||
-        config.run_gait_exit_speed >= config.run_gait_enter_speed ||
-        config.run_gait_enter_speed >= config.run_speed ||
         config.run_animation_rate <= 0 ||
         config.jump_control_seconds <= 0 ||
         config.jump_release_deceleration <= 0 ||
@@ -94,6 +93,11 @@ class Runtime {
   const Snapshot& snapshot() const { return snapshot_; }
   const Config& config() const { return config_; }
 
+  void setLocomotionMode(LocomotionMode mode) {
+    snapshot_.locomotion_mode = mode;
+    if (mode == LocomotionMode::gameplay) snapshot_.gait = Gait::idle;
+  }
+
   void setCheckpoint(collision::Vec3 position) { snapshot_.body.checkpoint=position; }
   void respawn(collision::Vec3 position) {
     snapshot_.body.position=position; snapshot_.body.checkpoint=position;
@@ -106,6 +110,7 @@ class Runtime {
     snapshot_.locomotion_seconds=0;
     snapshot_.locomotion_blend=0;
     snapshot_.gait=Gait::idle;
+    snapshot_.locomotion_mode=LocomotionMode::gameplay;
     enter(State::idle);
   }
   bool restore(collision::Vec3 position,collision::Vec3 checkpoint,
@@ -121,6 +126,7 @@ class Runtime {
     snapshot_.locomotion_seconds=0;
     snapshot_.locomotion_blend=0;
     snapshot_.gait=Gait::idle;
+    snapshot_.locomotion_mode=LocomotionMode::gameplay;
     enter(health==0?State::death:State::idle); return true;
   }
 
@@ -159,13 +165,23 @@ class Runtime {
     const float magnitude = std::sqrt(input.move_x * input.move_x +
                                       input.move_z * input.move_z);
     const float scale = magnitude > 1 ? 1 / magnitude : 1;
+    const bool gameplay =
+        snapshot_.locomotion_mode == LocomotionMode::gameplay;
+    const float movementSpeed = gameplay ? config_.run_speed
+                                         : config_.scripted_walk_speed;
     const collision::Vec3 target = {
-        input.move_x * scale * config_.run_speed, 0,
-        input.move_z * scale * config_.run_speed};
-    const float rate = magnitude > .01f ? config_.acceleration
-                                        : config_.deceleration;
-    horizontal_velocity_.x = approach(horizontal_velocity_.x, target.x, rate * dt);
-    horizontal_velocity_.z = approach(horizontal_velocity_.z, target.z, rate * dt);
+        input.move_x * scale * movementSpeed, 0,
+        input.move_z * scale * movementSpeed};
+    if (gameplay && magnitude > .01f) {
+      // The original enters gameplay locomotion at its authored run speed.
+      // Acceleration-based gait inference made every launch look like a walk.
+      horizontal_velocity_ = target;
+    } else {
+      const float rate = magnitude > .01f ? config_.acceleration
+                                          : config_.deceleration;
+      horizontal_velocity_.x = approach(horizontal_velocity_.x, target.x, rate * dt);
+      horizontal_velocity_.z = approach(horizontal_velocity_.z, target.z, rate * dt);
+    }
 
     if (snapshot_.state == State::hurt) {
       horizontal_velocity_ = {};
@@ -225,13 +241,8 @@ class Runtime {
     }
     if (!snapshot_.body.grounded || snapshot_.horizontal_speed <= .05f) {
       snapshot_.gait = Gait::idle;
-    } else if (snapshot_.gait == Gait::run) {
-      if (snapshot_.horizontal_speed < config_.run_gait_exit_speed)
-        snapshot_.gait = Gait::walk;
-    } else if (snapshot_.horizontal_speed >= config_.run_gait_enter_speed) {
-      snapshot_.gait = Gait::run;
     } else {
-      snapshot_.gait = Gait::walk;
+      snapshot_.gait = gameplay ? Gait::run : Gait::walk;
     }
     const float locomotionTarget = snapshot_.body.grounded &&
             snapshot_.horizontal_speed > .05f
