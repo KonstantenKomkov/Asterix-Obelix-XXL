@@ -62,6 +62,8 @@ inline std::vector<Track> linkedTracks(const std::vector<RawKeyframe>& frames,
   std::vector<Track> tracks(joint_count);
   std::unordered_map<int, std::size_t> owner;
   for (std::size_t joint = 0; joint < joint_count; ++joint) {
+    tracks[joint].keys.push_back(
+        {frames[joint].time, frames[joint].transform});
     owner[static_cast<int>(joint)] = joint;
     owner[static_cast<int>(joint_count + joint)] = joint;
   }
@@ -85,6 +87,39 @@ inline std::vector<Track> linkedTracks(const std::vector<RawKeyframe>& frames,
       throw std::invalid_argument("animation joint has no keyframes");
   }
   return tracks;
+}
+
+inline std::size_t animatedTrackCount(const Clip& clip,
+                                      float rotation_delta = 0.05f,
+                                      float translation_delta = 0.02f) {
+  std::size_t result = 0;
+  for (const auto& track : clip.tracks) {
+    if (track.keys.size() < 2) continue;
+    const auto& origin = track.keys.front().transform;
+    bool animated = false;
+    for (std::size_t key = 1; key < track.keys.size() && !animated; ++key) {
+      float rotation = 0;
+      float translation = 0;
+      float dot = 0;
+      for (std::size_t i = 0; i < 4; ++i)
+        dot += origin.rotation[i] * track.keys[key].transform.rotation[i];
+      const float sign = dot < 0 ? -1.0f : 1.0f;
+      for (std::size_t i = 0; i < 4; ++i) {
+        const float delta = origin.rotation[i] -
+                            track.keys[key].transform.rotation[i] * sign;
+        rotation += delta * delta;
+      }
+      for (std::size_t i = 0; i < 3; ++i) {
+        const float delta = origin.translation[i] -
+                            track.keys[key].transform.translation[i];
+        translation += delta * delta;
+      }
+      animated = std::sqrt(rotation) > rotation_delta ||
+                 std::sqrt(translation) > translation_delta;
+    }
+    if (animated) ++result;
+  }
+  return result;
 }
 
 inline Transform interpolate(const Transform& a, const Transform& b, float t) {

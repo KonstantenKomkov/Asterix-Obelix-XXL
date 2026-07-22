@@ -743,12 +743,34 @@
   frames[4]={1,{{0,0,0,1},{2,0,0}},2};
   frames[5]={1,{{0,0,0,1},{0,2,0}},3};
   Clip clip; clip.duration=1; clip.tracks=linkedTracks(frames,2);
+  XCTAssertEqual(clip.tracks[0].keys.size(),3u);
+  XCTAssertEqual(clip.tracks[1].keys.size(),3u);
   const auto parents=hierarchyParents({2,1});
   XCTAssertEqual(parents[0],-1); XCTAssertEqual(parents[1],0);
   const auto palette=skinningPalette(clip,{{parents[0]},{parents[1]}},.5f);
   XCTAssertEqual(palette.size(),2u);
   XCTAssertEqualWithAccuracy(palette[1].value[12],1,.001);
   XCTAssertEqualWithAccuracy(palette[1].value[13],1.5,.001);
+}
+
+- (void)testRunClipValidationRejectsStaticOrTurnOnlyPose {
+  using namespace asterix::animation;
+  Clip turnOnly; turnOnly.duration=.5f; turnOnly.tracks.resize(58);
+  for(std::size_t joint=0;joint<turnOnly.tracks.size();++joint) {
+    Transform start,finish;
+    if(joint<4)finish.rotation={0,.04f,0,.9992f};
+    else if(joint==4)finish.rotation={0,0,0,-1};
+    turnOnly.tracks[joint].keys={{0,start},{.5f,finish}};
+  }
+  XCTAssertLessThan(animatedTrackCount(turnOnly),20u);
+
+  Clip run=turnOnly;
+  for(std::size_t joint=0;joint<24;++joint) {
+    Transform stride;
+    stride.rotation={joint%2==0?.18f:-.18f,0,0,.9837f};
+    run.tracks[joint].keys.push_back({.25f,stride});
+  }
+  XCTAssertGreaterThanOrEqual(animatedTrackCount(run),20u);
 }
 
 - (void)testSceneGraphResolvesHierarchyAndRejectsCycles {

@@ -16,7 +16,7 @@ geometry; старые локальные пакеты до задачи 28 со
 
 Для Астерикса runtime восстанавливает tracks из interleaved RenderWare keyframe
 chains и строит parent indices из HAnim push/pop flags. В LVL01 58-node clips
-сопоставлены gameplay-состояниям так: `idle=0053`, `run=0055`, `jump=0031`,
+сопоставлены gameplay-состояниям так: `idle=0053`, `run=0054`, `jump=0031`,
 `fall=0039`, `attack=0000`, `hurt=0009`, `death=0033`. Idle/run зациклены,
 остальные clips clamp-ятся на последней позе до перехода state machine.
 
@@ -33,6 +33,10 @@ inverse bind palette. Вес приходит из fixed-tick player snapshot, i
 сбрасывается при начале движения, run phase зависит от фактической скорости, а
 вся palette поворачивается по последнему ненулевому вектору движения. Это
 сохраняет непрерывную позу при разгоне, остановке и повторном старте.
+Run clip дополнительно обязан содержать заметное движение не менее чем в 20
+bone tracks. Статические и малоподвижные turn poses не принимаются как
+locomotion. RenderWare chain reconstruction включает исходную позу каждого
+сустава при `time=0`; без неё двухфазные clips ошибочно становились статичными.
 
 Четвёртые lanes исходного RenderWare `RwMatrix` содержат flags/padding, поэтому
 inverse-bind loader принудительно восстанавливает homogeneous значения

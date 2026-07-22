@@ -626,7 +626,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   // LVL01's Asterix set has 58 nodes. These source-stable clip numbers were
   // classified against the gameplay states; one-shots deliberately do not loop.
   NSDictionary<NSString*, NSString*>* animationKeys = @{
-    @"idle":@"0053.animation.json", @"run":@"0055.animation.json",
+    @"idle":@"0053.animation.json", @"run":@"0054.animation.json",
     @"jump":@"0031.animation.json", @"fall":@"0039.animation.json",
     @"attack":@"0000.animation.json", @"hurt":@"0009.animation.json",
     @"death":@"0033.animation.json"};
@@ -967,6 +967,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     NSArray<NSString*>* stateNames=@[@"idle",@"run",@"jump",@"fall",@"attack",@"hurt",@"death"];
     if(playerJoints.size()==58)for(NSUInteger i=0;i<stateNames.count;++i)
       playerClipAvailable[i]=AsterixReadClip(playerAnimations[stateNames[i]],i<2,playerClips[i]);
+    const std::size_t runState=(std::size_t)asterix::player::State::run;
+    if(playerClipAvailable[runState]&&
+       asterix::animation::animatedTrackCount(playerClips[runState])<20)
+      playerClipAvailable[runState]=false;
     bool bindingsValid=boneIndices.count==skinPositions.count&&
         boneWeights.count==skinPositions.count;
     if(bindingsValid)for(NSUInteger vertex=0;vertex<boneIndices.count;++vertex) {
