@@ -1,5 +1,29 @@
 # Выполненные задачи первой итерации
 
+## П. 63 — Data-driven реестр привязок анимаций
+
+**Выполнено:** 22 июля 2026.
+
+Добавлен versioned manifest `assets/animation_bindings.v1.json`. Текущие семь
+достижимых gameplay states Астерикса описаны ключами actor, точного skin,
+costume, action/event, variant и context; рядом хранятся loop policy, priority,
+fallback, skeleton nodes и допустимые transitions. Номера clips удалены из
+renderer/state machines и остаются только данными manifest.
+
+Extractor переносит manifest в локальный proof, pipeline валидирует схему,
+обязательные states, уникальность, переходы, наличие clip и совместимость
+skeleton, затем добавляет ресурс `animation-bindings` в ASTPAK. Runtime повторно
+разрешает точный профиль и возвращает диагностируемую ошибку для неизвестной,
+неоднозначной или несовместимой привязки вместо случайной pose; loop policy
+передаётся sampler из binding.
+
+Добавлены unit и pipeline regressions, архитектурная документация и полная
+macOS build-проверка. Пройдены `flutter analyze`, все Flutter tests, native
+XCTest, debug app build и resource-policy gate. Оригинальные ресурсы и
+производные игровые данные в Git не добавлялись. Полное расширение registry на
+остальные hero actions остаётся п. 64, на остальных actors/world/cinematics —
+п. 65–67, event tracks — п. 68.
+
 ## П. 62.7 — Финальная машинная приёмка семантического каталога
 
 **Выполнено:** 22 июля 2026.

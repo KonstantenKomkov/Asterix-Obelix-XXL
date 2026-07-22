@@ -21,7 +21,6 @@
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 | 60 | Откалибровать именно бег Астерикса по эталонному прохождению оригинала | Gameplay fidelity | P0 | M | После п. 5 и 56; отдельно идентифицированы походка и бег оригинала, при штатном полном вводе выбираются беговой клип и соответствующая ему скорость, а не ускоренная ходьба; на зафиксированном прямом маршруте измерены скорость и время прохождения, `run_speed`, пороги gait, acceleration/deceleration, animation rate и диагональная нормализация настроены в согласованном масштабе мира; расхождение дистанции, времени и cadence укладывается в документированный допуск и покрыто fixed-tick и visual regression-тестами |
 | 61 | Подключить gameplay-камеру к фактическому перемещению игрока в Metal render loop | Gameplay bugfix | P0 | M | После п. 34 и 56; каждый fixed tick камера получает актуальную позицию капсулы, render использует интерполированный camera snapshot для view/projection, frustum/culling и audio listener; при движении во всех направлениях игрок остаётся в заданной dead zone без рывков и рассинхронизации, follow/collision поведение покрыто regression-тестом |
-| 63 | Реализовать data-driven реестр привязок animation clip → gameplay-событие/действие | Animation architecture | P0 | L | После п. 62.7; hardcoded номера clips удалены из renderer/state machines, привязки загружаются из versioned manifest по actor, skin/costume, action/event, варианту и контексту; resolver валидирует совместимость skeleton, обязательные states, loop policy, приоритеты, fallback и переходы, а неизвестная или неоднозначная привязка даёт диагностируемую ошибку, а не случайную позу |
 | 64 | Привязать полный набор анимаций Астерикса и управляемых героев ко всем действиям | Player animation graph | P0 | XL | После п. 60, 62 и 63; idle-варианты, walk/run и их старты/остановки/развороты, прыжки/падение/приземление, атаки и combo, hurt/knockback/death/recovery, interactions, contextual и costume-specific действия имеют подтверждённые clips и явные переходы; скорость выбирает правильный gait, gameplay events синхронизированы с фазами клипа, а полный граф пройден автоматическими state-transition и visual regression-тестами |
 | 65 | Привязать все анимации врагов, NPC и прочих персонажей к их состояниям и событиям | Character animation graphs | P1 | XL | После п. 62 и 63; для каждого archetype/skin привязаны spawn, idle-варианты, patrol/walk/run, perception, pursuit, attack-варианты, hit/stun/knockback, death/despawn и специальные действия; варианты выбираются детерминированно по контексту, gameplay hit windows совпадают с animation events, все достижимые AI-переходы и clips покрыты аудитом и regression-тестами |
 | 66 | Привязать все анимации интерактивных объектов, окружения и механизмов к world events | World animation graphs | P1 | L | После п. 62 и 63; рычаги, двери, разрушаемые и подбираемые объекты, платформы, механизмы, environmental loops и прочие animated entities получают open/close/activate/deactivate/break/respawn и специальные transitions; состояние корректно восстанавливается из save/checkpoint, события не повторяются и каждый относящийся к миру clip имеет runtime trigger и тест |
@@ -117,7 +116,7 @@
 - [x] П. 62.5 — анимации объектов, механизмов, UI и FX
 - [x] П. 62.6 — cinematic dictionaries и shared contexts
 - [x] П. 62.7 — финальная приёмка 345 clips / 518 slots
-- [ ] П. 63 — data-driven реестр привязок анимаций
+- [x] П. 63 — data-driven реестр привязок анимаций
 - [ ] П. 64 — полный animation graph управляемых героев
 - [ ] П. 65 — animation graphs врагов, NPC и персонажей
 - [ ] П. 66 — анимации объектов, окружения и механизмов
@@ -130,7 +129,9 @@
 
 ---
 
-**Последнее обновление:** 22 июля 2026 — п. 62.7 выполнен: строгий LVL01 gate принял ровно 345 confirmed clips, 52 dictionaries и 518 структурных slots; все 449 заполненных slots имеют по одному объективному membership и confirmed semantic context, неподтверждённых или необъяснённых значений нет.
+**Последнее обновление:** 22 июля 2026 — п. 63 выполнен: renderer разрешает текущие состояния Астерикса из versioned animation binding manifest в ASTPAK; pipeline и runtime диагностируют отсутствующие, неоднозначные и skeleton-incompatible bindings, а clip IDs удалены из кода.
+
+**Предыдущее обновление:** 22 июля 2026 — п. 62.7 выполнен: строгий LVL01 gate принял ровно 345 confirmed clips, 52 dictionaries и 518 структурных slots; все 449 заполненных slots имеют по одному объективному membership и confirmed semantic context, неподтверждённых или необъяснённых значений нет.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 62.6 выполнен: подтверждены 14 dedicated cinematic dictionaries, 63 slots и 44 уникальных clips; каждый scene-data timeline membership получил actor/context/action evidence, а shared hero/animated-character clips сохранили отдельные semantic contexts.
 

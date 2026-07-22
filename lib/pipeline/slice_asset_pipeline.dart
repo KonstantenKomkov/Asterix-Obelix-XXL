@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:image/image.dart' as img;
 
 import '../runtime/asset_package.dart';
+import '../runtime/animation_binding_registry.dart';
 
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
@@ -426,6 +427,27 @@ final class SliceAssetPipeline {
     }
 
     final animationDir = Directory('${proof.path}/animations');
+    final bindingFile = File('${animationDir.path}/bindings.json');
+    final bindingManifest = await _jsonFile(bindingFile);
+    late final AnimationBindingRegistry bindingRegistry;
+    try {
+      bindingRegistry = AnimationBindingRegistry.parse(bindingManifest);
+    } on AnimationBindingException catch (error) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        error.message,
+        path: bindingFile.path,
+      );
+    }
+    payloads.add(
+      AssetPayloadInput(
+        kind: 'animation-bindings',
+        sourcePath: _levelSource,
+        sourceKey: 'registry:v1',
+        bytes: encodeCanonicalJson(bindingManifest),
+        metadata: {'schemaVersion': 1},
+      ),
+    );
     final animationManifest = await _jsonFile(
       File('${animationDir.path}/manifest.json'),
     );
@@ -448,6 +470,7 @@ final class SliceAssetPipeline {
       'skin_',
       '.json',
     );
+    final animationNodeCounts = <String, int>{};
     if (animationFiles.length != expectedAnimations.length ||
         skinFiles.length != expectedSkins.length) {
       throw AssetPipelineException(
@@ -465,6 +488,7 @@ final class SliceAssetPipeline {
     for (final file in animationFiles) {
       final name = file.uri.pathSegments.last;
       final data = await _jsonFile(file);
+      animationNodeCounts[name] = _integer(data, 'nodeCount');
       payloads.add(
         AssetPayloadInput(
           kind: 'animation',
@@ -478,6 +502,21 @@ final class SliceAssetPipeline {
           ),
         ),
       );
+    }
+    for (var index = 0; index < bindingRegistry.bindings.length; index++) {
+      final binding = bindingRegistry.bindings[index];
+      final clip = binding['clip']! as String;
+      final actualNodes = animationNodeCounts[clip];
+      if (actualNodes == null || actualNodes != binding['skeletonNodes']) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidReference,
+          actualNodes == null
+              ? 'Animation binding references a missing clip.'
+              : 'Animation binding skeleton is incompatible with its clip.',
+          path: bindingFile.path,
+          details: {'binding': index, 'clip': clip, 'actualNodes': actualNodes},
+        );
+      }
     }
     for (final file in skinFiles) {
       final data = await _jsonFile(file);

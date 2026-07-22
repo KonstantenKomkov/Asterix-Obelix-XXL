@@ -601,6 +601,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::vector<asterix::collision::Triangle> startCollisionTriangles;
   std::vector<std::vector<AsterixMeshRange>> meshRanges;
   NSDictionary* playerSkin = nil;
+  NSDictionary* animationBindings = nil;
   NSMutableDictionary<NSString*, NSDictionary*>* playerAnimations = [NSMutableDictionary dictionary];
   std::vector<asterix::scene::Node> runtimeNodes;
   NSUInteger meshCount = 0;
@@ -623,13 +624,48 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     }
     break;
   }
-  // LVL01's Asterix set has 58 nodes. These source-stable clip numbers were
-  // classified against the gameplay states; one-shots deliberately do not loop.
-  NSMutableDictionary<NSString*, NSString*>* animationKeys = [@{
-    @"idle":@"0053.animation.json", @"run":@"0035.animation.json",
-    @"jump":@"0031.animation.json", @"fall":@"0039.animation.json",
-    @"attack":@"0000.animation.json", @"hurt":@"0009.animation.json",
-    @"death":@"0033.animation.json"} mutableCopy];
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"animation-bindings"]) continue;
+    uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset<=payloadLength&&length<=payloadLength-offset) {
+      NSData* data=[package subdataWithRange:NSMakeRange((NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+      id decoded=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      if([decoded isKindOfClass:NSDictionary.class]) animationBindings=decoded;
+    }
+    break;
+  }
+  NSArray<NSString*>* requiredStates=@[@"idle",@"run",@"jump",@"fall",@"attack",@"hurt",@"death"];
+  NSMutableDictionary<NSString*, NSDictionary*>* stateBindings=[NSMutableDictionary dictionary];
+  if ([animationBindings[@"schemaVersion"] integerValue]==1) {
+    for (NSDictionary* binding in animationBindings[@"bindings"]) {
+      if (![binding isKindOfClass:NSDictionary.class] ||
+          ![binding[@"actor"] isEqual:@"asterix"] ||
+          [binding[@"skin"] integerValue]!=4 ||
+          ![binding[@"costume"] isEqual:@"default"] ||
+          ![binding[@"context"] isEqual:@"gameplay"] || binding[@"variant"]!=NSNull.null) continue;
+      NSString* action=binding[@"action"];
+      if (![requiredStates containsObject:action]) continue;
+      if (stateBindings[action]!=nil) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Ambiguous animation binding for asterix/%@",action]; }
+        return NO;
+      }
+      stateBindings[action]=binding;
+    }
+  }
+  NSMutableDictionary<NSString*, NSString*>* animationKeys=[NSMutableDictionary dictionary];
+  for (NSString* state in requiredStates) {
+    NSDictionary* binding=stateBindings[state];
+    NSString* clip=binding[@"clip"];
+    NSNumber* looping=binding[@"loop"];
+    NSArray* transitions=binding[@"transitions"];
+    if (![clip isKindOfClass:NSString.class] || ![looping isKindOfClass:NSNumber.class] ||
+        ![transitions isKindOfClass:NSArray.class] || [binding[@"skeletonNodes"] integerValue]!=58) {
+      @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Unknown or invalid animation binding for asterix/%@",state]; }
+      return NO;
+    }
+    animationKeys[state]=clip;
+  }
   NSString* reviewClip = NSProcessInfo.processInfo.environment[@"ASTERIX_ANIMATION_REVIEW_CLIP"];
   NSCharacterSet* nonDigits = NSCharacterSet.decimalDigitCharacterSet.invertedSet;
   if (reviewClip.length == 4 && [reviewClip rangeOfCharacterFromSet:nonDigits].location == NSNotFound) {
@@ -971,9 +1007,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         playerJoints.push_back(joint);
       }
     }
-    NSArray<NSString*>* stateNames=@[@"idle",@"run",@"jump",@"fall",@"attack",@"hurt",@"death"];
+    NSArray<NSString*>* stateNames=requiredStates;
     if(playerJoints.size()==58)for(NSUInteger i=0;i<stateNames.count;++i)
-      playerClipAvailable[i]=AsterixReadClip(playerAnimations[stateNames[i]],i<2,playerClips[i]);
+      playerClipAvailable[i]=AsterixReadClip(playerAnimations[stateNames[i]],[stateBindings[stateNames[i]][@"loop"] boolValue],playerClips[i]);
     const std::size_t runState=(std::size_t)asterix::player::State::run;
     if(playerClipAvailable[runState]&&
        asterix::animation::animatedTrackCount(playerClips[runState])<20)

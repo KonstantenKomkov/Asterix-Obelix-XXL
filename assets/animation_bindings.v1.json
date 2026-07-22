@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "requiredStates": {"asterix": ["idle", "run", "jump", "fall", "attack", "hurt", "death"]},
+  "bindings": [
+    {"actor":"asterix","skin":4,"costume":"default","action":"idle","context":"gameplay","variant":null,"clip":"0053.animation.json","loop":true,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["run","jump","fall","attack","hurt","death"]},
+    {"actor":"asterix","skin":4,"costume":"default","action":"run","context":"gameplay","variant":null,"clip":"0035.animation.json","loop":true,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["idle","jump","fall","attack","hurt","death"]},
+    {"actor":"asterix","skin":4,"costume":"default","action":"jump","context":"gameplay","variant":null,"clip":"0031.animation.json","loop":false,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["fall","attack","hurt","death"]},
+    {"actor":"asterix","skin":4,"costume":"default","action":"fall","context":"gameplay","variant":null,"clip":"0039.animation.json","loop":false,"priority":0,"fallback":false,"skeletonNodes":58,"transitions":["idle","run","jump","attack","hurt","death"]},
+    {"actor":"asterix","skin":4,"costume":"default","action":"attack","context":"gameplay","variant":null,"clip":"0000.animation.json","loop":false,"priority":10,"fallback":false,"skeletonNodes":58,"transitions":["idle","run","fall","hurt","death"]},
+    {"actor":"asterix","skin":4,"costume":"default","action":"hurt","context":"gameplay","variant":null,"clip":"0009.animation.json","loop":false,"priority":20,"fallback":false,"skeletonNodes":58,"transitions":["idle","run","fall","death"]},
+    {"actor":"asterix","skin":4,"costume":"default","action":"death","context":"gameplay","variant":null,"clip":"0033.animation.json","loop":false,"priority":30,"fallback":false,"skeletonNodes":58,"transitions":[]}
+  ]
+}

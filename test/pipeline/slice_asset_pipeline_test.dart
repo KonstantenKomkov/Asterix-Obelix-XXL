@@ -282,9 +282,32 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
         {'objectId': 7},
       ],
     },
+    '${root.path}/animations/bindings.json': {
+      'schemaVersion': 1,
+      'requiredStates': {
+        'asterix': ['idle'],
+      },
+      'bindings': [
+        {
+          'actor': 'asterix',
+          'skin': 4,
+          'costume': 'default',
+          'action': 'idle',
+          'context': 'gameplay',
+          'variant': null,
+          'clip': '0000.animation.json',
+          'loop': true,
+          'priority': 0,
+          'fallback': false,
+          'skeletonNodes': 58,
+          'transitions': <String>[],
+        },
+      ],
+    },
     '${root.path}/animations/0000.animation.json': {
       'schemaVersion': 1,
       'duration': 1.0,
+      'nodeCount': 58,
       'frames': <Object>[],
     },
     '${root.path}/animations/skin_0007.json': {
