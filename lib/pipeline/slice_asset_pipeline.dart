@@ -141,6 +141,67 @@ final class SliceAssetPipeline {
       _validateScene(scene, meshes, nodes, scenePath);
       final meshPayloadIds = <int, String>{};
 
+      final fireEmitters = <Map<String, Object?>>[];
+      for (final node in nodes.where((value) => value['classId'] == 19)) {
+        final objectId = _integer(node, 'objectId');
+        final transform = _matrix(node, 'transform', scenePath);
+        final particle = node['particle'];
+        if (particle is! Map<String, Object?> ||
+            particle['enabled'] is! int ||
+            particle['mode'] is! int ||
+            particle['rate'] is! num ||
+            !(particle['rate'] as num).isFinite ||
+            (particle['rate'] as num) <= 0) {
+          throw AssetPipelineException(
+            AssetPipelineErrorCode.invalidSchema,
+            'Particle FX node has invalid playback parameters.',
+            path: scenePath,
+            details: {'objectId': objectId},
+          );
+        }
+        // Disabled particle nodes are authored placeholders, not visible FX.
+        if ((particle['enabled']! as int) == 0) continue;
+        final mode = particle['mode']! as int;
+        fireEmitters.add({
+          'id': objectId,
+          'position': [transform[12], transform[13], transform[14]],
+          'mode': mode,
+          'rate': (particle['rate']! as num).toDouble(),
+          'texture': switch (mode) {
+            2 => 'sfx_feu_braise01',
+            3 => 'a_sfx_fum_ani01',
+            _ => 'sfx_feu_flammes01',
+          },
+          'section': sectorSource,
+        });
+      }
+      if (fireEmitters.isNotEmpty) {
+        final effect = {
+          'schemaVersion': 1,
+          'kind': 'burning-house-fire',
+          'loopSeconds': 1.0,
+          'emitters': fireEmitters,
+        };
+        payloads.add(
+          AssetPayloadInput(
+            kind: 'environment-fx',
+            sourcePath: sectorSource,
+            sourceKey: 'burning-house-fire',
+            bytes: await cache.transform(
+              kind: 'environment-fx-json',
+              input: encodeCanonicalJson(effect),
+              transform: encodeCanonicalJson,
+              value: effect,
+            ),
+            metadata: {
+              'effect': 'burning-house-fire',
+              'emitterCount': fireEmitters.length,
+              'section': sectorSource,
+            },
+          ),
+        );
+      }
+
       final collisionFile = File('$sectorRoot/collision.json');
       final collision = await _jsonFile(collisionFile);
       final collisionMeshes = _objectList(

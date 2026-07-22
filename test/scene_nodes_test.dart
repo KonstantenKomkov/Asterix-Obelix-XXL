@@ -34,6 +34,42 @@ void main() {
     expect(node.geometry?.classId, 2);
     expect(node.geometry?.objectId, 12);
   });
+
+  test('preserves particle FX playback parameters and attachment', () {
+    final payload = BytesBuilder(copy: false);
+    for (var index = 0; index < 16; index++) {
+      _f32(
+        payload,
+        index == 12
+            ? 4.5
+            : index == 15
+            ? 1
+            : 0,
+      );
+    }
+    _u32(payload, _ref(11, 2, 1));
+    _u16(payload, 0);
+    payload.addByte(0xFF);
+    _u32(payload, 0xFFFFFFFF);
+    _u32(payload, 0xFFFFFFFF);
+    _u32(payload, _ref(10, 1, 151));
+    payload.add([2, 1]);
+    _f32(payload, 1.25);
+    _u32(payload, 0xDEADC0DE);
+
+    final node = parseXxl1SceneNode(
+      payload.takeBytes(),
+      classId: 19,
+      objectId: 136,
+    );
+
+    expect(node.transform[12], 4.5);
+    expect(node.geometry?.objectId, 151);
+    expect(node.particle?.enabled, 2);
+    expect(node.particle?.mode, 1);
+    expect(node.particle?.rate, 1.25);
+    expect(node.particle?.seed, 0xDEADC0DE);
+  });
 }
 
 int _ref(int category, int classId, int objectId) =>

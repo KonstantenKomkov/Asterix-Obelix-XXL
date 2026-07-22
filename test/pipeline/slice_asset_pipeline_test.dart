@@ -209,6 +209,68 @@ void main() {
       ),
     );
   });
+
+  test('packages burning-house emitters without a static fallback', () async {
+    final temporary = await Directory.systemTemp.createTemp('asset-fire-fx-');
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    final sceneFile = File('${proof.path}/scene.json');
+    final scene =
+        jsonDecode(await sceneFile.readAsString()) as Map<String, Object?>;
+    (scene['nodes']! as List).add({
+      'classId': 19,
+      'objectId': 136,
+      'transform': [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -13.9,
+        7.65,
+        -51.9,
+        1.0,
+      ],
+      'parent': {'raw': 4294967295, 'null': true},
+      'next': {'raw': 4294967295, 'null': true},
+      'child': {'raw': 4294967295, 'null': true},
+      'geometry': {
+        'raw': 19791946,
+        'category': 10,
+        'classId': 1,
+        'objectId': 151,
+      },
+      'particle': {'enabled': 2, 'mode': 1, 'rate': 1.0, 'seed': 42},
+    });
+    await sceneFile.writeAsString(jsonEncode(scene));
+
+    final package = AsterixAssetPackage.parse(
+      await const SliceAssetPipeline().buildFromProof(proof),
+    );
+    final resources = (package.manifest['resources']! as List)
+        .cast<Map<String, Object?>>();
+    final resource = resources.singleWhere(
+      (value) => value['kind'] == 'environment-fx',
+    );
+    final effect =
+        jsonDecode(utf8.decode(package.payload(resource['id']! as String)))
+            as Map<String, Object?>;
+    final emitter =
+        (effect['emitters']! as List).single as Map<String, Object?>;
+    expect(effect['kind'], 'burning-house-fire');
+    expect(effect['loopSeconds'], 1.0);
+    expect(emitter['position'], [-13.9, 7.65, -51.9]);
+    expect(emitter['texture'], 'sfx_feu_flammes01');
+    expect(resources.where((value) => value['kind'] == 'mesh'), hasLength(1));
+  });
 }
 
 Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {

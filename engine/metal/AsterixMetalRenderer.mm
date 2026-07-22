@@ -37,7 +37,17 @@ typedef struct {
   float fogEnd;
   uint32_t debugOptions;
   float alphaCutoff;
+  float effectTime;
+  uint32_t effect;
 } AsterixUniforms;
+
+typedef struct {
+  vector_float3 position;
+  float rate;
+  uint32_t mode;
+  uint32_t objectId;
+  __unsafe_unretained id<MTLTexture> texture;
+} AsterixFireEmitter;
 
 typedef struct {
   NSUInteger vertexStart;
@@ -184,6 +194,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   id<MTLBuffer> _vertices;
   id<MTLBuffer> _sceneVertices;
   id<MTLBuffer> _collisionVertices;
+  id<MTLBuffer> _fireVertices;
   id<MTLTexture> _sceneTexture;
   NSArray<id<MTLTexture>>* _sceneTextures;
   NSArray<id<MTLSamplerState>>* _sceneSamplers;
@@ -201,6 +212,7 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   std::array<bool, 7> _playerClipAvailable;
   NSUInteger _enemyMarkerVertexStart;
   std::vector<std::vector<AsterixMeshRange>> _sceneMeshRanges;
+  std::vector<AsterixFireEmitter> _fireEmitters;
   std::unique_ptr<asterix::scene::Runtime> _sceneRuntime;
   NSString* _sceneError;
   vector_float3 _sceneCenter;
@@ -262,10 +274,10 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   if (device == nil) return;
   static NSString* source = @"#include <metal_stdlib>\n"
       "using namespace metal;\n"
-      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; };\n"
+      "struct V { float3 p; float3 c; float3 n; float2 uv; float a; float ambient; float diffuse; uint4 joints; float4 weights; uint objectId; }; struct U { float4x4 m; uint textured; float fogStart; float fogEnd; uint debugOptions; float alphaCutoff; float effectTime; uint effect; };\n"
       "struct O { float4 p [[position]]; float3 c; float3 n; float2 uv; float a; float distance; float ambient; float diffuse; };\n"
       "vertex O vs(uint i [[vertex_id]], constant V* v [[buffer(0)]], constant U& u [[buffer(1)]], constant float4x4* bones [[buffer(2)]]) { O o; float4 local=float4(v[i].p,1); float4 skinned=float4(0); float3 normal=float3(0); for(uint j=0;j<4;j++){ float4x4 bone=bones[v[i].joints[j]]; skinned+=bone*local*v[i].weights[j]; normal+=float3x3(bone[0].xyz,bone[1].xyz,bone[2].xyz)*v[i].n*v[i].weights[j]; } float4 p=u.m*skinned; o.p=p; uint h=v[i].objectId*1664525u+1013904223u; o.c=(u.debugOptions&16u)!=0?float3(float(h&255u),float((h>>8)&255u),float((h>>16)&255u))/255.0:v[i].c; o.n=normal; o.uv=v[i].uv; o.a=v[i].a; o.distance=abs(p.w); o.ambient=v[i].ambient; o.diffuse=v[i].diffuse; return o; }\n"
-      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<u.alphaCutoff) discard_fragment(); float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
+      "fragment float4 fs(O i [[stage_in]], constant U& u [[buffer(1)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]]) { float4 base=u.textured != 0 ? t.sample(s,i.uv)*float4(i.c,i.a) : float4(i.c,i.a); if(base.a<u.alphaCutoff) discard_fragment(); if(u.effect!=0u){ float pulse=.82+.18*sin(u.effectTime*12.566+i.uv.y*3.14159); base.rgb*=pulse; return base; } float light=saturate(i.ambient+i.diffuse*max(dot(normalize(i.n),normalize(float3(.35,.8,.45))),0.0)); base.rgb*=light; float fog=saturate((u.fogEnd-i.distance)/max(.001,u.fogEnd-u.fogStart)); return float4(mix(float3(.58,.68,.72),base.rgb,fog),base.a); }";
   NSError* error = nil;
   id<MTLLibrary> library = [device newLibraryWithSource:source options:nil error:&error];
   if (library == nil) {
@@ -594,6 +606,40 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       textures[textureKey] = texture;
       textureAlphaModes[textureKey]=@(hasPartialAlpha?2:hasTransparent?1:0);
     }
+  }
+  std::vector<AsterixFireEmitter> fireEmitters;
+  NSUInteger expectedFireEmitters=0;
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"environment-fx"] ||
+        ![resource[@"metadata"][@"effect"] isEqual:@"burning-house-fire"]) continue;
+    expectedFireEmitters += [resource[@"metadata"][@"emitterCount"] unsignedIntegerValue];
+    uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset>payloadLength||length>payloadLength-offset) continue;
+    NSData* data=[package subdataWithRange:NSMakeRange(
+        (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+    NSDictionary* effect=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    if(![effect isKindOfClass:NSDictionary.class]||
+       [effect[@"schemaVersion"] integerValue]!=1||
+       ![effect[@"kind"] isEqual:@"burning-house-fire"]) continue;
+    for(NSDictionary* emitter in effect[@"emitters"]) {
+      asterix::collision::Vec3 position;
+      NSString* textureKey=AsterixTextureKey(emitter[@"texture"]);
+      id<MTLTexture> texture=textureKey?textures[textureKey]:nil;
+      const float rate=[emitter[@"rate"] floatValue];
+      if(!AsterixReadVec3(emitter[@"position"],position)||texture==nil||
+         !std::isfinite(rate)||rate<=0) continue;
+      fireEmitters.push_back({
+          {position.x,position.y,position.z},rate,
+          (uint32_t)[emitter[@"mode"] unsignedIntValue],
+          (uint32_t)[emitter[@"id"] unsignedIntValue],texture});
+    }
+  }
+  if(fireEmitters.size()!=expectedFireEmitters) {
+    @synchronized(self) { _sceneError=[NSString stringWithFormat:
+        @"Burning-house fire bindings are incomplete (%lu/%lu)",
+        (unsigned long)fireEmitters.size(),(unsigned long)expectedFireEmitters]; }
+    return NO;
   }
   NSMutableData* vertexData = [NSMutableData data];
   NSMutableData* collisionVertexData = [NSMutableData data];
@@ -1074,6 +1120,9 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   id<MTLBuffer> buffer = [device newBufferWithBytes:vertexData.bytes length:vertexData.length options:MTLResourceStorageModeShared];
   id<MTLBuffer> collisionBuffer = collisionVertexData.length == 0 ? nil :
       [device newBufferWithBytes:collisionVertexData.bytes length:collisionVertexData.length options:MTLResourceStorageModeShared];
+  id<MTLBuffer> fireBuffer = fireEmitters.empty() ? nil :
+      [device newBufferWithLength:fireEmitters.size()*6*sizeof(AsterixVertex)
+                         options:MTLResourceStorageModeShared];
   for(const auto& [sectionId,sectionMinimum]:sectionMinimums) {
     const auto sectionMaximum=sectionMaximums[sectionId];
     runtime->addSection({sectionId,
@@ -1090,6 +1139,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
   @synchronized(self) {
     _sceneVertices = buffer;
     _collisionVertices = collisionBuffer;
+    _fireVertices = fireBuffer;
+    _fireEmitters = std::move(fireEmitters);
     _collisionTriangleCount = collisionVertexData.length / sizeof(AsterixVertex) / 3;
     _sceneTexture = selectedTexture;
     _sceneTextures = textures.allValues;
@@ -1203,6 +1254,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
     _vertices = nil;
     _sceneVertices = nil;
     _collisionVertices = nil;
+    _fireVertices = nil;
+    _fireEmitters.clear();
     _collisionTriangleCount = 0;
     _sceneTexture = nil;
     _sceneTextures = nil;
@@ -1415,6 +1468,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
       id<MTLBuffer> sceneVertices = nil;
       id<MTLTexture> sceneTexture = nil;
       id<MTLBuffer> collisionVertices = nil;
+      id<MTLBuffer> fireVertices = nil;
+      std::vector<AsterixFireEmitter> fireEmitters;
       NSUInteger sceneVertexCount = 0;
       NSUInteger collisionTriangleCount = 0;
       uint32_t debugOptions = 0;
@@ -1432,6 +1487,8 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
         sceneVertices = _sceneVertices;
         sceneTexture = _sceneTexture;
         collisionVertices = _collisionVertices;
+        fireVertices = _fireVertices;
+        fireEmitters = _fireEmitters;
         sceneVertexCount = _sceneVertexCount;
         collisionTriangleCount = _collisionTriangleCount;
         debugOptions = _debugOptions;
@@ -1455,6 +1512,40 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                                   0u,
                                   sceneRadius * 1.2f, sceneRadius * 3.2f,
                                   debugOptions,.01f};
+      if(fireVertices!=nil&&!fireEmitters.empty()) {
+        vector_float3 right={1,0,0};
+        if(hasGameplayCamera) {
+          vector_float3 forward=simd_normalize((vector_float3){
+              cameraSnapshot.target.x-cameraSnapshot.position.x,
+              cameraSnapshot.target.y-cameraSnapshot.position.y,
+              cameraSnapshot.target.z-cameraSnapshot.position.z});
+          vector_float3 candidate=simd_cross(forward,(vector_float3){0,1,0});
+          if(simd_length_squared(candidate)>.0001f)right=simd_normalize(candidate);
+        }
+        const vector_float3 up={0,1,0};
+        AsterixVertex* output=(AsterixVertex*)fireVertices.contents;
+        for(NSUInteger index=0;index<fireEmitters.size();++index) {
+          const auto& emitter=fireEmitters[index];
+          const float phase=seconds*emitter.rate+(float)(emitter.objectId%17u)*.137f;
+          const BOOL smoke=emitter.mode==3;
+          const float width=(smoke?1.25f:.9f)*(1+.12f*sinf(phase*12.566f));
+          const float height=(smoke?1.8f:2.15f)*(1+.1f*cosf(phase*12.566f));
+          const vector_float3 center=emitter.position+right*(.09f*sinf(phase*6.283f))+
+              up*(height*.5f+.08f*cosf(phase*12.566f));
+          const vector_float3 left=center-right*width*.5f, r=center+right*width*.5f;
+          const vector_float3 bottom=up*height*.5f, top=up*height*.5f;
+          const vector_float3 color=smoke?(vector_float3){.72f,.72f,.72f}:(vector_float3){1,1,1};
+          const float alpha=smoke?.72f:.94f;
+          const vector_float3 p[4]={left-bottom,r-bottom,left+top,r+top};
+          const vector_float2 uv[4]={{0,1},{1,1},{0,0},{1,0}};
+          const NSUInteger order[6]={0,1,2,2,1,3};
+          for(NSUInteger corner=0;corner<6;++corner) {
+            const NSUInteger source=order[corner];
+            output[index*6+corner]={p[source],color,{0,0,1},uv[source],alpha,1,0,
+                {0,0,0,0},{1,0,0,0},emitter.objectId};
+          }
+        }
+      }
       [encoder setRenderPipelineState:_pipeline];
       [encoder setTriangleFillMode:(debugOptions & 1u) != 0 ? MTLTriangleFillModeLines : MTLTriangleFillModeFill];
       [encoder setDepthStencilState:_depthState];
@@ -1550,6 +1641,25 @@ static matrix_float4x4 AsterixLookAt(vector_float3 eye, vector_float3 target) {
                           vertexCount:range.vertexCount];
             }
           }
+        }
+        if(fireVertices!=nil&&!fireEmitters.empty()) {
+          [encoder setDepthStencilState:_readOnlyDepthState];
+          [encoder setVertexBuffer:fireVertices offset:0 atIndex:0];
+          AsterixUniforms fireUniforms=uniforms;
+          fireUniforms.textured=1;
+          fireUniforms.alphaCutoff=.01f;
+          fireUniforms.effectTime=seconds;
+          fireUniforms.effect=1;
+          [encoder setVertexBytes:&fireUniforms length:sizeof(fireUniforms) atIndex:1];
+          [encoder setFragmentBytes:&fireUniforms length:sizeof(fireUniforms) atIndex:1];
+          [encoder setFragmentSamplerState:_defaultSampler atIndex:0];
+          for(NSUInteger index=0;index<fireEmitters.size();++index) {
+            [encoder setFragmentTexture:fireEmitters[index].texture atIndex:0];
+            [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:index*6 vertexCount:6];
+          }
+          [encoder setVertexBuffer:sceneVertices offset:0 atIndex:0];
+          [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+          [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
         }
         [encoder setDepthStencilState:nil];
         [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];

@@ -44,6 +44,7 @@ final class SceneNodeRecord {
     required this.next,
     required this.child,
     required this.geometry,
+    this.particle,
   });
 
   final int classId;
@@ -53,6 +54,7 @@ final class SceneNodeRecord {
   final KwnObjectReference next;
   final KwnObjectReference? child;
   final KwnObjectReference? geometry;
+  final ParticleNodeParameters? particle;
 
   Map<String, Object> toJson() => {
     'classId': classId,
@@ -62,6 +64,28 @@ final class SceneNodeRecord {
     'next': next.toJson(),
     if (child case final value?) 'child': value.toJson(),
     if (geometry case final value?) 'geometry': value.toJson(),
+    if (particle case final value?) 'particle': value.toJson(),
+  };
+}
+
+final class ParticleNodeParameters {
+  const ParticleNodeParameters({
+    required this.enabled,
+    required this.mode,
+    required this.rate,
+    required this.seed,
+  });
+
+  final int enabled;
+  final int mode;
+  final double rate;
+  final int seed;
+
+  Map<String, Object> toJson() => {
+    'enabled': enabled,
+    'mode': mode,
+    'rate': rate,
+    'seed': seed,
   };
 }
 
@@ -98,6 +122,14 @@ SceneNodeRecord parseXxl1SceneNode(
   final geometry = _nodeClassIds.contains(classId)
       ? KwnObjectReference.decode(reader.readUint32())
       : null;
+  final particle = classId == 19
+      ? ParticleNodeParameters(
+          enabled: reader.readUint8(),
+          mode: reader.readUint8(),
+          rate: reader.readFloat32(),
+          seed: reader.readUint32(),
+        )
+      : null;
   return SceneNodeRecord(
     classId: classId,
     objectId: objectId,
@@ -106,6 +138,7 @@ SceneNodeRecord parseXxl1SceneNode(
     next: next,
     child: child,
     geometry: geometry,
+    particle: particle,
   );
 }
 

@@ -1527,3 +1527,16 @@ batching и LOD. Moving-frustum regression с 381 синтетическим mes
 Также прошли полный `make check`, native XCTest, macOS debug build, diff review и
 resource policy. Локального ASTPAK для повторного profile-прогона не было;
 оригинальные или производные игровые ресурсы в Git не добавлялись.
+## П. 72 — Анимированный огонь на горящих домах
+
+**Выполнено:** 22 июля 2026.
+
+Asset pipeline извлекает particle FX-ноды горящих домов, сохраняет их world-позиции,
+режимы, rate, texture bindings и section в отдельном `burning-house-fire`
+payload. Отключённые authored-ноды не становятся видимыми эффектами, а
+некорректные параметры отклоняются контролируемой ошибкой.
+
+Metal runtime валидирует все fire bindings, создаёт camera-facing прозрачные
+quads и воспроизводит flame/ember/smoke с детерминированной фазой от simulation
+time. Эмиттеры публикуются вместе с package resources и переживают streaming и
+pause без static fallback. Добавлены pipeline и scene-node regressions.
