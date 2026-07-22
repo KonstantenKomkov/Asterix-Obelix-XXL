@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect package-inspect run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory importer-inspect package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -30,6 +30,10 @@ importer-inspect: ## Проверить файл каркасом импортё
 package-inspect: ## Проверить и вывести manifest runtime-пакета (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/package.astpak' >&2; exit 2)
 	$(DART) run bin/asset_package.dart inspect "$(INPUT)"
+
+visual-regression: ## Сверить стартовый кадр Gaul (REFERENCE=... ACTUAL=...)
+	@test -n "$(REFERENCE)" -a -n "$(ACTUAL)" || (echo 'Укажите REFERENCE=/путь/reference.png ACTUAL=/путь/actual.png' >&2; exit 2)
+	$(DART) run bin/gaul_visual_regression.dart "$(REFERENCE)" "$(ACTUAL)"
 
 run: ## Запустить приложение на macOS в debug
 	$(FLUTTER) run -d macos
