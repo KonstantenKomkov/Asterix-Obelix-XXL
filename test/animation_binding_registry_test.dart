@@ -112,17 +112,94 @@ void main() {
         await File('assets/animation_bindings.v1.json').readAsString(),
       ),
     );
-    expect(registry.actors().toSet(), {'asterix', 'obelix', 'idefix'});
+    expect(
+      registry.actors().toSet(),
+      containsAll({'asterix', 'obelix', 'idefix'}),
+    );
     expect(registry.heroBindings('asterix'), hasLength(97));
     expect(registry.heroBindings('obelix'), hasLength(71));
     expect(registry.heroBindings('idefix'), hasLength(22));
     expect(
       registry.bindings
-          .where((binding) => binding['variant'] != null)
+          .where(
+            (binding) =>
+                {'asterix', 'obelix', 'idefix'}.contains(binding['actor']) &&
+                binding['variant'] != null,
+          )
           .map((binding) => binding['clip'])
           .toSet(),
       hasLength(183),
     );
+  });
+
+  test('character graph covers every confirmed character context', () async {
+    final decoded =
+        jsonDecode(
+              await File('assets/animation_bindings.v1.json').readAsString(),
+            )
+            as Map<String, Object?>;
+    final registry = AnimationBindingRegistry.parse(decoded);
+    expect(decoded['characterGraphVersion'], 1);
+    expect(decoded['characterCatalog'], {'clipCount': 92, 'contextCount': 109});
+    expect(decoded['characterProfiles'], hasLength(27));
+    final profiles = (decoded['characterProfiles']! as List)
+        .cast<Map<String, Object?>>();
+    for (final profile in profiles) {
+      final bindings = registry.profileBindings(
+        actor: profile['actor']! as String,
+        skin: profile['skin']! as int,
+        costume: profile['costume']! as String,
+        context: profile['context']! as String,
+      );
+      expect(bindings, isNotEmpty);
+      expect(
+        bindings.map((binding) => binding['skeletonNodes']).toSet(),
+        hasLength(1),
+      );
+      expect(
+        bindings.map((binding) => binding['action']).toSet(),
+        containsAll(profile['requiredStates']! as List),
+      );
+    }
+  });
+
+  test('enemy variants and gameplay phases are deterministic', () async {
+    final registry = AnimationBindingRegistry.parse(
+      jsonDecode(
+        await File('assets/animation_bindings.v1.json').readAsString(),
+      ),
+    );
+    final attack = registry.select(
+      actor: 'basic-enemy:roman',
+      skin: 48,
+      costume: 'roman-default',
+      action: 'combat.attack',
+      selector: 7,
+    );
+    expect(
+      registry.select(
+        actor: 'basic-enemy:roman',
+        skin: 48,
+        costume: 'roman-default',
+        action: 'combat.attack',
+        selector: 7,
+      )['clip'],
+      attack['clip'],
+    );
+    final impact =
+        (attack['phases']! as Map<String, Object?>)['impact']! as num;
+    expect(impact.toDouble(), closeTo(0.25 / 0.65, 1e-12));
+    expect(registry.phasesCrossed(attack, 0, impact.toDouble()), [
+      'windup',
+      'impact',
+    ]);
+    final death = registry.select(
+      actor: 'basic-enemy:roman',
+      skin: 48,
+      costume: 'roman-default',
+      action: 'death.variant',
+    );
+    expect(death['transitions'], isEmpty);
   });
 
   test(

@@ -5588,6 +5588,3918 @@
         "hero-slot-88"
       ],
       "rootMotion": "none"
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-41",
+      "clip": "0199.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-41"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 48,
+      "slot": 41
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-12",
+      "clip": "0200.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-12"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-transition",
+      "dictionaryId": 48,
+      "slot": 12
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-13",
+      "clip": "0201.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-13"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-transition",
+      "dictionaryId": 48,
+      "slot": 13
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-14",
+      "clip": "0202.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-14"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-transition",
+      "dictionaryId": 48,
+      "slot": 14
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-15",
+      "clip": "0203.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-15"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 15
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-16",
+      "clip": "0204.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-16"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 16
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-42",
+      "clip": "0205.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-42"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 48,
+      "slot": 42
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-25",
+      "clip": "0206.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-25"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 48,
+      "slot": 25
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-22",
+      "clip": "0207.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-22"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 22
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-23",
+      "clip": "0208.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-23"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 23
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-24",
+      "clip": "0209.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-24"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 24
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-19",
+      "clip": "0210.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-19"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 48,
+      "slot": 19
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-20",
+      "clip": "0211.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-20"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 48,
+      "slot": 20
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-21",
+      "clip": "0212.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-21"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 48,
+      "slot": 21
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-3",
+      "clip": "0213.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-3"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 48,
+      "slot": 3
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-1",
+      "clip": "0214.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-1"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 48,
+      "slot": 1
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-2",
+      "clip": "0215.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-2"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 48,
+      "slot": 2
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-40",
+      "clip": "0216.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-40"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 48,
+      "slot": 40
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-8",
+      "clip": "0217.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-8"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 8
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "spawn.or-awareness",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-11",
+      "clip": "0218.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "perception": 0.35,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-11"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:spawn-or-perception",
+      "dictionaryId": 48,
+      "slot": 11
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-9",
+      "clip": "0219.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-9"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 9
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.move",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-5",
+      "clip": "0220.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-5"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:pursuit-or-returning",
+      "dictionaryId": 48,
+      "slot": 5
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-6",
+      "clip": "0221.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-6"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 6
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-7",
+      "clip": "0221.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-7"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 7
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-10",
+      "clip": "0221.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-10"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 48,
+      "slot": 10
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-38",
+      "clip": "0222.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-38"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 38
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-31",
+      "clip": "0223.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-31"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 31
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-37",
+      "clip": "0224.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-37"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 37
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-30",
+      "clip": "0225.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-30"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 30
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-39",
+      "clip": "0226.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-39"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 39
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-32",
+      "clip": "0227.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-32"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 32
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-4",
+      "clip": "0228.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-4"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 4
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-36",
+      "clip": "0229.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-36"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 36
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-29",
+      "clip": "0230.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-29"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 48,
+      "slot": 29
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-0",
+      "clip": "0231.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 48,
+      "slot": 0
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-33",
+      "clip": "0231.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-33"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 48,
+      "slot": 33
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-34",
+      "clip": "0231.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-34"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 48,
+      "slot": 34
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-35",
+      "clip": "0231.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-35"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 48,
+      "slot": 35
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-27",
+      "clip": "0232.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-27"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 48,
+      "slot": 27
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-28",
+      "clip": "0232.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-28"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 48,
+      "slot": 28
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-48-slot-26",
+      "clip": "0233.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 28,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-48-slot-26"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 48,
+      "slot": 26
+    },
+    {
+      "actor": "animated-character:dictionary-4",
+      "skin": 4,
+      "skinProfile": "dictionary-4-hanim-52",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-4-slot-0",
+      "clip": "0235.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-4-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 4,
+      "slot": 0
+    },
+    {
+      "actor": "cinematic-scene:dictionary-15",
+      "skin": 15,
+      "skinProfile": "dictionary-15-hanim-52",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-15-slot-1",
+      "clip": "0235.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 52,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-15-slot-1"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 15,
+      "slot": 1
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 28,
+      "skinProfile": "dictionary-28-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-28-slot-0",
+      "clip": "0260.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "damage.hit-reaction",
+        "locomotion.idle"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-28-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 28,
+      "slot": 0
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-12",
+      "clip": "0261.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-12"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-transition",
+      "dictionaryId": 27,
+      "slot": 12
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-14",
+      "clip": "0262.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-14"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-transition",
+      "dictionaryId": 27,
+      "slot": 14
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-6",
+      "clip": "0263.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-6"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 6
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-7",
+      "clip": "0263.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-7"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 7
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-8",
+      "clip": "0263.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-8"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 8
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-9",
+      "clip": "0263.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-9"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 9
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-10",
+      "clip": "0263.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-10"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 10
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "spawn.or-awareness",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-11",
+      "clip": "0263.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "perception": 0.35,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-11"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:spawn-or-perception",
+      "dictionaryId": 27,
+      "slot": 11
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.move",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-5",
+      "clip": "0264.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-5"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:pursuit-or-returning",
+      "dictionaryId": 27,
+      "slot": 5
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-0",
+      "clip": "0265.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 27,
+      "slot": 0
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-33",
+      "clip": "0265.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-33"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 27,
+      "slot": 33
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-34",
+      "clip": "0265.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-34"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 27,
+      "slot": 34
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.idle",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-35",
+      "clip": "0265.animation.json",
+      "loop": true,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "contact": 0.5,
+        "cycle": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-35"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:idle",
+      "dictionaryId": 27,
+      "slot": 35
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-26",
+      "clip": "0266.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-26"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 27,
+      "slot": 26
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-25",
+      "clip": "0267.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-25"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 27,
+      "slot": 25
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-36",
+      "clip": "0268.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-36"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 36
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-37",
+      "clip": "0269.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-37"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 37
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-38",
+      "clip": "0270.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-38"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 38
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-39",
+      "clip": "0271.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-39"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 39
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-40",
+      "clip": "0272.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-40"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 27,
+      "slot": 40
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-27",
+      "clip": "0273.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-27"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 27,
+      "slot": 27
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-28",
+      "clip": "0273.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-28"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 27,
+      "slot": 28
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-29",
+      "clip": "0274.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-29"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 29
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-30",
+      "clip": "0275.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-30"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 30
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-31",
+      "clip": "0276.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-31"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 31
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-32",
+      "clip": "0277.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-32"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 32
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-20",
+      "clip": "0278.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-20"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 27,
+      "slot": 20
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-3",
+      "clip": "0279.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-3"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 27,
+      "slot": 3
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-1",
+      "clip": "0280.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-1"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 27,
+      "slot": 1
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-2",
+      "clip": "0281.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-2"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 27,
+      "slot": 2
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 28,
+      "skinProfile": "dictionary-28-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-28-slot-1",
+      "clip": "0282.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "damage.hit-reaction",
+        "locomotion.idle"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-28-slot-1"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 28,
+      "slot": 1
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "locomotion.transition",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-13",
+      "clip": "0283.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-13"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-transition",
+      "dictionaryId": 27,
+      "slot": 13
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "death.variant",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-4",
+      "clip": "0284.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [],
+      "phases": {
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-4"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:death-despawn",
+      "dictionaryId": 27,
+      "slot": 4
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-41",
+      "clip": "0285.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-41"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-event:special",
+      "dictionaryId": 27,
+      "slot": 41
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "special.enemy-state",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-42",
+      "clip": "0286.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-42"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-event:special",
+      "dictionaryId": 27,
+      "slot": 42
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-15",
+      "clip": "0287.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-15"
+      ],
+      "rootMotion": "authored",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 15
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-16",
+      "clip": "0288.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-16"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 16
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-19",
+      "clip": "0289.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-19"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 27,
+      "slot": 19
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-21",
+      "clip": "0290.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-21"
+      ],
+      "rootMotion": "authored",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 27,
+      "slot": 21
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-22",
+      "clip": "0291.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-22"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 22
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-23",
+      "clip": "0292.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-23"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 23
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "variant": "dictionary-27-slot-24",
+      "clip": "0293.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "phases": {
+        "windup": 0.2,
+        "impact": 0.38461538461538464,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-27-slot-24"
+      ],
+      "rootMotion": "none",
+      "trigger": "ai-state:attack",
+      "dictionaryId": 27,
+      "slot": 24
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 28,
+      "skinProfile": "dictionary-28-hanim-30",
+      "costume": "roman-default",
+      "action": "damage.hit-reaction",
+      "context": "gameplay",
+      "variant": "dictionary-28-slot-2",
+      "clip": "0294.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 30,
+      "transitions": [
+        "damage.hit-reaction",
+        "locomotion.idle"
+      ],
+      "phases": {
+        "stun": 0.65,
+        "recovery": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-28-slot-2"
+      ],
+      "rootMotion": "none",
+      "trigger": "gameplay-event:hit-stun-knockback",
+      "dictionaryId": 28,
+      "slot": 2
+    },
+    {
+      "actor": "cinematic-scene:dictionary-16",
+      "skin": 16,
+      "skinProfile": "dictionary-16-hanim-3",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-16-slot-0",
+      "clip": "0298.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 3,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-16-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 16,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-17",
+      "skin": 17,
+      "skinProfile": "dictionary-17-hanim-3",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-17-slot-0",
+      "clip": "0298.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 3,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-17-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 17,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-31",
+      "skin": 31,
+      "skinProfile": "dictionary-31-hanim-6",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-31-slot-0",
+      "clip": "0301.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 6,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-31-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 31,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-7",
+      "skin": 7,
+      "skinProfile": "dictionary-7-hanim-4",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-7-slot-0",
+      "clip": "0302.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 4,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-7-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 7,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-39",
+      "skin": 39,
+      "skinProfile": "dictionary-39-hanim-11",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-39-slot-0",
+      "clip": "0303.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 11,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-39-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 39,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-47",
+      "skin": 47,
+      "skinProfile": "dictionary-47-hanim-6",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-47-slot-0",
+      "clip": "0328.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 6,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-47-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 47,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-46",
+      "skin": 46,
+      "skinProfile": "dictionary-46-hanim-11",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-46-slot-0",
+      "clip": "0329.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 11,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-46-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 46,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-45",
+      "skin": 45,
+      "skinProfile": "dictionary-45-hanim-15",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-45-slot-0",
+      "clip": "0330.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 15,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-45-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 45,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-44",
+      "skin": 44,
+      "skinProfile": "dictionary-44-hanim-7",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-44-slot-0",
+      "clip": "0331.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 7,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-44-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 44,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-43",
+      "skin": 43,
+      "skinProfile": "dictionary-43-hanim-13",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-43-slot-0",
+      "clip": "0332.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 13,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-43-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 43,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-42",
+      "skin": 42,
+      "skinProfile": "dictionary-42-hanim-11",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-42-slot-0",
+      "clip": "0333.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 11,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-42-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 42,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-41",
+      "skin": 41,
+      "skinProfile": "dictionary-41-hanim-11",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-41-slot-0",
+      "clip": "0334.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 11,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-41-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 41,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-33",
+      "skin": 33,
+      "skinProfile": "dictionary-33-hanim-5",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-33-slot-0",
+      "clip": "0335.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 5,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-33-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 33,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-38",
+      "skin": 38,
+      "skinProfile": "dictionary-38-hanim-9",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-38-slot-0",
+      "clip": "0336.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 9,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-38-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 38,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-40",
+      "skin": 40,
+      "skinProfile": "dictionary-40-hanim-16",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-40-slot-0",
+      "clip": "0337.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 16,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-40-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 40,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-37",
+      "skin": 37,
+      "skinProfile": "dictionary-37-hanim-16",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-37-slot-0",
+      "clip": "0338.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 16,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-37-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 37,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-32",
+      "skin": 32,
+      "skinProfile": "dictionary-32-hanim-3",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-32-slot-0",
+      "clip": "0339.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 3,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-32-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 32,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-36",
+      "skin": 36,
+      "skinProfile": "dictionary-36-hanim-16",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-36-slot-0",
+      "clip": "0340.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 16,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-36-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 36,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-35",
+      "skin": 35,
+      "skinProfile": "dictionary-35-hanim-6",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-35-slot-0",
+      "clip": "0341.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 6,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-35-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 35,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-34",
+      "skin": 34,
+      "skinProfile": "dictionary-34-hanim-11",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-34-slot-0",
+      "clip": "0342.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 11,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-34-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 34,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-9",
+      "skin": 9,
+      "skinProfile": "dictionary-9-hanim-26",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-9-slot-0",
+      "clip": "0343.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 26,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-9-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 9,
+      "slot": 0
+    },
+    {
+      "actor": "animated-character:dictionary-10",
+      "skin": 10,
+      "skinProfile": "dictionary-10-hanim-37",
+      "costume": "scene-default",
+      "action": "special.scripted-performance",
+      "context": "scripted",
+      "variant": "dictionary-10-slot-0",
+      "clip": "0344.animation.json",
+      "loop": false,
+      "priority": 0,
+      "fallback": false,
+      "skeletonNodes": 37,
+      "transitions": [
+        "special.scripted-performance"
+      ],
+      "phases": {
+        "commit": 0.5,
+        "complete": 1.0
+      },
+      "catalogVariants": [
+        "dictionary-10-slot-0"
+      ],
+      "rootMotion": "none",
+      "trigger": "script-event",
+      "dictionaryId": 10,
+      "slot": 0
+    }
+  ],
+  "characterGraphVersion": 1,
+  "characterCatalog": {
+    "clipCount": 92,
+    "contextCount": 109
+  },
+  "characterProfiles": [
+    {
+      "actor": "animated-character:dictionary-4",
+      "skin": 4,
+      "skinProfile": "dictionary-4-hanim-52",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-7",
+      "skin": 7,
+      "skinProfile": "dictionary-7-hanim-4",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-9",
+      "skin": 9,
+      "skinProfile": "dictionary-9-hanim-26",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-10",
+      "skin": 10,
+      "skinProfile": "dictionary-10-hanim-37",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "cinematic-scene:dictionary-15",
+      "skin": 15,
+      "skinProfile": "dictionary-15-hanim-52",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "cinematic-scene:dictionary-16",
+      "skin": 16,
+      "skinProfile": "dictionary-16-hanim-3",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-17",
+      "skin": 17,
+      "skinProfile": "dictionary-17-hanim-3",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "skinProfile": "dictionary-27-hanim-30",
+      "costume": "roman-default",
+      "context": "gameplay",
+      "entryState": "locomotion.idle",
+      "requiredStates": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "stateBindings": {
+        "spawn": "spawn.or-awareness",
+        "idle": "locomotion.idle",
+        "perception": "spawn.or-awareness",
+        "pursuit": "locomotion.move",
+        "returning": "locomotion.move",
+        "attack": "combat.attack",
+        "hit": "damage.hit-reaction",
+        "stun": "damage.hit-reaction",
+        "knockback": "damage.hit-reaction",
+        "death": "death.variant",
+        "despawn": "death.variant",
+        "special": "special.enemy-state"
+      }
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "skin": 28,
+      "skinProfile": "dictionary-28-hanim-30",
+      "costume": "roman-default",
+      "context": "gameplay",
+      "entryState": "locomotion.idle",
+      "requiredStates": [
+        "damage.hit-reaction",
+        "locomotion.idle"
+      ],
+      "stateBindings": {
+        "idle": "locomotion.idle",
+        "hit": "damage.hit-reaction",
+        "stun": "damage.hit-reaction",
+        "knockback": "damage.hit-reaction"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-31",
+      "skin": 31,
+      "skinProfile": "dictionary-31-hanim-6",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-32",
+      "skin": 32,
+      "skinProfile": "dictionary-32-hanim-3",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-33",
+      "skin": 33,
+      "skinProfile": "dictionary-33-hanim-5",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-34",
+      "skin": 34,
+      "skinProfile": "dictionary-34-hanim-11",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-35",
+      "skin": 35,
+      "skinProfile": "dictionary-35-hanim-6",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-36",
+      "skin": 36,
+      "skinProfile": "dictionary-36-hanim-16",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-37",
+      "skin": 37,
+      "skinProfile": "dictionary-37-hanim-16",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-38",
+      "skin": 38,
+      "skinProfile": "dictionary-38-hanim-9",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-39",
+      "skin": 39,
+      "skinProfile": "dictionary-39-hanim-11",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-40",
+      "skin": 40,
+      "skinProfile": "dictionary-40-hanim-16",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-41",
+      "skin": 41,
+      "skinProfile": "dictionary-41-hanim-11",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-42",
+      "skin": 42,
+      "skinProfile": "dictionary-42-hanim-11",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-43",
+      "skin": 43,
+      "skinProfile": "dictionary-43-hanim-13",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-44",
+      "skin": 44,
+      "skinProfile": "dictionary-44-hanim-7",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-45",
+      "skin": 45,
+      "skinProfile": "dictionary-45-hanim-15",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-46",
+      "skin": 46,
+      "skinProfile": "dictionary-46-hanim-11",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "animated-character:dictionary-47",
+      "skin": 47,
+      "skinProfile": "dictionary-47-hanim-6",
+      "costume": "scene-default",
+      "context": "scripted",
+      "entryState": "special.scripted-performance",
+      "requiredStates": [
+        "special.scripted-performance"
+      ],
+      "stateBindings": {
+        "script-event": "special.scripted-performance",
+        "complete": "special.scripted-performance"
+      }
+    },
+    {
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "skinProfile": "dictionary-48-hanim-28",
+      "costume": "roman-default",
+      "context": "gameplay",
+      "entryState": "locomotion.idle",
+      "requiredStates": [
+        "combat.attack",
+        "damage.hit-reaction",
+        "death.variant",
+        "locomotion.idle",
+        "locomotion.move",
+        "locomotion.transition",
+        "spawn.or-awareness",
+        "special.enemy-state"
+      ],
+      "stateBindings": {
+        "spawn": "spawn.or-awareness",
+        "idle": "locomotion.idle",
+        "perception": "spawn.or-awareness",
+        "pursuit": "locomotion.move",
+        "returning": "locomotion.move",
+        "attack": "combat.attack",
+        "hit": "damage.hit-reaction",
+        "stun": "damage.hit-reaction",
+        "knockback": "damage.hit-reaction",
+        "death": "death.variant",
+        "despawn": "death.variant",
+        "special": "special.enemy-state"
+      }
     }
   ]
 }

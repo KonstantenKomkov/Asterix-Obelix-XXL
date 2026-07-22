@@ -159,6 +159,39 @@
   XCTAssertEqualWithAccuracy(enemy.snapshot().body.position.x,deathPosition.x,.001);
 }
 
+- (void)testEnemyAnimationGraphFollowsStateAndImpactPhase {
+  using namespace asterix;
+  collision::World world({{{-10,0,-10},{10,0,-10},{-10,0,10},1},
+                          {{10,0,-10},{10,0,10},{-10,0,10},1}});
+  collision::CapsuleController controller(world,{});
+  collision::CapsuleState body;
+  body.position={0,.9f,0}; body.checkpoint=body.position; body.grounded=true;
+  enemy::Config config;
+  config.animation_variant_seed=17;
+  enemy::Runtime enemy(controller,body,config);
+  XCTAssertEqualObjects([NSString stringWithUTF8String:enemy.animationAction()],@"locomotion.idle");
+  enemy.update(1.0f/60.0f,{4,.9f,0});
+  XCTAssertEqualObjects([NSString stringWithUTF8String:enemy.animationAction()],@"locomotion.move");
+  const auto pursuitVariant=enemy.animationVariantSelector();
+  enemy.reset();
+  enemy.update(1.0f/60.0f,{4,.9f,0});
+  XCTAssertEqual(enemy.animationVariantSelector(),pursuitVariant);
+  for(int tick=0;tick<240&&enemy.snapshot().state!=enemy::State::attack;++tick)
+    enemy.update(1.0f/60.0f,{1,.9f,0});
+  XCTAssertEqualObjects([NSString stringWithUTF8String:enemy.animationAction()],@"combat.attack");
+  bool impact=false;
+  while(enemy.snapshot().state==enemy::State::attack&&!impact) {
+    const auto result=enemy.update(1.0f/60.0f,{1,.9f,0});
+    impact=result.dealt_damage;
+  }
+  XCTAssertTrue(impact);
+  XCTAssertGreaterThanOrEqual(enemy.animationPhase(),enemy.attackImpactPhase());
+  XCTAssertTrue(enemy.applyDamage(1));
+  XCTAssertEqualObjects([NSString stringWithUTF8String:enemy.animationAction()],@"damage.hit-reaction");
+  XCTAssertTrue(enemy.applyDamage(2));
+  XCTAssertEqualObjects([NSString stringWithUTF8String:enemy.animationAction()],@"death.variant");
+}
+
 - (void)testPlayerComboCanDefeatEnemy {
   using namespace asterix;
   collision::World world({{{-10,0,-10},{10,0,-10},{-10,0,10},1},

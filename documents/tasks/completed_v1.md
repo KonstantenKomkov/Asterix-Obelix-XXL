@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 65 — Animation graphs врагов, NPC и персонажей
+
+**Выполнено:** 22 июля 2026.
+
+В versioned binding registry добавлены 27 exact actor/skin/costume profiles:
+25 character dictionaries и два сохранённых shared cinematic context. Graph
+покрывает все подтверждённые 92 clips и 109 membership contexts basic enemies,
+leaders, NPC и animated characters. Для каждого профиля зафиксированы entry,
+полный required action set, допустимые transitions, runtime state/event
+bindings, trigger, loop policy, root motion и нормализованные phases.
+
+Enemy runtime публикует semantic actions для idle, pursuit/return, attack,
+hit/stun/knockback и death; spawn/perception, despawn и special действия
+представлены явными event triggers. Variant selector детерминирован stable seed
+и номером actor-local перехода. Gameplay impact `0,25 / 0,65` совпадает с
+точной attack animation phase; death остаётся terminal. Отдельный идемпотентный
+generator воспроизводит graph из локальных артефактов каталога 62.4.
+
+Validator и regressions проверяют exact profile isolation, полноту totals,
+достижимость всех actions, отсутствие cross-profile transitions, skeleton
+compatibility, детерминированный выбор вариантов и соответствие AI states.
+Пройдены `flutter analyze`, все Flutter tests, native XCTest и resource-policy
+gate. Оригинальные ресурсы и производные игровые данные в Git не добавлялись;
+расширенная fixed-tick доставка versioned event tracks остаётся п. 68.
+
 ## П. 64 — Полный animation graph управляемых героев
 
 **Выполнено:** 22 июля 2026.

@@ -40,3 +40,19 @@ The seven short Asterix aliases remain in the manifest for the current Metal
 renderer. They resolve to the same confirmed clips and allow the renderer to
 adopt the full semantic action names incrementally without reintroducing clip
 numbers into code.
+
+`characterGraphVersion: 1` adds exact profiles for enemies, leaders, NPC and
+animated characters. The checked-in graph covers the confirmed 92 clips and
+all 109 dictionary contexts. A profile is keyed by actor, dictionary-backed
+skin, costume and runtime context, so clips with the same skeleton size cannot
+be selected across archetypes accidentally. Every profile declares its entry,
+complete required action set and state/event bindings; validation rejects
+missing states, cross-profile transitions, unreachable actions and catalog
+totals that drift from the binding list.
+
+Enemy `idle`, `pursuit`/`returning`, `attack`, `stun` and `death` states map to
+semantic graph actions. Spawn/perception, hit/knockback, despawn and special
+actions are explicit event triggers in the registry. Variant selection combines
+the stable entity seed and transition counter, while attack impact uses the
+same normalized phase as the gameplay damage window. Rich fixed-tick event
+track delivery remains deliberately assigned to task 68.

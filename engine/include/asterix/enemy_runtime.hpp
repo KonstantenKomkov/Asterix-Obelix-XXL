@@ -25,6 +25,18 @@ inline const char* stateName(State state) {
   return "idle";
 }
 
+inline const char* animationAction(State state) {
+  switch (state) {
+    case State::idle: return "locomotion.idle";
+    case State::pursuit:
+    case State::returning: return "locomotion.move";
+    case State::attack: return "combat.attack";
+    case State::stun: return "damage.hit-reaction";
+    case State::death: return "death.variant";
+  }
+  return "locomotion.idle";
+}
+
 struct Config {
   float perception_radius = 8;
   float attack_range = 1.4f;
@@ -37,6 +49,7 @@ struct Config {
   float stun_seconds = .4f;
   std::int32_t health = 3;
   std::int32_t attack_damage = 1;
+  std::uint32_t animation_variant_seed = 0;
 };
 
 struct Snapshot {
@@ -46,6 +59,7 @@ struct Snapshot {
   std::int32_t health = 3;
   float state_seconds = 0;
   float cooldown_seconds = 0;
+  std::uint32_t animation_transition = 0;
 };
 
 struct UpdateResult {
@@ -73,6 +87,30 @@ class Runtime {
 
   const Snapshot& snapshot() const { return snapshot_; }
   std::int32_t attackDamage() const { return config_.attack_damage; }
+  const char* animationAction() const {
+    return enemy::animationAction(snapshot_.state);
+  }
+  std::uint32_t animationVariantSelector() const {
+    return config_.animation_variant_seed * 16777619u ^
+           snapshot_.animation_transition * 2166136261u ^
+           static_cast<std::uint32_t>(snapshot_.state);
+  }
+  float animationPhase() const {
+    float duration = 1.0f;
+    switch (snapshot_.state) {
+      case State::attack: duration = config_.attack_duration; break;
+      case State::stun: duration = config_.stun_seconds; break;
+      case State::idle:
+      case State::pursuit:
+      case State::returning: return snapshot_.state_seconds -
+          std::floor(snapshot_.state_seconds);
+      case State::death: break;
+    }
+    return std::clamp(snapshot_.state_seconds / duration, 0.0f, 1.0f);
+  }
+  float attackImpactPhase() const {
+    return config_.attack_impact_seconds / config_.attack_duration;
+  }
   void reset() {
     snapshot_={}; snapshot_.body=initial_body_; snapshot_.health=config_.health;
     snapshot_.facing={1,0,0}; impact_done_=false;
@@ -166,6 +204,7 @@ class Runtime {
   }
   void enter(State state) {
     snapshot_.state=state; snapshot_.state_seconds=0;
+    ++snapshot_.animation_transition;
   }
   void enterIfChanged(State state) {
     if(snapshot_.state!=state)enter(state);

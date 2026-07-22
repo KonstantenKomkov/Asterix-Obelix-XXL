@@ -37,6 +37,21 @@ final class AnimationBindingRegistry {
       .where((binding) => binding['actor'] == actor)
       .toList(growable: false);
 
+  List<Map<String, Object?>> profileBindings({
+    required String actor,
+    required int skin,
+    required String costume,
+    required String context,
+  }) => bindings
+      .where(
+        (binding) =>
+            binding['actor'] == actor &&
+            binding['skin'] == skin &&
+            binding['costume'] == costume &&
+            binding['context'] == context,
+      )
+      .toList(growable: false);
+
   static AnimationBindingRegistry parse(Object? value) {
     if (value is! Map<String, Object?> || value['schemaVersion'] != 1) {
       throw const AnimationBindingException('schemaVersion must equal 1');
@@ -201,6 +216,103 @@ final class AnimationBindingRegistry {
             'hero graph $actor has unreachable actions: ${missing.join(', ')}',
           );
         }
+      }
+    }
+    if (value['characterGraphVersion'] != null) {
+      if (value['characterGraphVersion'] != 1 ||
+          value['characterProfiles'] is! List ||
+          value['characterCatalog'] is! Map<String, Object?>) {
+        throw const AnimationBindingException(
+          'characterGraphVersion 1 requires profiles and catalog totals',
+        );
+      }
+      final catalog = value['characterCatalog']! as Map<String, Object?>;
+      final profiles = value['characterProfiles']! as List;
+      final profileKeys = <String>{};
+      var contextCount = 0;
+      final characterClips = <Object?>{};
+      for (var index = 0; index < profiles.length; index++) {
+        final raw = profiles[index];
+        if (raw is! Map<String, Object?> ||
+            raw['actor'] is! String ||
+            raw['skin'] is! int ||
+            raw['skinProfile'] is! String ||
+            raw['costume'] is! String ||
+            raw['context'] is! String ||
+            raw['entryState'] is! String ||
+            raw['requiredStates'] is! List ||
+            raw['stateBindings'] is! Map<String, Object?>) {
+          throw AnimationBindingException(
+            'characterProfiles[$index] is invalid',
+          );
+        }
+        final key = '${raw['actor']}|${raw['skin']}|${raw['costume']}';
+        if (!profileKeys.add(key)) {
+          throw AnimationBindingException('duplicate character profile $key');
+        }
+        final candidates = bindings.where(
+          (binding) =>
+              binding['actor'] == raw['actor'] &&
+              binding['skin'] == raw['skin'] &&
+              binding['costume'] == raw['costume'] &&
+              binding['context'] == raw['context'],
+        );
+        final actions = candidates
+            .map((binding) => binding['action']! as String)
+            .toSet();
+        if (candidates.any(
+          (binding) => (binding['transitions']! as List).any(
+            (target) => !actions.contains(target),
+          ),
+        )) {
+          throw AnimationBindingException(
+            'character profile $key has a cross-profile transition',
+          );
+        }
+        final required = (raw['requiredStates']! as List)
+            .cast<String>()
+            .toSet();
+        final entry = raw['entryState']! as String;
+        if (!actions.containsAll(required) || !required.contains(entry)) {
+          throw AnimationBindingException(
+            'character profile $key has missing required states',
+          );
+        }
+        final stateBindings = raw['stateBindings']! as Map<String, Object?>;
+        if (stateBindings.values.any(
+          (action) => action is! String || !actions.contains(action),
+        )) {
+          throw AnimationBindingException(
+            'character profile $key has an unbound runtime state',
+          );
+        }
+        final reachable = <String>{entry};
+        final pending = <String>[entry];
+        while (pending.isNotEmpty) {
+          final action = pending.removeLast();
+          for (final binding in candidates.where(
+            (candidate) => candidate['action'] == action,
+          )) {
+            for (final target in binding['transitions']! as List) {
+              if (target is String && reachable.add(target)) {
+                pending.add(target);
+              }
+            }
+          }
+        }
+        if (!reachable.containsAll(required)) {
+          throw AnimationBindingException(
+            'character graph $key has unreachable actions',
+          );
+        }
+        contextCount += candidates.length;
+        characterClips.addAll(candidates.map((binding) => binding['clip']));
+      }
+      if (catalog['contextCount'] != contextCount ||
+          catalog['clipCount'] != characterClips.length) {
+        throw const AnimationBindingException(
+          'character graph catalog totals do not match bindings',
+        );
       }
     }
     return registry;
