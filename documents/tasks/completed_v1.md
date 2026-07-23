@@ -1,5 +1,25 @@
 # Выполненные задачи первой итерации
 
+## П. 91.10 — Итоговые catalog, registry и acceptance
+
+**Выполнено:** 23 июля 2026.
+
+Добавлен metadata-only финализатор, который соединяет accepted provenance
+п. 91.9 с каждым из 408 non-fallback runtime selectors и соответствующим
+authored clip локального catalog. Он выпускает обновлённые локальные catalog и
+registry с evidence IDs, numeric state/event, dictionary, slot и clip, а также
+строгий acceptance-report: 408 confirmed, 0 unresolved, 0 ambiguous и
+0 visual-only.
+
+Отдельные passing assertions закрепляют single jump Астерикса как dictionary 0
+/ slot 13 / `clip-0031`, а double jump — как dictionary 0 / slot 35 /
+`clip-0064`. Два независимых результата по provenance `run-a` и `run-b`
+побайтно совпали; SHA-256 acceptance:
+`63d5f3b1d3dcf5e102ee4bc579304df6dea0746c3dfd541de92ff483bcb02c42`.
+Прошли 34 tooling regression, resource policy и отдельное diff-review.
+Локальные metadata export и игровые ресурсы в Git не добавлены. Описание:
+[task91_final_acceptance.md](../architecture/task91_final_acceptance.md).
+
 ## П. 91.9 — Versioned provenance schema и strict gate
 
 **Выполнено:** 23 июля 2026.

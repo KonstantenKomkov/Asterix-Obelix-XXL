@@ -19,15 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
-| 91 | **Восстановить точные соответствия authored animation clips игровым действиям:** исследовать доступный исходный код, символы, таблицы состояний и обращения к animation dictionaries оригинальной игры; заменить предположительные semantic labels доказанными actor/state/event → dictionary/slot/clip связями | Animation fidelity | P0 | XL | Законный локальный источник; документированная цепочка доказательств для каждого runtime binding; отдельно подтверждены одинарный/двойной прыжок Астерикса; обновлены catalog, bindings и acceptance; визуальный preview не считается достаточным доказательством |
-
-Декомпозиция п. 91 зафиксирована в
-[плане reverse engineering](../architecture/original_animation_reverse_engineering.md):
-
-| № | Подзадача | Результат / gate |
-|---:|---|---|
-| 91.10 | Обновить catalog, registry и acceptance | 408 confirmed; 0 unresolved/ambiguous/visual-only; single/double jump приняты отдельно |
-
 ---
 
 ## Последующие итерации
@@ -143,24 +134,16 @@
 - [x] П. 88 — 24 scripted bindings NPC и существ
 - [x] П. 89 — 46 world/UI/FX bindings
 - [x] П. 90 — 63 cinematic bindings
-- [ ] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
-  - [x] П. 91.1 — binary corpus и воспроизводимый toolchain
-  - [x] П. 91.2 — class/function anchors
-  - [x] П. 91.3 — animation dictionary access primitives
-  - [x] П. 91.4 — numeric state/event dispatch
-  - [x] П. 91.5 — полный профиль Астерикса и отдельные single/double jump chains
-  - [x] П. 91.6 — профили Обеликса и Идефикса
-  - [x] П. 91.7 — enemies и scripted actors
-  - [x] П. 91.8 — world/UI/FX и cinematics
-  - [x] П. 91.9 — versioned provenance gate
-  - [ ] П. 91.10 — итоговые catalog, registry и acceptance
+- [x] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 91.9 выполнен: versioned provenance schema и strict gate биективно связали все 408 runtime bindings с module/function/state-or-event/dictionary/slot/clip evidence; unresolved, ambiguous, visual-only и membership-only записей нет. Два независимых metadata-only export побайтно совпали.
+**Последнее обновление:** 23 июля 2026 — п. 91.10 и зонтичный п. 91 выполнены: финализатор обновляет локальные catalog и registry доказанными связями всех 408 runtime bindings; итоговая acceptance содержит 408 confirmed и ноль unresolved/ambiguous/visual-only, а single/double jump Астерикса приняты отдельными assertions. Два независимых metadata-only результата побайтно совпали.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 91.9 выполнен: versioned provenance schema и strict gate биективно связали все 408 runtime bindings с module/function/state-or-event/dictionary/slot/clip evidence; unresolved, ambiguous, visual-only и membership-only записей нет. Два независимых metadata-only export побайтно совпали.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 91.8 выполнен: доказаны все 46 bindings 13 world/UI/FX profiles и все 63 cues 14 cinematic timelines; двухдорожечный shop transaction и полное чтение slots каждой timeline приняты отдельно. Два независимых metadata-only export побайтно совпали.
 

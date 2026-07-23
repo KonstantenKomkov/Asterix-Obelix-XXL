@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory task91-corpus task91-headless task91-anchors task91-primitives task91-dispatch task91-asterix-profile task91-controlled-heroes-profile task91-enemies-scripted-profile task91-world-cinematics-profile task91-provenance-gate task91-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory task91-corpus task91-headless task91-anchors task91-primitives task91-dispatch task91-asterix-profile task91-controlled-heroes-profile task91-enemies-scripted-profile task91-world-cinematics-profile task91-provenance-gate task91-final-acceptance task91-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -63,6 +63,10 @@ task91-provenance-gate: ## Строгий provenance gate всех 408 bindings 
 	@test -n "$(ASTERIX)" -a -n "$(CONTROLLED_HEROES)" -a -n "$(ENEMIES_SCRIPTED)" -a -n "$(WORLD_CINEMATICS)" -a -n "$(OUTPUT)" || (echo 'Укажите ASTERIX=... CONTROLLED_HEROES=... ENEMIES_SCRIPTED=... WORLD_CINEMATICS=... OUTPUT=...' >&2; exit 2)
 	python3 scripts/task91_provenance_gate.py "$(ASTERIX)" "$(CONTROLLED_HEROES)" "$(ENEMIES_SCRIPTED)" "$(WORLD_CINEMATICS)" assets/animation_bindings.v1.json "$(OUTPUT)"
 
+task91-final-acceptance: ## Обновить локальные catalog/registry и принять 408 bindings (CATALOG=... PROVENANCE=... OUTPUT_DIR=...)
+	@test -n "$(CATALOG)" -a -n "$(PROVENANCE)" -a -n "$(OUTPUT_DIR)" || (echo 'Укажите CATALOG=... PROVENANCE=... OUTPUT_DIR=...' >&2; exit 2)
+	python3 scripts/task91_final_acceptance.py "$(CATALOG)" assets/animation_bindings.v1.json "$(PROVENANCE)" "$(OUTPUT_DIR)/animation-catalog.task91.json" "$(OUTPUT_DIR)/animation-bindings.task91.json" "$(OUTPUT_DIR)/acceptance.task91.json"
+
 task91-tooling-test: ## Проверить metadata-only tooling задачи 91
 	python3 -m unittest test/task91_corpus_test.py
 	python3 -m unittest test/task91_class_anchors_test.py
@@ -73,6 +77,7 @@ task91-tooling-test: ## Проверить metadata-only tooling задачи 91
 	python3 -m unittest test/task91_enemies_scripted_profile_test.py
 	python3 -m unittest test/task91_world_cinematics_profile_test.py
 	python3 -m unittest test/task91_provenance_gate_test.py
+	python3 -m unittest test/task91_final_acceptance_test.py
 	bash -n scripts/task91_headless_analysis.sh
 
 importer-inspect: ## Проверить файл каркасом импортёра (INPUT=...)
