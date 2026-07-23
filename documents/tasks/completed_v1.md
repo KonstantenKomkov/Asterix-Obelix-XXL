@@ -1,5 +1,28 @@
 # Выполненные задачи первой итерации
 
+## П. 91.5 — Полный authored animation profile Астерикса
+
+**Выполнено:** 23 июля 2026.
+
+Все 90 gameplay bindings `CKHkAsterix` соединены с numeric runtime state,
+`CKHkHero.heroAnimDict`, dictionary 0, точным slot и authored clip. Exporter
+отклоняет другой module/anchors/dispatch corpus, неполный профиль, неизвестный
+named binding, повторный clip и разрыв dictionary-field anchor.
+
+Одинарный прыжок имеет отдельную input/static chain
+`jump.press → fixedTick → slot 13 → clip-0031`; двойной —
+`jump.press → fixedTick → jump.release → jump.press → fixedTick → slot 35 →
+clip-0064`. Call sites `0x0008ed5f` и `0x0008e889` независимо проверены как
+прямые вызовы slot-read primitive `0x0008d650`; общий `airborne` label и
+visual preview доказательством не служат.
+
+Два независимых metadata-only export побайтно совпали; SHA-256:
+`06b4a1e2ea23a9f09f7ee27c786847267ee0d49b4fa55d47beaf39e29fcbcd4a`.
+Прошли tooling regressions, resource policy и отдельное diff review. Binary
+bytes, disassembly, pseudocode и локальные traces в Git не добавлены.
+Описание:
+[task91_asterix_profile.md](../architecture/task91_asterix_profile.md).
+
 ## П. 91.4 — Numeric state/event dispatch
 
 **Выполнено:** 23 июля 2026.

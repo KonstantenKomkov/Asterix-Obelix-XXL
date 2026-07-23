@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "module": "GameModule.elb",
+  "owner": "CKHkAsterix",
+  "profile": "asterix-player",
+  "dictionary": 0,
+  "dictionaryField": "CKHkHero.heroAnimDict",
+  "expectedBindingCount": 90,
+  "namedStateSlots": {
+    "idle": 0,
+    "run": 2,
+    "jump": 13,
+    "double_jump": 35,
+    "fall": 36,
+    "attack": 18,
+    "hurt": 58,
+    "death": 61
+  },
+  "slotReadPrimitiveRva": "0x0008d650",
+  "jumpChains": [
+    {
+      "binding": "jump",
+      "semantic": "singleJump",
+      "inputTrace": ["jump.press", "fixedTick"],
+      "stateHandlerRva": "0x0008e8a0",
+      "slotReadCallRva": "0x0008ed5f",
+      "slot": 13
+    },
+    {
+      "binding": "double_jump",
+      "semantic": "doubleJump",
+      "inputTrace": ["jump.press", "fixedTick", "jump.release", "jump.press", "fixedTick"],
+      "stateHandlerRva": "0x0008e700",
+      "slotReadCallRva": "0x0008e889",
+      "slot": 35
+    }
+  ]
+}
