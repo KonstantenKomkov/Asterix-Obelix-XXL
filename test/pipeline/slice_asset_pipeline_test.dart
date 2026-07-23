@@ -904,6 +904,15 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
         {'id': 'select:idle', 'fromState': '*', 'toState': 'binding:idle'},
       ],
     },
+    '${root.path}/animations/actors.authored-graphs.v1.json': {
+      'schemaVersion': 1,
+      'resourceType': 'asterix.actor-animation-controllers',
+      'summary': {'profileCount': 56, 'bindingCount': 318},
+      'profiles': List<Object?>.generate(
+        56,
+        (index) => {'id': 'profile-$index'},
+      ),
+    },
     '${root.path}/animations/0000.animation.json': {
       'schemaVersion': 1,
       'duration': 1.0,

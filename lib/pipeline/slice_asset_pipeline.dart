@@ -920,6 +920,31 @@ final class SliceAssetPipeline {
         metadata: {'schemaVersion': 1, 'profile': 'actor:CKHkAsterix'},
       ),
     );
+    final actorGraphsFile = File(
+      '${animationDir.path}/actors.authored-graphs.v1.json',
+    );
+    final actorGraphs = await _jsonFile(actorGraphsFile);
+    final actorGraphSummary = actorGraphs['summary'] as Map<String, Object?>?;
+    if (actorGraphs['schemaVersion'] != 1 ||
+        actorGraphs['resourceType'] != 'asterix.actor-animation-controllers' ||
+        actorGraphSummary?['profileCount'] != 56 ||
+        actorGraphSummary?['bindingCount'] != 318 ||
+        (actorGraphs['profiles'] as List<Object?>?)?.length != 56) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        'Actor animation controller graphs are invalid.',
+        path: actorGraphsFile.path,
+      );
+    }
+    payloads.add(
+      AssetPayloadInput(
+        kind: 'actor-animation-controllers',
+        sourcePath: _levelSource,
+        sourceKey: 'actors:v1',
+        bytes: encodeCanonicalJson(actorGraphs),
+        metadata: {'schemaVersion': 1, 'profileCount': 56, 'bindingCount': 318},
+      ),
+    );
     final animationManifest = await _jsonFile(
       File('${animationDir.path}/manifest.json'),
     );

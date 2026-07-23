@@ -952,8 +952,34 @@ struct AsterixPushMesh {
     }
     break;
   }
+  NSDictionary* actorAnimationControllers=nil;
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"actor-animation-controllers"]) continue;
+    uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset<=payloadLength&&length<=payloadLength-offset) {
+      NSData* data=[package subdataWithRange:NSMakeRange(
+          (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+      id decoded=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      if([decoded isKindOfClass:NSDictionary.class])
+        actorAnimationControllers=decoded;
+    }
+    break;
+  }
   if (authoredAnimationGraph == nil) {
     [self reportSceneError:@"Asterix authored animation graph is missing"];
+    return NO;
+  }
+  NSDictionary* actorControllerSummary=actorAnimationControllers[@"summary"];
+  NSArray* actorControllerProfiles=actorAnimationControllers[@"profiles"];
+  if (![actorAnimationControllers[@"resourceType"]
+          isEqual:@"asterix.actor-animation-controllers"] ||
+      [actorAnimationControllers[@"schemaVersion"] integerValue]!=1 ||
+      [actorControllerSummary[@"profileCount"] integerValue]!=56 ||
+      [actorControllerSummary[@"bindingCount"] integerValue]!=318 ||
+      ![actorControllerProfiles isKindOfClass:NSArray.class] ||
+      actorControllerProfiles.count!=56) {
+    [self reportSceneError:@"Actor animation controller graphs are missing or incomplete"];
     return NO;
   }
   NSArray<NSString*>* requiredStates=@[

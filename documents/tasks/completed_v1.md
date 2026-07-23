@@ -1,5 +1,28 @@
 # Выполненные задачи первой итерации
 
+## П. 93.7 — Единые animation controllers остальных actor profiles
+
+**Выполнено:** 23 июля 2026.
+
+Оставшиеся 318 доказанных bindings собраны в канонический versioned resource
+из 56 профилей: 209 bindings Обеликса, Идефикса, врагов и scripted actors
+исполняются через controller dispatch, 46 world/UI/FX — через типизированный
+simultaneous-track adapter, 63 cinematics — через типизированный timeline
+adapter. Каждый selector хранит точный clip/dictionary/slot, completion,
+root-motion policy и уникальный deterministic variant key; fallback запрещён.
+
+World transaction regression сохраняет два одновременных tracks, cinematic
+regression проверяет упорядоченные cues и terminal semantics. Slice extractor
+и asset pipeline упаковывают ресурс как `actor-animation-controllers`, Metal
+runtime отклоняет отсутствующее либо неполное покрытие 56/318 вместо silent
+fallback. Размер канонического ресурса — 150 587 байт, SHA-256:
+`3929cea647213a28336c5aaf2898114ebf583ddc1590effa9246d0491a7d8b05`.
+
+Полный `make check`, native `xcodebuild test`, Metal Objective-C++ syntax-check,
+resource policy и отдельный diff-review прошли. Оригинальные binary/assets в
+Git не добавлены. Описание:
+[`task93_actor_animation_controllers.md`](../architecture/task93_actor_animation_controllers.md).
+
 ## П. 93.6 — Behavioural/pose-приёмка относительно оригинала
 
 **Выполнено:** 23 июля 2026.

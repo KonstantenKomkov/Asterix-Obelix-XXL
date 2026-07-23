@@ -20,7 +20,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 93.7 | **Распространить единый AnimationController на остальные actor profiles:** перевести Обеликса, Идефикса, врагов, NPC/scripted, world/UI/FX и cinematics без локальных selector/fallback путей | Animation fidelity | P1 | XL | После п. 93.6; все 408 доказанных selectors исполняются через versioned graph/controller либо явно типизированный timeline adapter; deterministic variants, simultaneous tracks и terminal states покрыты regressions |
 | 93.8 | **Замкнуть animation fidelity на ASTPAK и release gate:** упаковать graph/resources, валидировать provenance/runtime compatibility и выполнять trace/pose/smoke приёмку свежего установленного пакета | Animation fidelity | P0 | L | После п. 93.7; fresh/cached ASTPAK совпадают, package audit подтверждает точный graph/provenance digest и 408 selectors, release cold start и representative runtime traces проходят без heuristic/static/silent fallback |
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42 и п. 93.8; зафиксировано решение continue/re-scope/stop |
 ---
@@ -146,7 +145,7 @@
 - [x] П. 93.4 — полный runtime-граф Астерикса через AnimationController
 - [x] П. 93.5 — authored pose playback, blending и root-motion policies
 - [x] П. 93.6 — behavioural/pose-приёмка относительно оригинала
-- [ ] П. 93.7 — перевод остальных 318 bindings на единый controller
+- [x] П. 93.7 — перевод остальных 318 bindings на единый controller
 - [ ] П. 93.8 — ASTPAK и release animation-fidelity gate
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
@@ -154,7 +153,13 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 93.6 выполнен: metadata-only gate
+**Последнее обновление:** 23 июля 2026 — п. 93.7 выполнен: канонический
+versioned resource переводит 209 bindings остальных actors на controller,
+46 world/UI/FX bindings на simultaneous-track adapter и 63 cinematic bindings
+на timeline adapter. ASTPAK/runtime требуют точное покрытие 56 профилей и 318
+bindings без fallback.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 93.6 выполнен: metadata-only gate
 сверяет локальные original/runtime traces семи jump-сценариев по точным
 binding/transition, времени, phase и экранным pose-landmarks. Single-jump
 regression доказывает takeoff/apex/landing joint palette, а не только slot 13.
