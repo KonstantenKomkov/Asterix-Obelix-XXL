@@ -222,8 +222,8 @@ struct AsterixPushMesh {
   NSUInteger _playerMeshVertexCount;
   std::vector<AsterixMeshRange> _playerMeshRanges;
   std::vector<asterix::animation::Joint> _playerJoints;
-  std::array<asterix::animation::Clip, 7> _playerClips;
-  std::array<bool, 7> _playerClipAvailable;
+  std::array<asterix::animation::Clip, 8> _playerClips;
+  std::array<bool, 8> _playerClipAvailable;
   NSUInteger _enemyMarkerVertexStart;
   std::vector<std::vector<AsterixMeshRange>> _sceneMeshRanges;
   std::vector<AsterixFireEmitter> _fireEmitters;
@@ -814,22 +814,60 @@ struct AsterixPushMesh {
     }
     break;
   }
-  NSArray<NSString*>* requiredStates=@[@"idle",@"run",@"jump",@"fall",@"attack",@"hurt",@"death"];
+  NSArray<NSString*>* requiredStates=@[
+      @"idle",@"run",@"jump",@"double_jump",@"fall",@"attack",@"hurt",@"death"];
   NSMutableDictionary<NSString*, NSDictionary*>* stateBindings=[NSMutableDictionary dictionary];
+  NSDictionary* playerProfile=nil;
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
-    for (NSDictionary* binding in animationBindings[@"bindings"]) {
-      if (![binding isKindOfClass:NSDictionary.class] ||
-          ![binding[@"actor"] isEqual:@"asterix"] ||
-          [binding[@"skin"] integerValue]!=4 ||
-          ![binding[@"costume"] isEqual:@"default"] ||
-          ![binding[@"context"] isEqual:@"gameplay"] || binding[@"variant"]!=NSNull.null) continue;
-      NSString* action=binding[@"action"];
-      if (![requiredStates containsObject:action]) continue;
-      if (stateBindings[action]!=nil) {
-        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Ambiguous animation binding for asterix/%@",action]; }
+    if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
+      for (NSDictionary* profile in animationBindings[@"runtimeProfiles"]) {
+        if (![profile isKindOfClass:NSDictionary.class] ||
+            ![profile[@"id"] isEqual:@"asterix-player"]) continue;
+        if (playerProfile!=nil) {
+          @synchronized(self) { _sceneError=@"Ambiguous asterix-player runtime profile"; }
+          return NO;
+        }
+        playerProfile=profile;
+      }
+    }
+    NSDictionary* selectors=playerProfile[@"states"];
+    if (![playerProfile[@"actor"] isEqual:@"asterix"] ||
+        [playerProfile[@"skin"] integerValue]!=4 ||
+        ![playerProfile[@"costume"] isEqual:@"default"] ||
+        ![playerProfile[@"context"] isEqual:@"gameplay"] ||
+        ![selectors isKindOfClass:NSDictionary.class] ||
+        selectors.count!=requiredStates.count) {
+      @synchronized(self) { _sceneError=@"Missing or invalid asterix-player runtime profile"; }
+      return NO;
+    }
+    for (NSString* state in requiredStates) {
+      id rawSelector=selectors[state];
+      if (![rawSelector isKindOfClass:NSDictionary.class]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime selector for asterix/%@",state]; }
         return NO;
       }
-      stateBindings[action]=binding;
+      NSDictionary* selector=(NSDictionary*)rawSelector;
+      NSString* action=selector[@"action"];
+      NSString* variant=selector[@"variant"];
+      if (![action isKindOfClass:NSString.class] ||
+          ![variant isKindOfClass:NSString.class]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime selector for asterix/%@",state]; }
+        return NO;
+      }
+      for (NSDictionary* binding in animationBindings[@"bindings"]) {
+        if (![binding isKindOfClass:NSDictionary.class] ||
+            ![binding[@"actor"] isEqual:playerProfile[@"actor"]] ||
+            [binding[@"skin"] integerValue]!=[playerProfile[@"skin"] integerValue] ||
+            ![binding[@"costume"] isEqual:playerProfile[@"costume"]] ||
+            ![binding[@"context"] isEqual:playerProfile[@"context"]] ||
+            ![binding[@"action"] isEqual:action] ||
+            ![binding[@"variant"] isEqual:variant]) continue;
+        if (stateBindings[state]!=nil) {
+          @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Ambiguous runtime selector for asterix/%@",state]; }
+          return NO;
+        }
+        stateBindings[state]=binding;
+      }
     }
   }
   NSMutableDictionary<NSString*, NSString*>* animationKeys=[NSMutableDictionary dictionary];
@@ -1205,8 +1243,8 @@ struct AsterixPushMesh {
   NSUInteger playerMeshVertexStart=NSNotFound,playerMeshVertexCount=0;
   std::vector<AsterixMeshRange> playerMeshRanges;
   std::vector<asterix::animation::Joint> playerJoints;
-  std::array<asterix::animation::Clip,7> playerClips;
-  std::array<bool,7> playerClipAvailable{};
+  std::array<asterix::animation::Clip,8> playerClips;
+  std::array<bool,8> playerClipAvailable{};
   if (!collisionTriangles.empty()) {
     collisionWorld=std::make_unique<asterix::collision::World>(std::move(collisionTriangles));
     std::optional<asterix::collision::CapsuleState> spawn;

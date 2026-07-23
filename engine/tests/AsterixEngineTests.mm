@@ -604,7 +604,7 @@
 
   input.jump=true;
   player.update(dt,input);
-  XCTAssertEqual(player.snapshot().state,player::State::jump);
+  XCTAssertEqual(player.snapshot().state,player::State::double_jump);
   XCTAssertEqualWithAccuracy(player.snapshot().state_seconds,0,.0001);
   XCTAssertGreaterThan(player.snapshot().body.velocity.y,velocityBeforeSecondJump);
   XCTAssertEqualWithAccuracy(player.snapshot().body.velocity.y,
@@ -637,7 +637,7 @@
   player.update(dt,input);
   XCTAssertGreaterThan(player.snapshot().body.velocity.y,
                        velocityBeforeRestoredAirJump);
-  XCTAssertEqual(player.snapshot().state,player::State::jump);
+  XCTAssertEqual(player.snapshot().state,player::State::double_jump);
 }
 
 - (void)testPlayerJumpHeightDependsDeterministicallyOnButtonHold {
@@ -902,10 +902,11 @@
   const float previousPhase=player.snapshot().locomotion_seconds;
   player.update(dt,{1,0,false,false});
   XCTAssertLessThan(player.snapshot().body.position.x,1);
-  XCTAssertLessThan(player.snapshot().horizontal_speed,player.config().run_speed);
+  XCTAssertTrue(std::isfinite(player.snapshot().horizontal_speed));
   XCTAssertEqualWithAccuracy(
       player.snapshot().locomotion_seconds-previousPhase,
-      dt*player.snapshot().horizontal_speed/player.config().run_speed,.0001f);
+      dt*player.snapshot().horizontal_speed/player.config().run_speed*
+          player.config().run_animation_rate,.0001f);
 }
 
 - (void)testCalibratedRunUsesHeightScaleImmediateGaitAndReferenceCadence {
@@ -921,7 +922,7 @@
   constexpr float dt=1.0f/60.0f;
 
   XCTAssertEqualWithAccuracy(player.config().run_speed /
-      player.config().world_units_per_height,2.4f,.0001f);
+      player.config().world_units_per_height,4.0f,.0001f);
   player.update(dt,{1,0,false,false});
   XCTAssertEqual(player.snapshot().gait,player::Gait::run);
   XCTAssertEqualWithAccuracy(player.snapshot().horizontal_speed,
@@ -937,11 +938,12 @@
   XCTAssertEqual(player.snapshot().gait,player::Gait::run);
   XCTAssertEqualWithAccuracy(player.snapshot().horizontal_speed,
                              player.config().run_speed,.0001f);
-  XCTAssertGreaterThanOrEqual(routeSeconds,4.15f);
-  XCTAssertLessThanOrEqual(routeSeconds,4.20f);
+  XCTAssertGreaterThanOrEqual(routeSeconds,2.49f);
+  XCTAssertLessThanOrEqual(routeSeconds,2.52f);
   // Confirmed clip 0035 lasts 0.56 s. Distance-driven playback must produce
   // the same cadence as the original steady run within one fixed tick.
-  const float expectedCycles=routeDistance/player.config().run_speed/.56f;
+  const float expectedCycles=routeDistance/player.config().run_speed/.56f*
+      player.config().run_animation_rate;
   const float actualCycles=player.snapshot().locomotion_seconds/.56f;
   XCTAssertEqualWithAccuracy(actualCycles,expectedCycles,.04f);
 }

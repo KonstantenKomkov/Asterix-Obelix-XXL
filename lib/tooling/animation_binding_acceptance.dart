@@ -38,11 +38,13 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
 
   final bindings = registry.bindings;
   final paths = animationRuntimePaths(manifest);
+  final concretePaths = animationConcreteRuntimePaths(manifest);
   final clips = (catalog['clips']! as List<Object?>)
       .cast<Map<String, Object?>>();
   final rows = <Map<String, Object?>>[];
   var unbound = 0;
   var unexplained = 0;
+  var ambiguous = 0;
   var unreachable = 0;
 
   for (final clip in clips) {
@@ -53,15 +55,33 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
     final contexts = (clip['contexts']! as List<Object?>)
         .cast<Map<String, Object?>>();
     final missingContexts = <String>[];
+    final ambiguousContexts = <String>[];
+    final contextRows = <Map<String, Object?>>[];
     for (final context in contexts) {
-      // Dictionary annotations deliberately use broader semantic actions for
-      // variants and directional slots. Clip identity is the lossless join to
-      // one or more concrete registry actions; do not guess a string alias.
-      if (clipBindings.isEmpty) {
-        missingContexts.add(
-          'dictionary-${context['dictionaryId']}/slot-${context['slot']}:${context['action']}',
-        );
-      }
+      final sourceVariant = (context['variants']! as List<Object?>).single;
+      final exactBindings = clipBindings
+          .where(
+            (binding) =>
+                binding['actor'] == context['owner'] &&
+                (binding['action'] == context['action'] ||
+                    (binding['action']! as String).startsWith(
+                      '${context['action']}.cue-',
+                    )) &&
+                _bindingClaimsSourceVariant(binding, sourceVariant),
+          )
+          .toList(growable: false);
+      final label =
+          'dictionary-${context['dictionaryId']}/slot-${context['slot']}:'
+          '${context['action']}';
+      if (exactBindings.isEmpty) missingContexts.add(label);
+      if (exactBindings.length > 1) ambiguousContexts.add(label);
+      contextRows.add({
+        'dictionaryId': context['dictionaryId'],
+        'slot': context['slot'],
+        'semanticAction': context['action'],
+        'sourceVariant': sourceVariant,
+        'bindings': exactBindings.map(_bindingKey).toList(growable: false),
+      });
     }
     final bindingRows = clipBindings
         .map((binding) {
@@ -72,6 +92,7 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
             'context': binding['context'],
             if (binding['variant'] != null) 'variant': binding['variant'],
             'runtimePaths': paths[key] ?? const <String>[],
+            'concreteRuntimePaths': concretePaths[key] ?? const <String>[],
           };
         })
         .toList(growable: false);
@@ -80,12 +101,15 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
         .length;
     if (clipBindings.isEmpty) unbound++;
     if (missingContexts.isNotEmpty) unexplained++;
+    if (ambiguousContexts.isNotEmpty) ambiguous++;
     if (missingPaths > 0) unreachable++;
     rows.add({
       'clip': source,
       'memberships': clip['dictionaryMemberships'],
       'bindings': bindingRows,
+      'contexts': contextRows,
       'missingSemanticContexts': missingContexts,
+      'ambiguousSemanticContexts': ambiguousContexts,
     });
   }
 
@@ -108,6 +132,17 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
       '$unexplained clips have dictionary contexts without a binding ($examples)',
     );
   }
+  if (ambiguous != 0) {
+    final examples = rows
+        .where((row) => (row['ambiguousSemanticContexts']! as List).isNotEmpty)
+        .take(8)
+        .map((row) => '${row['clip']}:${row['ambiguousSemanticContexts']}')
+        .join('; ');
+    issues.add(
+      '$ambiguous clips have dictionary contexts with ambiguous bindings '
+      '($examples)',
+    );
+  }
   if (unreachable != 0) {
     final examples = rows
         .where(
@@ -128,6 +163,19 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
     );
   }
   issues.addAll(validateAnimationVisualEvidence(visualEvidence, bindings));
+  final slotRows = _dictionarySlotRows(catalog, rows);
+  final expectedSlotCount = (catalog['dictionaries']! as List<Object?>)
+      .cast<Map<String, Object?>>()
+      .expand((dictionary) => dictionary['slots']! as List<Object?>)
+      .length;
+  if (slotRows.length != expectedSlotCount) {
+    issues.add(
+      'dictionary slot audit produced ${slotRows.length} rows; '
+      'expected $expectedSlotCount',
+    );
+  }
+  final authoredSlots = slotRows.where((row) => row['clip'] != null).length;
+  final emptySlots = slotRows.length - authoredSlots;
 
   final report = <String, Object?>{
     'schemaVersion': 1,
@@ -135,28 +183,114 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
     'summary': {
       'catalogClips': clips.length,
       'dictionaryCount': catalog['dictionaryCount'],
-      'dictionarySlots': (catalog['dictionaries']! as List<Object?>)
-          .cast<Map<String, Object?>>()
-          .expand((dictionary) => dictionary['slots']! as List<Object?>)
-          .length,
+      'dictionarySlots': expectedSlotCount,
+      'authoredDictionarySlots': authoredSlots,
+      'emptyDictionarySlots': emptySlots,
       'bindings': bindings.length,
       'boundClips': rows
           .where((row) => (row['bindings']! as List).isNotEmpty)
           .length,
       'unboundClips': unbound,
       'unexplainedClips': unexplained,
+      'ambiguousContextClips': ambiguous,
       'clipsWithoutRuntimePath': unreachable,
+      'concreteRuntimeBindings': concretePaths.length,
+      'declarativeOnlyBindings': bindings.length - concretePaths.length,
       'unknownBindingClips': unknownBindings.length,
       'representativeSequences':
           (visualEvidence['sequences'] as List<Object?>? ?? const []).length,
     },
     'visualEvidence': visualEvidence,
+    'dictionarySlots': slotRows,
     'clips': rows,
   };
   if (issues.isNotEmpty) {
     throw AnimationBindingAcceptanceException(issues);
   }
   return report;
+}
+
+Map<String, List<String>> animationConcreteRuntimePaths(
+  Map<String, Object?> manifest,
+) {
+  final result = <String, List<String>>{};
+  final bindings = (manifest['bindings']! as List<Object?>)
+      .cast<Map<String, Object?>>();
+  for (final rawProfile
+      in manifest['runtimeProfiles'] as List<Object?>? ?? const []) {
+    final profile = rawProfile! as Map<String, Object?>;
+    for (final state in (profile['states']! as Map<String, Object?>).entries) {
+      final selector = state.value! as Map<String, Object?>;
+      final binding = bindings.singleWhere(
+        (item) =>
+            item['actor'] == profile['actor'] &&
+            item['skin'] == profile['skin'] &&
+            item['costume'] == profile['costume'] &&
+            item['context'] == profile['context'] &&
+            item['action'] == selector['action'] &&
+            item['variant'] == selector['variant'],
+      );
+      result
+          .putIfAbsent(_bindingKey(binding), () => [])
+          .add('runtime-profile:${profile['id']}:${state.key}');
+    }
+  }
+  return result;
+}
+
+bool _bindingClaimsSourceVariant(
+  Map<String, Object?> binding,
+  Object? sourceVariant,
+) {
+  if (binding['variant'] == sourceVariant) return true;
+  final catalogVariants = binding['catalogVariants'];
+  return catalogVariants is List<Object?> &&
+      catalogVariants.contains(sourceVariant);
+}
+
+List<Map<String, Object?>> _dictionarySlotRows(
+  Map<String, Object?> catalog,
+  List<Map<String, Object?>> clipRows,
+) {
+  final contexts = <String, Map<String, Object?>>{};
+  for (final clip in clipRows) {
+    for (final context
+        in (clip['contexts']! as List<Object?>).cast<Map<String, Object?>>()) {
+      contexts['${context['dictionaryId']}:${context['slot']}'] = {
+        ...context,
+        'clip': clip['clip'],
+      };
+    }
+  }
+  final rows = <Map<String, Object?>>[];
+  for (final dictionary
+      in (catalog['dictionaries']! as List<Object?>)
+          .cast<Map<String, Object?>>()) {
+    final dictionaryId = dictionary['objectId'];
+    final slots = dictionary['slots']! as List<Object?>;
+    for (var slot = 0; slot < slots.length; slot++) {
+      final context = contexts['$dictionaryId:$slot'];
+      if (slots[slot] == null) {
+        rows.add({
+          'dictionaryId': dictionaryId,
+          'slot': slot,
+          'status': 'authored-empty',
+          'clip': null,
+          'bindings': const <Object?>[],
+        });
+      } else if (context != null) {
+        rows.add({
+          'dictionaryId': dictionaryId,
+          'slot': slot,
+          'status': 'bound',
+          'clip': context['clip'],
+          'sourceVariant': context['sourceVariant'],
+          'bindings': context['bindings'],
+        });
+      }
+    }
+  }
+  return rows;
 }
 
 Map<String, List<String>> animationRuntimePaths(Map<String, Object?> manifest) {
@@ -192,39 +326,21 @@ Map<String, List<String>> animationRuntimePaths(Map<String, Object?> manifest) {
       add(binding, 'hero-graph:${entry.key}:${entry.value}');
     }
   }
-  // The current Metal renderer retains a seven-state Asterix compatibility
-  // graph beside the complete semantic graph. Its unversioned variants form
-  // an independently connected component rooted at `idle`.
-  for (final root in bindings.where(
-    (item) =>
-        item['context'] == 'gameplay' &&
-        item['variant'] == null &&
-        item['action'] == 'idle',
-  )) {
-    final component = bindings
-        .where(
-          (item) =>
-              item['actor'] == root['actor'] &&
-              item['context'] == root['context'] &&
-              item['variant'] == null,
-        )
-        .toList(growable: false);
-    final reachable = <Object?>{'idle'};
-    final pending = <Object?>['idle'];
-    while (pending.isNotEmpty) {
-      final action = pending.removeLast();
-      for (final binding in component.where(
-        (item) => item['action'] == action,
-      )) {
-        for (final target in binding['transitions']! as List<Object?>) {
-          if (reachable.add(target)) pending.add(target);
-        }
-      }
-    }
-    for (final binding in component.where(
-      (item) => reachable.contains(item['action']),
-    )) {
-      add(binding, 'renderer-state-machine:${root['actor']}:idle');
+  for (final rawProfile
+      in manifest['runtimeProfiles'] as List<Object?>? ?? const []) {
+    final profile = rawProfile! as Map<String, Object?>;
+    for (final state in (profile['states']! as Map<String, Object?>).entries) {
+      final selector = state.value! as Map<String, Object?>;
+      final binding = bindings.singleWhere(
+        (item) =>
+            item['actor'] == profile['actor'] &&
+            item['skin'] == profile['skin'] &&
+            item['costume'] == profile['costume'] &&
+            item['context'] == profile['context'] &&
+            item['action'] == selector['action'] &&
+            item['variant'] == selector['variant'],
+      );
+      add(binding, 'runtime-profile:${profile['id']}:${state.key}');
     }
   }
   for (final raw in manifest['characterProfiles']! as List<Object?>) {
@@ -351,6 +467,7 @@ List<String> _acceptanceManifestIssues(Map<String, Object?> manifest) {
     'worldGraphVersion',
     'cinematicGraphVersion',
     'eventTrackVersion',
+    'runtimeProfileVersion',
   }) {
     if (manifest[version] != 1) issues.add('$version must equal 1');
   }
@@ -360,6 +477,7 @@ List<String> _acceptanceManifestIssues(Map<String, Object?> manifest) {
     'worldProfiles',
     'cinematicTimelines',
     'eventTracks',
+    'runtimeProfiles',
   }) {
     if (manifest[section] == null) issues.add('$section must be present');
   }

@@ -12,11 +12,12 @@ Authoritative gameplay-состояние находится в C++ `player::Run
 скорость capsule определяют jump/fall/landing, а fall recovery возвращает
 машину в `fall` до повторного контакта с землёй.
 
-Параметры оставлены конфигурируемыми по ограничениям эталона. После калибровки
-задачи 60 run speed равен 4.32 world unit/s (2.4 H/s при 1 H = 1.8 world unit),
-scripted acceleration 18 и deceleration 21.6. Snapshot отдельно публикует gait
+Параметры оставлены конфигурируемыми по ограничениям эталона. Повторная
+runtime/visual-приёмка задачи 83 уточнила gameplay run speed до 7.2 world unit/s
+(4 H/s при 1 H = 1.8 world unit), acceleration 18 и deceleration 43.2. Snapshot
+отдельно публикует gait
 `idle/walk/run` для animation graph. Gameplay locomotion сразу выбирает `run` и
-эталонные 4.32 world unit/s при полном направленном вводе;
+7.2 world unit/s при полном направленном вводе;
 ускорение больше не используется как неявный gait selector. `walk` доступен
 только через явный `LocomotionMode::scripted_walk`, который включает authored
 скорость 1.8 world unit/s для scripted/cinematic-сцен. Возврат управления,
@@ -36,9 +37,9 @@ death lock.
 Locomotion snapshot дополнительно хранит фактическую горизонтальную скорость,
 последнее устойчивое направление, непрерывные таймеры idle/run clips и вес
 перехода длительностью 0,12 с. Run phase масштабируется отношением текущей
-скорости капсулы к `run_speed`; поэтому collision-limited и аналоговый ввод не
-дают скольжения ног, а отпускание управления плавно смешивает текущую run-позу
-с idle. Metal
+скорости капсулы к `run_speed` и уточнённым множителем authored cadence `1.65`;
+поэтому collision-limited и аналоговый ввод не дают скольжения ног, а отпускание
+управления плавно смешивает текущую run-позу с idle. Metal
 применяет направление движения как root-space yaw ко всей 58-bone palette.
 
 Точный сериализованный spawn Астерикса в Gaul пока не подтверждён. Runtime

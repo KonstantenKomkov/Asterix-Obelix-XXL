@@ -154,9 +154,9 @@ void main() {
       registry.actors().toSet(),
       containsAll({'asterix', 'obelix', 'idefix'}),
     );
-    expect(registry.heroBindings('asterix'), hasLength(97));
-    expect(registry.heroBindings('obelix'), hasLength(71));
-    expect(registry.heroBindings('idefix'), hasLength(22));
+    expect(registry.heroBindings('asterix'), hasLength(90));
+    expect(registry.heroBindings('obelix'), hasLength(72));
+    expect(registry.heroBindings('idefix'), hasLength(28));
     expect(
       registry.bindings
           .where(
@@ -168,6 +168,64 @@ void main() {
           .map((binding) => binding['clip'])
           .toSet(),
       hasLength(183),
+    );
+  });
+
+  test('renderer runtime profile resolves exact semantic bindings', () async {
+    final decoded =
+        jsonDecode(
+              await File('assets/animation_bindings.v1.json').readAsString(),
+            )
+            as Map<String, Object?>;
+    final registry = AnimationBindingRegistry.parse(decoded);
+    final profile =
+        (decoded['runtimeProfiles']! as List<Object?>).single
+            as Map<String, Object?>;
+    final states = profile['states']! as Map<String, Object?>;
+    expect(states.keys, {
+      'idle',
+      'run',
+      'jump',
+      'double_jump',
+      'fall',
+      'attack',
+      'hurt',
+      'death',
+    });
+    for (final selector in states.values.cast<Map<String, Object?>>()) {
+      expect(
+        registry.resolve(
+          AnimationBindingQuery(
+            actor: profile['actor']! as String,
+            skin: profile['skin']! as int,
+            costume: profile['costume']! as String,
+            action: selector['action']! as String,
+            context: profile['context']! as String,
+            variant: selector['variant']! as String,
+          ),
+        )['fallback'],
+        isFalse,
+      );
+    }
+
+    final invalid = jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
+    final invalidProfile =
+        (invalid['runtimeProfiles']! as List<Object?>).single
+            as Map<String, Object?>;
+    final invalidStates = invalidProfile['states']! as Map<String, Object?>;
+    invalidStates['double_jump'] = {
+      'action': 'locomotion.jump',
+      'variant': 'clip-0064',
+    };
+    expect(
+      () => AnimationBindingRegistry.parse(invalid),
+      throwsA(
+        isA<AnimationBindingException>().having(
+          (error) => error.message,
+          'message',
+          contains('double_jump must resolve exactly one'),
+        ),
+      ),
     );
   });
 

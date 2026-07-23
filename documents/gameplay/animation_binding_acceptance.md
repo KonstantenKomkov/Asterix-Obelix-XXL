@@ -23,10 +23,19 @@ profile или cinematic script event/cue. Неизвестная ссылка r
 binding, semantic context без clip join или binding без runtime path отклоняют
 отчёт.
 
-Проверенный 22 июля 2026 локальный результат содержит 345 bound clips и 408
-конкретных bindings; `unboundClips`, `unexplainedClips`,
+После начала задачи 83 отчёт различает декларативную достижимость graph и
+конкретные renderer/runtime entry points. `concreteRuntimeBindings` учитывает
+только bindings, которые точный versioned `runtimeProfiles` selector реально
+передаёт исполняемому state machine; `declarativeOnlyBindings` нельзя трактовать
+как завершённую runtime-интеграцию. На текущем этапе конкретно интегрированы
+восемь состояний `asterix-player`, остальные profiles требуют последующего
+подключения и cold-start/scenario приёмки.
+
+Проверенный 23 июля 2026 локальный результат содержит 345 bound clips, 408
+декларативных bindings и 8 concrete runtime bindings; `unboundClips`,
+`unexplainedClips`,
 `clipsWithoutRuntimePath` и `unknownBindingClips` равны нулю. SHA-256 отчёта:
-`788767f3cdab72bbdd673df41b64b0204a12663e272a406e8d3b2e7cac42bbcd`.
+`01bd4b27a2b53699ad72d97be0d65163145c7aa40067141c4d8c1e4bcd620cd7`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
 

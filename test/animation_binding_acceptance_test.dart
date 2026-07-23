@@ -20,16 +20,52 @@ void main() {
 
   test('every checked-in binding has a verified runtime path', () {
     final paths = animationRuntimePaths(manifest);
+    final concretePaths = animationConcreteRuntimePaths(manifest);
     expect(registry.bindings, hasLength(408));
     expect(
       registry.bindings.map(bindingAcceptanceKey).toSet(),
       everyElement(isIn(paths.keys)),
     );
     expect(paths.values, everyElement(isNotEmpty));
+    expect(concretePaths, hasLength(8));
+    expect(
+      concretePaths.values.expand((paths) => paths),
+      everyElement(startsWith('runtime-profile:asterix-player:')),
+    );
     expect(
       registry.bindings.map((binding) => binding['clip']).toSet(),
       hasLength(345),
     );
+  });
+
+  test('gameplay idle uses the calm authored loop', () {
+    final idle = registry.resolve(
+      const AnimationBindingQuery(
+        actor: 'asterix',
+        skin: 4,
+        costume: 'default',
+        action: 'locomotion.idle',
+        context: 'gameplay',
+        variant: 'clip-0058',
+      ),
+    );
+    expect(idle['clip'], '0058.animation.json');
+    expect(idle['loop'], isTrue);
+  });
+
+  test('gameplay double jump uses the authored somersault', () {
+    final doubleJump = registry.resolve(
+      const AnimationBindingQuery(
+        actor: 'asterix',
+        skin: 4,
+        costume: 'default',
+        action: 'locomotion.airborne',
+        context: 'gameplay',
+        variant: 'clip-0064',
+      ),
+    );
+    expect(doubleJump['clip'], '0064.animation.json');
+    expect(doubleJump['loop'], isFalse);
   });
 
   test('representative visual evidence resolves exact bindings', () async {

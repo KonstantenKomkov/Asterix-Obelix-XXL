@@ -12,12 +12,13 @@ payloads. `SliceAssetPipeline` validates it before producing an
 missing required states, unknown transition targets and incompatible skeleton
 declarations stop the build with a diagnostic instead of selecting a pose.
 
-At load time Metal resolves the seven currently reachable Asterix states for
-skin `4`, costume `default` and context `gameplay`. The runtime rejects a
-missing or ambiguous mapping and checks the declared 58-node skeleton before
-any clip is sampled. Looping is read from the binding rather than inferred from
-a state index. `ASTERIX_ANIMATION_REVIEW_CLIP` remains an explicit diagnostic
-override and does not change the normal registry.
+At load time Metal resolves the eight currently reachable Asterix states through
+the versioned `asterix-player` runtime profile. Every state selects one exact
+semantic binding by actor, skin, costume, context, action and variant. The
+runtime rejects missing or ambiguous selectors and checks the declared 58-node
+skeleton before any clip is sampled. Looping is read from the binding rather
+than inferred from a state index. `ASTERIX_ANIMATION_REVIEW_CLIP` remains an
+explicit diagnostic override and does not change the normal registry.
 
 `graphVersion: 1` extends the same registry with the complete controllable-hero
 graph. It contains all 183 confirmed hero clips: 90 for Asterix, 71 for Obelix
@@ -36,10 +37,9 @@ interaction commit and locomotion contact/cycle boundaries to gameplay without
 wall-clock timers. The richer versioned event-track transport, including
 low-FPS and loop-boundary delivery guarantees, remains task 68.
 
-The seven short Asterix aliases remain in the manifest for the current Metal
-renderer. They resolve to the same confirmed clips and allow the renderer to
-adopt the full semantic action names incrementally without reintroducing clip
-numbers into code.
+The old short Asterix aliases are not part of the registry. Gameplay enum names
+are mapped to semantic actions only by `runtimeProfiles`; clip IDs remain in
+data and do not appear in the renderer or gameplay state machine.
 
 `characterGraphVersion: 1` adds exact profiles for enemies, leaders, NPC and
 animated characters. The checked-in graph covers the confirmed 92 clips and

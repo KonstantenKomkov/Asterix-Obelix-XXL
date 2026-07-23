@@ -168,6 +168,7 @@ final class AnimationBindingRegistry {
       Map<String, Object?>.from(value),
       bindings,
     );
+    _validateRuntimeProfiles(value, bindings);
     for (final entry in requiredStates.entries) {
       if (entry.value is! List) {
         throw AnimationBindingException(
@@ -503,6 +504,64 @@ final class AnimationBindingRegistry {
       }
     }
     return registry;
+  }
+
+  static void _validateRuntimeProfiles(
+    Map<String, Object?> manifest,
+    List<Map<String, Object?>> bindings,
+  ) {
+    final version = manifest['runtimeProfileVersion'];
+    final profiles = manifest['runtimeProfiles'];
+    if (version == null && profiles == null) return;
+    if (version != 1 || profiles is! List || profiles.isEmpty) {
+      throw const AnimationBindingException(
+        'runtimeProfileVersion must equal 1 and runtimeProfiles must be non-empty',
+      );
+    }
+    final ids = <String>{};
+    for (var profileIndex = 0; profileIndex < profiles.length; profileIndex++) {
+      final profile = profiles[profileIndex];
+      if (profile is! Map<String, Object?> ||
+          profile['id'] is! String ||
+          !ids.add(profile['id']! as String) ||
+          profile['actor'] is! String ||
+          profile['skin'] is! int ||
+          profile['costume'] is! String ||
+          profile['context'] is! String ||
+          profile['states'] is! Map<String, Object?> ||
+          (profile['states']! as Map<String, Object?>).isEmpty) {
+        throw AnimationBindingException(
+          'runtimeProfiles[$profileIndex] is invalid',
+        );
+      }
+      for (final state
+          in (profile['states']! as Map<String, Object?>).entries) {
+        final selector = state.value;
+        if (selector is! Map<String, Object?> ||
+            selector['action'] is! String ||
+            selector['variant'] is! String) {
+          throw AnimationBindingException(
+            'runtimeProfiles[$profileIndex].states.${state.key} is invalid',
+          );
+        }
+        final matches = bindings.where(
+          (binding) =>
+              binding['actor'] == profile['actor'] &&
+              binding['skin'] == profile['skin'] &&
+              binding['costume'] == profile['costume'] &&
+              binding['context'] == profile['context'] &&
+              binding['action'] == selector['action'] &&
+              binding['variant'] == selector['variant'] &&
+              binding['fallback'] == false,
+        );
+        if (matches.length != 1) {
+          throw AnimationBindingException(
+            'runtimeProfiles[$profileIndex].states.${state.key} must resolve '
+            'exactly one non-fallback binding',
+          );
+        }
+      }
+    }
   }
 
   static void _validateEventTracks(

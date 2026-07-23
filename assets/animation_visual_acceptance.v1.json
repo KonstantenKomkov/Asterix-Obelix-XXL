@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "dataset": "XXL1/LVL01",
-  "reviewedAt": "2026-07-22",
+  "reviewedAt": "2026-07-23",
   "method": "side-by-side playback against the locally installed original; captures and extracted assets remain outside Git",
   "sequences": [
     {
@@ -9,7 +9,7 @@
       "originalReference": "task-62 review sheet and task-59 held-movement capture",
       "result": "match",
       "steps": [
-        {"actor": "asterix", "action": "locomotion.idle", "clip": "0053.animation.json"},
+        {"actor": "asterix", "action": "locomotion.idle", "clip": "0058.animation.json"},
         {"actor": "asterix", "action": "locomotion.run", "clip": "0035.animation.json"},
         {"actor": "asterix", "action": "combat.attack", "clip": "0000.animation.json"},
         {"actor": "asterix", "action": "damage.death", "clip": "0033.animation.json"}

@@ -16,9 +16,15 @@ geometry; старые локальные пакеты до задачи 28 со
 
 Для Астерикса runtime восстанавливает tracks из interleaved RenderWare keyframe
 chains и строит parent indices из HAnim push/pop flags. В LVL01 58-node clips
-сопоставлены gameplay-состояниям так: `idle=0053`, `run=0035`, `jump=0031`,
-`fall=0039`, `attack=0000`, `hurt=0009`, `death=0033`. Idle/run зациклены,
-остальные clips clamp-ятся на последней позе до перехода state machine.
+сопоставлены gameplay-состояниям через versioned semantic runtime profile:
+`idle=locomotion.idle`, `run=locomotion.run`, `jump=locomotion.jump`,
+`double_jump=locomotion.airborne`, `fall=locomotion.fall`,
+`attack=combat.attack`, `hurt=damage.hurt`, `death=damage.death`.
+Профиль разрешает точный variant каждого состояния в data-driven registry,
+без clip IDs в renderer. Idle/run зациклены,
+остальные clips clamp-ятся на последней позе до перехода state machine. Базовый
+idle `0058` сохраняет спокойное дыхание и редкий поворот головы; выразительный
+`0053` не используется как постоянно повторяющийся gameplay idle.
 
 Каждый render frame вычисляет полную palette `world * inverseBind` для всех 58
 bones, добавляет gameplay-position к root space и передаёт palette отдельным

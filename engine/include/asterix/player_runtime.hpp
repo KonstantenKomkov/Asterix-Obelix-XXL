@@ -10,7 +10,9 @@
 
 namespace asterix::player {
 
-enum class State : std::uint8_t { idle, run, jump, fall, attack, hurt, death };
+enum class State : std::uint8_t {
+  idle, run, jump, double_jump, fall, attack, hurt, death
+};
 
 enum class Gait : std::uint8_t { idle, walk, run };
 enum class LocomotionMode : std::uint8_t { gameplay, scripted_walk };
@@ -20,6 +22,7 @@ inline const char* stateName(State state) {
     case State::idle: return "idle";
     case State::run: return "run";
     case State::jump: return "jump";
+    case State::double_jump: return "double_jump";
     case State::fall: return "fall";
     case State::attack: return "attack";
     case State::hurt: return "hurt";
@@ -29,14 +32,14 @@ inline const char* stateName(State state) {
 }
 
 struct Config {
-  // The reference uses standing-height units (H). The imported capsule is
-  // 1.8 world units tall, so 2.4 H/s is 4.32 world units/s.
+  // Gameplay locomotion is a run, not the slower scripted traversal gait.
+  // 4 H/s keeps the authored run readable at the scale of the imported map.
   float world_units_per_height = 1.8f;
-  float run_speed = 4.32f;
+  float run_speed = 7.2f;
   float scripted_walk_speed = 1.8f;
   float acceleration = 18.0f;
-  float deceleration = 21.6f;
-  float run_animation_rate = 1.0f;
+  float deceleration = 43.2f;
+  float run_animation_rate = 1.65f;
   float jump_velocity = 8.4f;
   float jump_control_seconds = 0.2f;
   float jump_release_deceleration = 28.0f;
@@ -223,13 +226,14 @@ class Runtime {
     if (attack_edge) enter(State::attack);
     if (jump_edge && snapshot_.state != State::attack &&
         (snapshot_.body.grounded || air_jump_available_)) {
-      if (!snapshot_.body.grounded) air_jump_available_ = false;
+      const bool airJump = !snapshot_.body.grounded;
+      if (airJump) air_jump_available_ = false;
       snapshot_.body.velocity.y = config_.jump_velocity;
       snapshot_.body.grounded = false;
       jump_control_active_ = true;
       jump_cut_active_ = false;
       jump_control_elapsed_ = 0;
-      enter(State::jump);
+      enter(airJump ? State::double_jump : State::jump);
     }
 
     if (jump_release && jump_control_active_ &&
@@ -283,7 +287,13 @@ class Runtime {
                snapshot_.state_seconds < config_.attack_seconds) {
       // Keep the one-shot animation authoritative until its configured end.
     } else if (!snapshot_.body.grounded) {
-      enterIfChanged(snapshot_.body.velocity.y > 0 ? State::jump : State::fall);
+      if (snapshot_.body.velocity.y > 0 &&
+          snapshot_.state == State::double_jump) {
+        // Keep the authored somersault authoritative for the second ascent.
+      } else {
+        enterIfChanged(snapshot_.body.velocity.y > 0 ? State::jump
+                                                     : State::fall);
+      }
     } else if (snapshot_.horizontal_speed > .05f) {
       enterIfChanged(State::run);
     } else {
