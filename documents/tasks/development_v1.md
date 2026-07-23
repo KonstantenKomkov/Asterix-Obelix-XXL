@@ -21,6 +21,22 @@
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 | 91 | **Восстановить точные соответствия authored animation clips игровым действиям:** исследовать доступный исходный код, символы, таблицы состояний и обращения к animation dictionaries оригинальной игры; заменить предположительные semantic labels доказанными actor/state/event → dictionary/slot/clip связями | Animation fidelity | P0 | XL | Законный локальный источник; документированная цепочка доказательств для каждого runtime binding; отдельно подтверждены одинарный/двойной прыжок Астерикса; обновлены catalog, bindings и acceptance; визуальный preview не считается достаточным доказательством |
 
+Декомпозиция п. 91 зафиксирована в
+[плане reverse engineering](../architecture/original_animation_reverse_engineering.md):
+
+| № | Подзадача | Результат / gate |
+|---:|---|---|
+| 91.1 | Зафиксировать binary corpus и воспроизводимый toolchain | Хеши и PE-метаданные точной версии; локальный headless analysis повторяется с нуля |
+| 91.2 | Восстановить class/function anchors по RTTI, vtables и XXL-Editor layouts | Карта owners, методов и полей animation dictionaries |
+| 91.3 | Найти primitives чтения slot и запуска animation | Call graph и xrefs от owners до dictionary access |
+| 91.4 | Восстановить numeric state/event dispatch | Switch/jump tables и доказанные входы без преждевременных semantic labels |
+| 91.5 | Восстановить полный профиль Астерикса | Отдельные статические цепочки и input traces для single/double jump |
+| 91.6 | Восстановить профили Обеликса и Идефикса | Доказаны все hero bindings, включая reused clips |
+| 91.7 | Восстановить enemies и scripted actors | Доказаны enemy, composite leader и 24 scripted owners |
+| 91.8 | Восстановить world/UI/FX и cinematics | Доказаны 13 world profiles и все cues 14 timelines |
+| 91.9 | Добавить versioned provenance schema и strict gate | Каждый binding биективно связан с binary/function/state/dictionary/slot/clip evidence |
+| 91.10 | Обновить catalog, registry и acceptance | 408 confirmed; 0 unresolved/ambiguous/visual-only; single/double jump приняты отдельно |
+
 ---
 
 ## Последующие итерации
@@ -137,13 +153,25 @@
 - [x] П. 89 — 46 world/UI/FX bindings
 - [x] П. 90 — 63 cinematic bindings
 - [ ] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
+  - [ ] П. 91.1 — binary corpus и воспроизводимый toolchain
+  - [ ] П. 91.2 — class/function anchors
+  - [ ] П. 91.3 — animation dictionary access primitives
+  - [ ] П. 91.4 — numeric state/event dispatch
+  - [ ] П. 91.5 — полный профиль Астерикса и отдельные single/double jump chains
+  - [ ] П. 91.6 — профили Обеликса и Идефикса
+  - [ ] П. 91.7 — enemies и scripted actors
+  - [ ] П. 91.8 — world/UI/FX и cinematics
+  - [ ] П. 91.9 — versioned provenance gate
+  - [ ] П. 91.10 — итоговые catalog, registry и acceptance
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — добавлен исследовательский п. 91: прежние structural/visual gates не доказали семантическую правильность всех привязок. Требуется восстановить точные actor/state/event → dictionary/slot/clip соответствия из доступного исходного кода, символов и управляющих таблиц оригинальной игры; runtime preview оставлен только как отключённый диагностический инструмент и не является источником истины.
+**Последнее обновление:** 23 июля 2026 — п. 91 декомпозирован на 91.1–91.10: от фиксации точной версии stripped PE32 и восстановления RTTI/vtable/function anchors до provenance gate для всех 408 bindings. Декомпиляция и динамические traces выполняются только локально; в Git разрешены хеши, RVA-идентификаторы, восстановленные числовые связи и собственные валидаторы, но не листинги или псевдокод оригинала.
+
+**Предыдущее обновление:** 23 июля 2026 — добавлен исследовательский п. 91: прежние structural/visual gates не доказали семантическую правильность всех привязок. Требуется восстановить точные actor/state/event → dictionary/slot/clip соответствия из доступного исходного кода, символов и управляющих таблиц оригинальной игры; runtime preview оставлен только как отключённый диагностический инструмент и не является источником истины.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 83 выполнен: итоговый strict gate требует 345 clips / 518 slots / ровно 408 concrete runtime bindings / 0 declarative-only и полный набор 22 representative visual sequences всех групп. Повторно собран fresh ASTPAK всех 345 animations, release cold start прошёл без loader/runtime diagnostics.
 
