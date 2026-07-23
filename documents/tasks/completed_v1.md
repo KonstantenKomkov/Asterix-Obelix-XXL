@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 91.7 — Authored animation profiles enemies и scripted actors
+
+**Выполнено:** 23 июля 2026.
+
+Все 85 gameplay bindings `CKHkBasicEnemy` и составного
+`CKHkBasicEnemyLeader` соединены с numeric runtime state/event, точным
+dictionary, slot и authored clip: 41 binding basic Roman dictionary 48, 41
+equipment binding dictionary 27 и три body binding dictionary 28.
+
+Для состояний 0, 1 и 2 leader отдельно доказан синхронный выбор body и
+equipment. Все 24 scripted profiles связаны с отдельным dictionary owner,
+уникальным script event и точным selector; 22 принадлежат
+`CKHkAnimatedCharacter`, два — `CKCinematicSceneData`. Visual preview и
+semantic action labels доказательством не служат.
+
+Два независимых metadata-only export побайтно совпали; SHA-256:
+`d0b61ef953bce5757ec7676a196da2a446269cced5258d62cbb690afe0355a73`.
+Прошли tooling regressions, resource policy и отдельное diff review. Binary
+bytes, disassembly, pseudocode и локальные traces в Git не добавлены.
+Описание:
+[task91_enemies_scripted_profile.md](../architecture/task91_enemies_scripted_profile.md).
+
 ## П. 91.6 — Authored animation profiles Обеликса и Идефикса
 
 **Выполнено:** 23 июля 2026.

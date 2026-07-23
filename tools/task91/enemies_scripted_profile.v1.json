@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "module": "GameModule.elb",
+  "enemyProfiles": [
+    {
+      "owner": "CKHkBasicEnemy",
+      "dictionaryField": "beAnimDict",
+      "profile": "basic-roman-enemy",
+      "dictionary": 48,
+      "expectedBindingCount": 41
+    },
+    {
+      "owner": "CKHkBasicEnemyLeader",
+      "dictionaryField": "ckhbelUnk0",
+      "profile": "roman-leader-equipment",
+      "dictionary": 27,
+      "expectedBindingCount": 41
+    },
+    {
+      "owner": "CKHkBasicEnemyLeader",
+      "dictionaryField": "ckhbelUnk0",
+      "profile": "roman-leader-body",
+      "dictionary": 28,
+      "expectedBindingCount": 3
+    }
+  ],
+  "compositeLeader": {
+    "owner": "CKHkBasicEnemyLeader",
+    "equipmentProfile": "roman-leader-equipment",
+    "bodyProfile": "roman-leader-body",
+    "synchronizedSlots": [0, 1, 2]
+  },
+  "scriptedOwnerKinds": {
+    "animated-character": {
+      "owner": "CKHkAnimatedCharacter",
+      "dictionaryField": "animDict"
+    },
+    "cinematic-scene": {
+      "owner": "CKCinematicSceneData",
+      "dictionaryField": "animDict"
+    }
+  },
+  "scriptedProfilePrefix": "scripted-dictionary-",
+  "expectedScriptedOwnerCount": 24,
+  "expectedEnemyBindingCount": 85,
+  "expectedScriptedBindingCount": 24
+}
