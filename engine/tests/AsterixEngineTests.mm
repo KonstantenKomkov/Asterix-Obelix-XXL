@@ -4,6 +4,7 @@
 
 #include "asterix/engine.h"
 #include "asterix/animation_runtime.hpp"
+#include "asterix/animation_controller.hpp"
 #include "asterix/fog_volume_runtime.hpp"
 #include "asterix/animation_event_runtime.hpp"
 #include "asterix/collision_runtime.hpp"
@@ -25,6 +26,108 @@
 @end
 
 @implementation AsterixEngineTests
+
+- (void)testAuthoredAnimationControllerLoopsAtFixedTickWithoutReplay {
+  using namespace asterix::animation_controller;
+  Graph graph{"actor:test","binding:idle",
+    {{"binding:idle",{0,0,"clip-0001"},1,1,0},
+     {"binding:run",{0,2,"clip-0002"},.5,2,.25}},
+    {{"select:idle","*","binding:idle",Completion::loop,Operation::start,.2},
+     {"select:run","*","binding:run",Completion::loop,Operation::start,.1}}};
+  AnimationController controller(graph);
+  XCTAssertEqual(controller.snapshot().activation,1u);
+  XCTAssertTrue(controller.request("select:run",Request::interrupt));
+  XCTAssertEqual(controller.snapshot().activation,2u);
+  XCTAssertEqualWithAccuracy(controller.snapshot().phase,.25,1e-9);
+  controller.advance(.25);
+  XCTAssertEqualWithAccuracy(controller.snapshot().phase,.25,1e-9);
+  const auto activation=controller.snapshot().activation;
+  XCTAssertFalse(controller.request("select:run",Request::interrupt));
+  XCTAssertEqual(controller.snapshot().activation,activation);
+}
+
+- (void)testAuthoredAnimationControllerOneShotCompletesAndDoesNotReplay {
+  using namespace asterix::animation_controller;
+  Graph graph{"actor:test","binding:idle",
+    {{"binding:idle",{0,0,"clip-idle"},1,1,0},
+     {"binding:attack",{0,18,"clip-attack"},.5,1,0}},
+    {{"select:idle","*","binding:idle",Completion::loop,Operation::start,0},
+     {"select:attack","*","binding:attack",
+      Completion::authored_clip_end,Operation::change,.05}}};
+  AnimationController controller(graph);
+  XCTAssertTrue(controller.request("select:attack",Request::interrupt));
+  controller.advance(1.0/3.0);
+  XCTAssertFalse(controller.snapshot().completed);
+  controller.advance(1.0/3.0);
+  XCTAssertTrue(controller.snapshot().completed);
+  XCTAssertEqualWithAccuracy(controller.snapshot().cursor_seconds,.5,1e-9);
+  const auto activation=controller.snapshot().activation;
+  controller.advance(1.0/60.0);
+  XCTAssertFalse(controller.request("select:attack",Request::interrupt));
+  XCTAssertEqual(controller.snapshot().activation,activation);
+}
+
+- (void)testAuthoredAnimationControllerInterruptAndQueuedTransition {
+  using namespace asterix::animation_controller;
+  Graph graph{"actor:test","binding:idle",
+    {{"binding:idle",{0,0,"idle"},1,1,0},
+     {"binding:attack",{0,18,"attack"},.5,1,0},
+     {"binding:hurt",{0,36,"hurt"},.4,1,0}},
+    {{"select:idle","*","binding:idle",Completion::loop,Operation::start,0},
+     {"select:attack","*","binding:attack",
+      Completion::authored_clip_end,Operation::change,.1},
+     {"select:hurt","*","binding:hurt",
+      Completion::authored_clip_end,Operation::change,.05}}};
+  AnimationController queued(graph);
+  XCTAssertTrue(queued.request("select:attack",Request::interrupt));
+  XCTAssertTrue(queued.request("select:hurt",Request::queue));
+  queued.advance(.5);
+  XCTAssertEqual(queued.snapshot().state,"binding:hurt");
+  XCTAssertEqual(queued.snapshot().activation,3u);
+  XCTAssertTrue(queued.snapshot().blend.has_value());
+  XCTAssertEqual(queued.snapshot().blend->from_state,"binding:attack");
+
+  AnimationController interrupted(graph);
+  interrupted.request("select:attack",Request::interrupt);
+  interrupted.advance(.2);
+  XCTAssertTrue(interrupted.request("select:hurt",Request::interrupt));
+  XCTAssertEqual(interrupted.snapshot().state,"binding:hurt");
+  XCTAssertEqualWithAccuracy(
+      interrupted.snapshot().blend->from_cursor_seconds,.2,1e-9);
+}
+
+- (void)testAuthoredAnimationControllerLandingCompletionPauseAndRestore {
+  using namespace asterix::animation_controller;
+  Graph graph{"actor:test","binding:idle",
+    {{"binding:idle",{0,0,"idle"},1,1,0},
+     {"binding:jump",{0,13,"clip-0031"},.8,1,0},
+     {"binding:land",{0,14,"land"},.3,1,0}},
+    {{"select:idle","*","binding:idle",Completion::loop,Operation::start,0},
+     {"select:jump","*","binding:jump",Completion::landing,
+      Operation::change,.12},
+     {"select:land","binding:jump","binding:land",
+      Completion::authored_clip_end,Operation::change,.12}}};
+  AnimationController controller(graph);
+  controller.request("select:jump",Request::interrupt);
+  controller.advance(1.0);
+  XCTAssertFalse(controller.snapshot().completed);
+  XCTAssertEqualWithAccuracy(controller.snapshot().phase,1,1e-9);
+  const auto checkpoint=controller.snapshot();
+  controller.advance(.5,true);
+  XCTAssertEqualWithAccuracy(controller.snapshot().cursor_seconds,
+                             checkpoint.cursor_seconds,1e-9);
+  XCTAssertTrue(controller.request("select:land",Request::queue));
+  XCTAssertTrue(controller.complete(Completion::landing));
+  XCTAssertEqual(controller.snapshot().state,"binding:land");
+  const auto restoredActivation=checkpoint.activation;
+  XCTAssertTrue(controller.restore(checkpoint));
+  XCTAssertEqual(controller.snapshot().activation,restoredActivation);
+  XCTAssertEqual(controller.snapshot().state,"binding:jump");
+  XCTAssertFalse(controller.snapshot().queued_transition.has_value());
+  auto invalid=checkpoint;
+  invalid.profile="actor:other";
+  XCTAssertFalse(controller.restore(invalid));
+}
 
 - (void)testWaterUvVisualRegressionMovesAndSurvivesPauseRestoreAndStreaming {
   using namespace asterix::water_animation;

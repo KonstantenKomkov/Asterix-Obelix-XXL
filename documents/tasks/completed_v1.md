@@ -1,5 +1,28 @@
 # Выполненные задачи первой итерации
 
+## П. 93.3 — Единый native AnimationController
+
+**Выполнено:** 23 июля 2026.
+
+Добавлен независимый от gameplay enum native `AnimationController`, который
+принимает authored `select:*` transitions и хранит точный profile/state,
+dictionary/slot/asset binding, active transition/completion, clip cursor,
+normalized phase, blend, queued transition и монотонный activation serial.
+Gameplay остаётся владельцем фактов/guards и явно выбирает interrupt либо
+queue; повторный selector активного state не сбрасывает cursor и не
+проигрывает one-shot заново.
+
+Fixed-tick advancement покрывает loop, playback rate, authored clip end,
+terminal и внешний landing completion. Pause не изменяет snapshot, а
+транзакционный restore валидирует все ссылки и восстанавливает activation без
+повторного события. Native unit-тесты покрывают loop, one-shot, authored
+completion, interrupt, queued transition, landing, pause/restore, blend cursor
+и отсутствие replay.
+
+Полный `make check`, повторный `xcodebuild test`, resource policy и отдельный
+diff-review прошли. Оригинальные binary/assets в Git не добавлены. Описание:
+[`task93_animation_controller.md`](../architecture/task93_animation_controller.md).
+
 ## П. 93.2 — Versioned authored animation graph
 
 **Выполнено:** 23 июля 2026.
