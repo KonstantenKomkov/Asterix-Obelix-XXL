@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 93.6 — Behavioural/pose-приёмка относительно оригинала
+
+**Выполнено:** 23 июля 2026.
+
+Добавлен строгий metadata-only gate локальных original/runtime traces. Семь
+сценариев покрывают прыжок на месте и в движении, удержание, double jump,
+ascending/apex/descending/landing и interrupt уроном либо pause/resume.
+Канонический manifest хранит только сценарии, SHA-256 локальных traces и
+исходного Take C capture, обязательные маркеры и допуски; видео, кадры,
+оригинальные assets и сами trace в Git не добавлены.
+
+Каждая контрольная точка точно сравнивает dictionary/slot/clip binding и
+transition ID, а marker time, normalized phase и пять экранных pose-landmarks
+проверяет с явными допусками. Gate отдельно отклоняет случай с правильным
+номером клипа, но неверной визуальной позой, изменённый reference/capture и
+неполную матрицу.
+
+Локальная приёмка прошла 7/7 сценариев; report SHA-256:
+`cf16a1b695648f6d7edad0b623ba0d0ef18de7460d9695377116bedcaecfeb24`.
+Native single-jump regression подтверждает `select:jump`, slot 13 /
+`clip-0031`, сохранение binding на apex, разные takeoff/apex/landing joint
+palette и переход в idle только после landing. Полный `make check`, native
+`xcodebuild test`, resource policy и отдельный diff-review прошли. Описание:
+[`task93_behavioural_pose_acceptance.md`](../architecture/task93_behavioural_pose_acceptance.md).
+
 ## П. 93.5 — Authored pose playback, blending и root-motion policies
 
 **Выполнено:** 23 июля 2026.

@@ -287,6 +287,66 @@
   XCTAssertEqual(runtime.snapshot().binding.asset,"clip-0064");
 }
 
+- (void)testSingleJumpRegressionChecksSequencePhaseTransitionAndPose {
+  using namespace asterix;
+  using namespace asterix::animation_controller;
+  animation::Transform rest;
+  animation::Transform apex=rest;
+  apex.translation={0,2,0};
+  animation::Clip idle{1,true,{{{{0,rest},{1,rest}}}}};
+  animation::Clip jump{1,false,{{{{0,rest},{.5f,apex},{1,rest}}}}};
+  const std::unordered_map<std::string,animation::Clip> clips{
+      {"clip-0058",idle},{"clip-0031",jump}};
+  const std::vector<animation::Joint> joints{{-1}};
+  animation_pose::Playback playback(clips,joints,99);
+  Graph graph{"actor:CKHkAsterix","binding:idle",
+    {{"binding:idle",{0,0,"clip-0058"},1,1,0},
+     {"binding:jump",{0,13,"clip-0031"},1,1,0}},
+    {{"select:idle","*","binding:idle",Completion::loop,
+      Operation::start,.12},
+     {"select:jump","*","binding:jump",Completion::authored_clip_end,
+      Operation::change,.12}}};
+  player_animation::Runtime runtime(graph);
+  player::Snapshot gameplay;
+  gameplay.state=player::State::jump;
+  gameplay.body.grounded=false;
+  gameplay.body.velocity.y=4;
+  auto previous=runtime.snapshot();
+  auto takeoff=runtime.advance(.01,gameplay);
+  XCTAssertEqual(takeoff.transition,"select:jump");
+  XCTAssertEqual(takeoff.binding.dictionary,0);
+  XCTAssertEqual(takeoff.binding.slot,13);
+  XCTAssertEqual(takeoff.binding.asset,"clip-0031");
+  const auto takeoffPose=playback.sample(previous,takeoff,1);
+
+  previous=takeoff;
+  gameplay.state=player::State::fall;
+  gameplay.body.velocity.y=0;
+  auto atApex=runtime.advance(.49,gameplay);
+  XCTAssertEqual(atApex.transition,"select:jump");
+  XCTAssertEqual(atApex.binding.slot,13);
+  XCTAssertEqualWithAccuracy(atApex.phase,.5,1e-9);
+  const auto apexPose=playback.sample(previous,atApex,1);
+  XCTAssertGreaterThan(apexPose.palette[0].value[13],
+                       takeoffPose.palette[0].value[13]+1.5f);
+
+  previous=atApex;
+  gameplay.body.velocity.y=-4;
+  auto beforeLanding=runtime.advance(.5,gameplay);
+  XCTAssertEqual(beforeLanding.binding.slot,13);
+  XCTAssertTrue(beforeLanding.completed);
+  XCTAssertEqualWithAccuracy(beforeLanding.phase,1,1e-9);
+  const auto landingPose=playback.sample(previous,beforeLanding,1);
+  XCTAssertEqualWithAccuracy(landingPose.palette[0].value[13],0,.0001f);
+
+  gameplay.state=player::State::idle;
+  gameplay.body.grounded=true;
+  const auto landed=runtime.advance(.01,gameplay);
+  XCTAssertEqual(landed.transition,"select:idle");
+  XCTAssertEqual(landed.binding.slot,0);
+  XCTAssertEqual(landed.binding.asset,"clip-0058");
+}
+
 - (void)testPlayerAnimationRuntimeExposesEveryAuthoredSelector {
   using namespace asterix::animation_controller;
   Graph graph;
