@@ -12,16 +12,23 @@ payloads. `SliceAssetPipeline` validates it before producing an
 missing required states, unknown transition targets and incompatible skeleton
 declarations stop the build with a diagnostic instead of selecting a pose.
 
-At load time Metal resolves the complete 90-binding Asterix graph through the
-versioned `asterix-player` runtime profile. Eight stable state names remain the
-automatic locomotion/combat entry points; the other 82 entry points retain
-their exact source dictionary slot names (`hero_slot_N`) so combo, contextual,
-damage, interaction and traversal events cannot collapse into a shared alias.
+At load time Metal resolves complete controllable-hero graphs through versioned
+runtime profiles. `asterix-player` contains 90 bindings: eight stable automatic
+locomotion/combat states and 82 exact source dictionary-slot entry points.
+`obelix-player` contains all 72 gameplay bindings: stable idle, run, attack,
+hurt and death states plus 67 exact `hero_slot_N` event entry points covering
+directional locomotion, idle variants, combo/contextual attacks, airborne
+damage and recovery, interaction, ledge, water and swim.
+
 Every state selects one exact semantic binding by actor, skin, costume, context,
-action and variant. A profile marked `complete` is accepted only when it selects
-every matching binding exactly once. The runtime rejects missing or ambiguous
-selectors and checks the declared 58-node skeleton before any clip is sampled.
-Looping is read from the binding rather than inferred from a state index.
+action and variant. Reused authored clips remain separate selectors when the
+source slots have different semantic actions; notably Obelix clip 0151 resolves
+independently as `combat.attack` and `combat.attack-variant`. A profile marked
+`complete` is accepted only when it selects every matching binding exactly
+once. Registry and Metal reject missing, duplicate, fallback, ambiguous or
+non-58-node selectors before sampling. Looping, phases, transitions, root
+motion and animation events are read from binding data rather than inferred
+from a state index.
 `ASTERIX_ANIMATION_REVIEW_CLIP` remains an explicit diagnostic override and
 does not change the normal registry.
 

@@ -27,10 +27,15 @@ void main() {
       everyElement(isIn(paths.keys)),
     );
     expect(paths.values, everyElement(isNotEmpty));
-    expect(concretePaths, hasLength(90));
+    expect(concretePaths, hasLength(162));
     expect(
       concretePaths.values.expand((paths) => paths),
-      everyElement(startsWith('runtime-profile:asterix-player:')),
+      everyElement(
+        anyOf(
+          startsWith('runtime-profile:asterix-player:'),
+          startsWith('runtime-profile:obelix-player:'),
+        ),
+      ),
     );
     expect(
       registry.bindings.map((binding) => binding['clip']).toSet(),

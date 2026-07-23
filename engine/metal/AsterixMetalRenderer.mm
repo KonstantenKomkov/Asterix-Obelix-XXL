@@ -819,16 +819,24 @@ struct AsterixPushMesh {
   NSMutableDictionary<NSString*, NSDictionary*>* stateBindings=[NSMutableDictionary dictionary];
   NSMutableSet<NSString*>* selectedBindings=[NSMutableSet set];
   NSDictionary* playerProfile=nil;
+  NSDictionary* obelixProfile=nil;
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
     if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
       for (NSDictionary* profile in animationBindings[@"runtimeProfiles"]) {
-        if (![profile isKindOfClass:NSDictionary.class] ||
-            ![profile[@"id"] isEqual:@"asterix-player"]) continue;
-        if (playerProfile!=nil) {
-          @synchronized(self) { _sceneError=@"Ambiguous asterix-player runtime profile"; }
-          return NO;
+        if (![profile isKindOfClass:NSDictionary.class]) continue;
+        if ([profile[@"id"] isEqual:@"asterix-player"]) {
+          if (playerProfile!=nil) {
+            @synchronized(self) { _sceneError=@"Ambiguous asterix-player runtime profile"; }
+            return NO;
+          }
+          playerProfile=profile;
+        } else if ([profile[@"id"] isEqual:@"obelix-player"]) {
+          if (obelixProfile!=nil) {
+            @synchronized(self) { _sceneError=@"Ambiguous obelix-player runtime profile"; }
+            return NO;
+          }
+          obelixProfile=profile;
         }
-        playerProfile=profile;
       }
     }
     NSDictionary* selectors=playerProfile[@"states"];
@@ -880,6 +888,61 @@ struct AsterixPushMesh {
     }
     if (stateBindings.count!=selectors.count) {
       @synchronized(self) { _sceneError=@"Incomplete asterix-player runtime profile"; }
+      return NO;
+    }
+    NSDictionary* obelixSelectors=obelixProfile[@"states"];
+    if (![obelixProfile[@"actor"] isEqual:@"obelix"] ||
+        [obelixProfile[@"skin"] integerValue]!=2 ||
+        ![obelixProfile[@"costume"] isEqual:@"default"] ||
+        ![obelixProfile[@"context"] isEqual:@"gameplay"] ||
+        ![obelixProfile[@"complete"] isKindOfClass:NSNumber.class] ||
+        ![obelixProfile[@"complete"] boolValue] ||
+        ![obelixSelectors isKindOfClass:NSDictionary.class] ||
+        obelixSelectors.count!=72) {
+      @synchronized(self) { _sceneError=@"Missing or invalid obelix-player runtime profile"; }
+      return NO;
+    }
+    NSMutableSet<NSString*>* obelixSelected=[NSMutableSet set];
+    NSUInteger obelixResolved=0;
+    for (NSString* state in obelixSelectors) {
+      NSDictionary* selector=obelixSelectors[state];
+      NSString* action=[selector isKindOfClass:NSDictionary.class] ? selector[@"action"] : nil;
+      NSString* variant=[selector isKindOfClass:NSDictionary.class] ? selector[@"variant"] : nil;
+      if (![action isKindOfClass:NSString.class] ||
+          ![variant isKindOfClass:NSString.class]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime selector for obelix/%@",state]; }
+        return NO;
+      }
+      NSString* selectorKey=[NSString stringWithFormat:@"%@|%@",action,variant];
+      if ([obelixSelected containsObject:selectorKey]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Duplicate runtime selector for obelix/%@",state]; }
+        return NO;
+      }
+      [obelixSelected addObject:selectorKey];
+      NSUInteger matches=0;
+      for (NSDictionary* binding in animationBindings[@"bindings"]) {
+        if (![binding isKindOfClass:NSDictionary.class] ||
+            ![binding[@"actor"] isEqual:obelixProfile[@"actor"]] ||
+            [binding[@"skin"] integerValue]!=[obelixProfile[@"skin"] integerValue] ||
+            ![binding[@"costume"] isEqual:obelixProfile[@"costume"]] ||
+            ![binding[@"context"] isEqual:obelixProfile[@"context"]] ||
+            ![binding[@"action"] isEqual:action] ||
+            ![binding[@"variant"] isEqual:variant]) continue;
+        if ([binding[@"fallback"] boolValue] ||
+            [binding[@"skeletonNodes"] integerValue]!=58) {
+          @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime binding for obelix/%@",state]; }
+          return NO;
+        }
+        matches++;
+      }
+      if (matches!=1) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Ambiguous runtime selector for obelix/%@",state]; }
+        return NO;
+      }
+      obelixResolved++;
+    }
+    if (obelixResolved!=obelixSelectors.count) {
+      @synchronized(self) { _sceneError=@"Incomplete obelix-player runtime profile"; }
       return NO;
     }
   }

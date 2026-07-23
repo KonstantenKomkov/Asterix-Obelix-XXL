@@ -16,6 +16,18 @@
       ]
     },
     {
+      "id": "obelix-locomotion-combat-swim",
+      "originalReference": "task-62 hero dictionary review sheet, Obelix heroAnimDict slots 0, 2, 58, 75 and 93",
+      "result": "match",
+      "steps": [
+        {"actor": "obelix", "action": "locomotion.idle", "clip": "0145.animation.json"},
+        {"actor": "obelix", "action": "locomotion.run", "clip": "0125.animation.json"},
+        {"actor": "obelix", "action": "combat.attack", "clip": "0151.animation.json"},
+        {"actor": "obelix", "action": "damage.hurt", "clip": "0101.animation.json"},
+        {"actor": "obelix", "action": "traversal.swim-directional", "clip": "0171.animation.json"}
+      ]
+    },
+    {
       "id": "machinegun-fire-recoil",
       "originalReference": "task-62 world dictionary review sheet, dictionary 19",
       "result": "match",

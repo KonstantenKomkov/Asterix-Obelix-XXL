@@ -1,5 +1,38 @@
 # Выполненные задачи первой итерации
 
+## П. 85 — Полный runtime-профиль анимаций Обеликса
+
+**Выполнено:** 23 июля 2026.
+
+Новый полный `obelix-player` профиль биективно связывает все 72 gameplay
+bindings Обеликса с конкретными runtime state/event entry points. Пять
+стабильных состояний `idle`, `run`, `attack`, `hurt`, `death` и 67 точных
+`hero_slot_N` selectors охватывают directional locomotion, idle variants,
+combo/contextual attacks, airborne damage/recovery, interactions, ledge, water
+и swim. Все 71 authored clips разрешаются exact variants; повторно
+используемый clip 0151 остаётся двумя отдельными semantic bindings для
+`combat.attack` и `combat.attack-variant`.
+
+Registry и Metal отклоняют missing, duplicate, fallback, ambiguous и
+несовместимые с Obelix skin 2 / 58-node skeleton selectors. Общий
+`resolveRuntimeState` детерминированно разрешает точные attack, combo и swim
+events; loop, phases, transitions, root motion и versioned fixed-tick animation
+events остаются data-driven. Scoped regressions проверяют полный набор,
+конкретные варианты и отказ неполного профиля.
+
+Fresh gate подтвердил 345 clips / 518 slots / 408 bindings, из которых 162
+concrete и 246 относятся к следующим п. 86–90; все unbound, unexplained,
+unreachable и unknown counters равны нулю. SHA-256 отчёта:
+`95fd2411b19abccf1b42019f31abf0b60c9de4560587a53765a77219bbef7a50`.
+Fresh/cached ASTPAK размером 68 671 316 байт совпал и имеет SHA-256
+`69a7d3eed5c0a95f81b375a9500e071a612e98e27da5d826620b4e159e753d82`;
+release-приложение собрано, установленный пакет прошёл cold start. Visual
+metadata фиксирует representative locomotion/combat/swim sequence Обеликса по
+принятому task-62 hero review; оригинальные и производные игровые данные в Git
+не добавлены. Прошли native XCTest, `make check`, release build, resource policy
+и отдельное diff review. Описание:
+[animation_binding_registry.md](../architecture/animation_binding_registry.md).
+
 ## П. 84 — Полный runtime-профиль анимаций Астерикса
 
 **Выполнено:** 23 июля 2026.

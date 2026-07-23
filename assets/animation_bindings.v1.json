@@ -590,6 +590,304 @@
         }
       },
       "complete": true
+    },
+    {
+      "id": "obelix-player",
+      "actor": "obelix",
+      "skin": 2,
+      "costume": "default",
+      "context": "gameplay",
+      "states": {
+        "hero_slot_57": {
+          "action": "damage.launch",
+          "variant": "clip-0098"
+        },
+        "hero_slot_60": {
+          "action": "damage.tumble",
+          "variant": "clip-0099"
+        },
+        "hero_slot_62": {
+          "action": "damage.tumble",
+          "variant": "clip-0100"
+        },
+        "hurt": {
+          "action": "damage.hurt",
+          "variant": "clip-0101"
+        },
+        "hero_slot_59": {
+          "action": "damage.land-or-recover",
+          "variant": "clip-0102"
+        },
+        "hero_slot_63": {
+          "action": "damage.recovery",
+          "variant": "clip-0103"
+        },
+        "hero_slot_65": {
+          "action": "damage.airborne-stun",
+          "variant": "clip-0104"
+        },
+        "hero_slot_64": {
+          "action": "damage.recovery",
+          "variant": "clip-0105"
+        },
+        "hero_slot_66": {
+          "action": "traversal.ledge-drop",
+          "variant": "clip-0106"
+        },
+        "hero_slot_42": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0107"
+        },
+        "hero_slot_43": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0108"
+        },
+        "hero_slot_44": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0109"
+        },
+        "hero_slot_46": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0110"
+        },
+        "hero_slot_47": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0111"
+        },
+        "hero_slot_48": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0112"
+        },
+        "hero_slot_53": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0113"
+        },
+        "hero_slot_7": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0114"
+        },
+        "hero_slot_4": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0115"
+        },
+        "hero_slot_3": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0116"
+        },
+        "hero_slot_30": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0117"
+        },
+        "hero_slot_29": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0118"
+        },
+        "hero_slot_49": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0119"
+        },
+        "hero_slot_50": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0120"
+        },
+        "hero_slot_51": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0121"
+        },
+        "hero_slot_6": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0122"
+        },
+        "death": {
+          "action": "damage.death",
+          "variant": "clip-0123"
+        },
+        "hero_slot_5": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0124"
+        },
+        "run": {
+          "action": "locomotion.run",
+          "variant": "clip-0125"
+        },
+        "hero_slot_88": {
+          "action": "interaction.contextual",
+          "variant": "clip-0126"
+        },
+        "hero_slot_87": {
+          "action": "interaction.contextual",
+          "variant": "clip-0127"
+        },
+        "hero_slot_32": {
+          "action": "locomotion.airborne",
+          "variant": "clip-0128"
+        },
+        "hero_slot_31": {
+          "action": "locomotion.airborne",
+          "variant": "clip-0129"
+        },
+        "hero_slot_20": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0130"
+        },
+        "hero_slot_17": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0131"
+        },
+        "hero_slot_14": {
+          "action": "locomotion.transition",
+          "variant": "clip-0132"
+        },
+        "hero_slot_26": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0133"
+        },
+        "hero_slot_23": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0134"
+        },
+        "hero_slot_21": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0135"
+        },
+        "hero_slot_18": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0136"
+        },
+        "hero_slot_15": {
+          "action": "locomotion.transition",
+          "variant": "clip-0137"
+        },
+        "hero_slot_27": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0138"
+        },
+        "hero_slot_24": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0139"
+        },
+        "hero_slot_8": {
+          "action": "locomotion.idle",
+          "variant": "clip-0140"
+        },
+        "hero_slot_9": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0141"
+        },
+        "hero_slot_10": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0142"
+        },
+        "hero_slot_11": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0143"
+        },
+        "hero_slot_12": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0144"
+        },
+        "idle": {
+          "action": "locomotion.idle",
+          "variant": "clip-0145"
+        },
+        "hero_slot_34": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0146"
+        },
+        "hero_slot_33": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0147"
+        },
+        "hero_slot_89": {
+          "action": "interaction.contextual",
+          "variant": "clip-0148"
+        },
+        "hero_slot_55": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0149"
+        },
+        "hero_slot_71": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0150"
+        },
+        "attack": {
+          "action": "combat.attack",
+          "variant": "clip-0151"
+        },
+        "hero_slot_94": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0151-attack-variant"
+        },
+        "hero_slot_90": {
+          "action": "interaction.contextual",
+          "variant": "clip-0152"
+        },
+        "hero_slot_91": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0153"
+        },
+        "hero_slot_92": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0154"
+        },
+        "hero_slot_45": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0155"
+        },
+        "hero_slot_41": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0163"
+        },
+        "hero_slot_72": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0164"
+        },
+        "hero_slot_70": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0165"
+        },
+        "hero_slot_81": {
+          "action": "traversal.swim-directional",
+          "variant": "clip-0166"
+        },
+        "hero_slot_85": {
+          "action": "traversal.swim-transition",
+          "variant": "clip-0167"
+        },
+        "hero_slot_84": {
+          "action": "traversal.swim-transition",
+          "variant": "clip-0168"
+        },
+        "hero_slot_77": {
+          "action": "traversal.swim-directional",
+          "variant": "clip-0169"
+        },
+        "hero_slot_76": {
+          "action": "traversal.swim-directional",
+          "variant": "clip-0170"
+        },
+        "hero_slot_75": {
+          "action": "traversal.swim-directional",
+          "variant": "clip-0171"
+        },
+        "hero_slot_86": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0172"
+        },
+        "hero_slot_74": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0173"
+        },
+        "hero_slot_54": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0174"
+        },
+        "hero_slot_52": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0175"
+        }
+      },
+      "complete": true
     }
   ],
   "bindings": [

@@ -178,12 +178,34 @@ void main() {
             )
             as Map<String, Object?>;
     final registry = AnimationBindingRegistry.parse(decoded);
-    final profile =
-        (decoded['runtimeProfiles']! as List<Object?>).single
-            as Map<String, Object?>;
+    final profiles = (decoded['runtimeProfiles']! as List<Object?>)
+        .cast<Map<String, Object?>>();
+    final profile = profiles.singleWhere(
+      (profile) => profile['id'] == 'asterix-player',
+    );
     final states = profile['states']! as Map<String, Object?>;
     expect(profile['complete'], isTrue);
     expect(states, hasLength(90));
+    final obelixProfile = profiles.singleWhere(
+      (profile) => profile['id'] == 'obelix-player',
+    );
+    final obelixStates = obelixProfile['states']! as Map<String, Object?>;
+    expect(obelixProfile['complete'], isTrue);
+    expect(obelixStates, hasLength(72));
+    expect(
+      obelixStates.keys,
+      containsAll({
+        'idle',
+        'run',
+        'attack',
+        'hurt',
+        'death',
+        'hero_slot_57',
+        'hero_slot_65',
+        'hero_slot_86',
+        'hero_slot_75',
+      }),
+    );
     expect(
       states.keys,
       containsAll({
@@ -218,9 +240,9 @@ void main() {
     }
 
     final invalid = jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
-    final invalidProfile =
-        (invalid['runtimeProfiles']! as List<Object?>).single
-            as Map<String, Object?>;
+    final invalidProfile = (invalid['runtimeProfiles']! as List<Object?>)
+        .cast<Map<String, Object?>>()
+        .singleWhere((profile) => profile['id'] == 'asterix-player');
     final invalidStates = invalidProfile['states']! as Map<String, Object?>;
     invalidStates['double_jump'] = {
       'action': 'locomotion.jump',
@@ -238,14 +260,34 @@ void main() {
     );
 
     final incomplete = jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
-    final incompleteProfile =
-        (incomplete['runtimeProfiles']! as List<Object?>).single
-            as Map<String, Object?>;
+    final incompleteProfile = (incomplete['runtimeProfiles']! as List<Object?>)
+        .cast<Map<String, Object?>>()
+        .singleWhere((profile) => profile['id'] == 'asterix-player');
     (incompleteProfile['states']! as Map<String, Object?>).remove(
       'hero_slot_92',
     );
     expect(
       () => AnimationBindingRegistry.parse(incomplete),
+      throwsA(
+        isA<AnimationBindingException>().having(
+          (error) => error.message,
+          'message',
+          contains('complete profile must select every exact binding once'),
+        ),
+      ),
+    );
+
+    final incompleteObelix =
+        jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
+    final incompleteObelixProfile =
+        (incompleteObelix['runtimeProfiles']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .singleWhere((profile) => profile['id'] == 'obelix-player');
+    (incompleteObelixProfile['states']! as Map<String, Object?>).remove(
+      'hero_slot_86',
+    );
+    expect(
+      () => AnimationBindingRegistry.parse(incompleteObelix),
       throwsA(
         isA<AnimationBindingException>().having(
           (error) => error.message,
@@ -275,6 +317,27 @@ void main() {
         state: 'hero_slot_75',
       )['action'],
       'traversal.swim-directional',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'obelix-player',
+        state: 'attack',
+      )['clip'],
+      '0151.animation.json',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'obelix-player',
+        state: 'hero_slot_86',
+      )['action'],
+      'combat.attack-combo',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'obelix-player',
+        state: 'hero_slot_75',
+      )['clip'],
+      '0171.animation.json',
     );
     expect(
       () => registry.resolveRuntimeState(
