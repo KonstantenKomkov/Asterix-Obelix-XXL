@@ -13,6 +13,17 @@ namespace asterix::enemy {
 using collision::Vec3;
 
 enum class State : std::uint8_t { idle, pursuit, attack, stun, death, returning };
+enum class Profile : std::uint8_t { basic_roman, roman_leader };
+
+inline const char* animationProfileId(Profile profile) {
+  return profile == Profile::roman_leader
+      ? "roman-leader-equipment" : "basic-roman-enemy";
+}
+
+inline const char* animationBodyProfileId(Profile profile) {
+  return profile == Profile::roman_leader
+      ? "roman-leader-body" : "basic-roman-enemy";
+}
 inline const char* stateName(State state) {
   switch (state) {
     case State::idle: return "idle";
@@ -50,6 +61,7 @@ struct Config {
   std::int32_t health = 3;
   std::int32_t attack_damage = 1;
   std::uint32_t animation_variant_seed = 0;
+  Profile profile = Profile::basic_roman;
 };
 
 struct Snapshot {
@@ -90,10 +102,21 @@ class Runtime {
   const char* animationAction() const {
     return enemy::animationAction(snapshot_.state);
   }
+  const char* animationProfileId() const {
+    return enemy::animationProfileId(config_.profile);
+  }
+  const char* animationBodyProfileId() const {
+    return enemy::animationBodyProfileId(config_.profile);
+  }
   std::uint32_t animationVariantSelector() const {
     return config_.animation_variant_seed * 16777619u ^
            snapshot_.animation_transition * 2166136261u ^
            static_cast<std::uint32_t>(snapshot_.state);
+  }
+  std::size_t animationVariantIndex(std::size_t candidate_count) const {
+    if (candidate_count == 0)
+      throw std::invalid_argument("enemy animation has no variants");
+    return animationVariantSelector() % candidate_count;
   }
   float animationPhase() const {
     float duration = 1.0f;

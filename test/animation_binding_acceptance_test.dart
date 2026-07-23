@@ -27,7 +27,7 @@ void main() {
       everyElement(isIn(paths.keys)),
     );
     expect(paths.values, everyElement(isNotEmpty));
-    expect(concretePaths, hasLength(190));
+    expect(concretePaths, hasLength(275));
     expect(
       concretePaths.values.expand((paths) => paths),
       everyElement(
@@ -35,6 +35,9 @@ void main() {
           startsWith('runtime-profile:asterix-player:'),
           startsWith('runtime-profile:obelix-player:'),
           startsWith('runtime-profile:idefix-player:'),
+          startsWith('runtime-profile:basic-roman-enemy:'),
+          startsWith('runtime-profile:roman-leader-equipment:'),
+          startsWith('runtime-profile:roman-leader-body:'),
         ),
       ),
     );

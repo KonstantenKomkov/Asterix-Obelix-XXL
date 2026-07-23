@@ -1010,6 +1010,376 @@
         }
       },
       "complete": true
+    },
+    {
+      "id": "basic-roman-enemy",
+      "actor": "basic-enemy:roman",
+      "skin": 48,
+      "costume": "roman-default",
+      "context": "gameplay",
+      "states": {
+        "dictionary_slot_41": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-48-slot-41"
+        },
+        "dictionary_slot_12": {
+          "action": "locomotion.transition",
+          "variant": "dictionary-48-slot-12"
+        },
+        "dictionary_slot_13": {
+          "action": "locomotion.transition",
+          "variant": "dictionary-48-slot-13"
+        },
+        "dictionary_slot_14": {
+          "action": "locomotion.transition",
+          "variant": "dictionary-48-slot-14"
+        },
+        "dictionary_slot_15": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-15"
+        },
+        "dictionary_slot_16": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-16"
+        },
+        "dictionary_slot_42": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-48-slot-42"
+        },
+        "dictionary_slot_25": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-48-slot-25"
+        },
+        "dictionary_slot_22": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-22"
+        },
+        "dictionary_slot_23": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-23"
+        },
+        "dictionary_slot_24": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-24"
+        },
+        "dictionary_slot_19": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-48-slot-19"
+        },
+        "dictionary_slot_20": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-48-slot-20"
+        },
+        "dictionary_slot_21": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-48-slot-21"
+        },
+        "dictionary_slot_3": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-48-slot-3"
+        },
+        "dictionary_slot_1": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-48-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-48-slot-2"
+        },
+        "dictionary_slot_40": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-48-slot-40"
+        },
+        "dictionary_slot_8": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-8"
+        },
+        "dictionary_slot_11": {
+          "action": "spawn.or-awareness",
+          "variant": "dictionary-48-slot-11"
+        },
+        "dictionary_slot_9": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-9"
+        },
+        "dictionary_slot_5": {
+          "action": "locomotion.move",
+          "variant": "dictionary-48-slot-5"
+        },
+        "dictionary_slot_6": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-6"
+        },
+        "dictionary_slot_7": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-7"
+        },
+        "dictionary_slot_10": {
+          "action": "combat.attack",
+          "variant": "dictionary-48-slot-10"
+        },
+        "dictionary_slot_38": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-38"
+        },
+        "dictionary_slot_31": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-31"
+        },
+        "dictionary_slot_37": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-37"
+        },
+        "dictionary_slot_30": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-30"
+        },
+        "dictionary_slot_39": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-39"
+        },
+        "dictionary_slot_32": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-32"
+        },
+        "dictionary_slot_4": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-4"
+        },
+        "dictionary_slot_36": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-36"
+        },
+        "dictionary_slot_29": {
+          "action": "death.variant",
+          "variant": "dictionary-48-slot-29"
+        },
+        "dictionary_slot_0": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-48-slot-0"
+        },
+        "dictionary_slot_33": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-48-slot-33"
+        },
+        "dictionary_slot_34": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-48-slot-34"
+        },
+        "dictionary_slot_35": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-48-slot-35"
+        },
+        "dictionary_slot_27": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-48-slot-27"
+        },
+        "dictionary_slot_28": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-48-slot-28"
+        },
+        "dictionary_slot_26": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-48-slot-26"
+        }
+      },
+      "complete": true
+    },
+    {
+      "id": "roman-leader-equipment",
+      "actor": "basic-enemy-leader:roman",
+      "skin": 27,
+      "costume": "roman-default",
+      "context": "gameplay",
+      "states": {
+        "dictionary_slot_12": {
+          "action": "locomotion.transition",
+          "variant": "dictionary-27-slot-12"
+        },
+        "dictionary_slot_14": {
+          "action": "locomotion.transition",
+          "variant": "dictionary-27-slot-14"
+        },
+        "dictionary_slot_6": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-6"
+        },
+        "dictionary_slot_7": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-7"
+        },
+        "dictionary_slot_8": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-8"
+        },
+        "dictionary_slot_9": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-9"
+        },
+        "dictionary_slot_10": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-10"
+        },
+        "dictionary_slot_11": {
+          "action": "spawn.or-awareness",
+          "variant": "dictionary-27-slot-11"
+        },
+        "dictionary_slot_5": {
+          "action": "locomotion.move",
+          "variant": "dictionary-27-slot-5"
+        },
+        "dictionary_slot_0": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-27-slot-0"
+        },
+        "dictionary_slot_33": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-27-slot-33"
+        },
+        "dictionary_slot_34": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-27-slot-34"
+        },
+        "dictionary_slot_35": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-27-slot-35"
+        },
+        "dictionary_slot_26": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-27-slot-26"
+        },
+        "dictionary_slot_25": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-27-slot-25"
+        },
+        "dictionary_slot_36": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-36"
+        },
+        "dictionary_slot_37": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-37"
+        },
+        "dictionary_slot_38": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-38"
+        },
+        "dictionary_slot_39": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-39"
+        },
+        "dictionary_slot_40": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-27-slot-40"
+        },
+        "dictionary_slot_27": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-27-slot-27"
+        },
+        "dictionary_slot_28": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-27-slot-28"
+        },
+        "dictionary_slot_29": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-29"
+        },
+        "dictionary_slot_30": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-30"
+        },
+        "dictionary_slot_31": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-31"
+        },
+        "dictionary_slot_32": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-32"
+        },
+        "dictionary_slot_20": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-27-slot-20"
+        },
+        "dictionary_slot_3": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-27-slot-3"
+        },
+        "dictionary_slot_1": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-27-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-27-slot-2"
+        },
+        "dictionary_slot_13": {
+          "action": "locomotion.transition",
+          "variant": "dictionary-27-slot-13"
+        },
+        "dictionary_slot_4": {
+          "action": "death.variant",
+          "variant": "dictionary-27-slot-4"
+        },
+        "dictionary_slot_41": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-27-slot-41"
+        },
+        "dictionary_slot_42": {
+          "action": "special.enemy-state",
+          "variant": "dictionary-27-slot-42"
+        },
+        "dictionary_slot_15": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-15"
+        },
+        "dictionary_slot_16": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-16"
+        },
+        "dictionary_slot_19": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-27-slot-19"
+        },
+        "dictionary_slot_21": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-27-slot-21"
+        },
+        "dictionary_slot_22": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-22"
+        },
+        "dictionary_slot_23": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-23"
+        },
+        "dictionary_slot_24": {
+          "action": "combat.attack",
+          "variant": "dictionary-27-slot-24"
+        }
+      },
+      "complete": true
+    },
+    {
+      "id": "roman-leader-body",
+      "actor": "basic-enemy-leader:roman",
+      "skin": 28,
+      "costume": "roman-default",
+      "context": "gameplay",
+      "states": {
+        "dictionary_slot_0": {
+          "action": "locomotion.idle",
+          "variant": "dictionary-28-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-28-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "damage.hit-reaction",
+          "variant": "dictionary-28-slot-2"
+        }
+      },
+      "complete": true
     }
   ],
   "bindings": [

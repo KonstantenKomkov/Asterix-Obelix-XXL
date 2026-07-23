@@ -334,6 +334,36 @@
   XCTAssertEqualObjects([NSString stringWithUTF8String:enemy.animationAction()],@"death.variant");
 }
 
+- (void)testRomanEnemyProfilesSelectDeterministicAuthoredVariants {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleController controller(world,{});
+  collision::CapsuleState body; body.position={0,.9f,0}; body.grounded=true;
+
+  enemy::Config basicConfig; basicConfig.animation_variant_seed=17;
+  enemy::Runtime basicA(controller,body,basicConfig);
+  enemy::Runtime basicB(controller,body,basicConfig);
+  XCTAssertEqualObjects([NSString stringWithUTF8String:basicA.animationProfileId()],
+                        @"basic-roman-enemy");
+  XCTAssertEqual(basicA.animationVariantIndex(8),basicB.animationVariantIndex(8));
+  basicA.update(1.0f/60.0f,{4,.9f,0});
+  basicB.update(1.0f/60.0f,{4,.9f,0});
+  XCTAssertEqual(basicA.animationVariantIndex(8),basicB.animationVariantIndex(8));
+
+  enemy::Config leaderConfig=basicConfig;
+  leaderConfig.profile=enemy::Profile::roman_leader;
+  leaderConfig.animation_variant_seed=23;
+  enemy::Runtime leader(controller,body,leaderConfig);
+  XCTAssertEqualObjects([NSString stringWithUTF8String:leader.animationProfileId()],
+                        @"roman-leader-equipment");
+  XCTAssertEqualObjects([NSString stringWithUTF8String:leader.animationBodyProfileId()],
+                        @"roman-leader-body");
+  XCTAssertNotEqual(basicA.animationVariantIndex(41),
+                    leader.animationVariantIndex(41));
+  XCTAssertThrows(leader.animationVariantIndex(0));
+}
+
 - (void)testPlayerComboCanDefeatEnemy {
   using namespace asterix;
   collision::World world({{{-10,0,-10},{10,0,-10},{-10,0,10},1},

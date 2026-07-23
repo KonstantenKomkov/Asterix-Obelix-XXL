@@ -198,6 +198,18 @@ void main() {
     final idefixStates = idefixProfile['states']! as Map<String, Object?>;
     expect(idefixProfile['complete'], isTrue);
     expect(idefixStates, hasLength(28));
+    final basicRomanProfile = profiles.singleWhere(
+      (profile) => profile['id'] == 'basic-roman-enemy',
+    );
+    final leaderEquipmentProfile = profiles.singleWhere(
+      (profile) => profile['id'] == 'roman-leader-equipment',
+    );
+    final leaderBodyProfile = profiles.singleWhere(
+      (profile) => profile['id'] == 'roman-leader-body',
+    );
+    expect(basicRomanProfile['states'], hasLength(41));
+    expect(leaderEquipmentProfile['states'], hasLength(41));
+    expect(leaderBodyProfile['states'], hasLength(3));
     expect(
       idefixStates.keys,
       containsAll({
@@ -271,6 +283,29 @@ void main() {
         )['fallback'],
         isFalse,
       );
+    }
+    for (final enemyProfile in [
+      basicRomanProfile,
+      leaderEquipmentProfile,
+      leaderBodyProfile,
+    ]) {
+      for (final selector
+          in (enemyProfile['states']! as Map<String, Object?>).values
+              .cast<Map<String, Object?>>()) {
+        expect(
+          registry.resolve(
+            AnimationBindingQuery(
+              actor: enemyProfile['actor']! as String,
+              skin: enemyProfile['skin']! as int,
+              costume: enemyProfile['costume']! as String,
+              action: selector['action']! as String,
+              context: enemyProfile['context']! as String,
+              variant: selector['variant']! as String,
+            ),
+          )['fallback'],
+          isFalse,
+        );
+      }
     }
 
     final invalid = jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
@@ -350,6 +385,26 @@ void main() {
         ),
       ),
     );
+
+    final incompleteRoman =
+        jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
+    final incompleteRomanProfile =
+        (incompleteRoman['runtimeProfiles']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .singleWhere((profile) => profile['id'] == 'basic-roman-enemy');
+    (incompleteRomanProfile['states']! as Map<String, Object?>).remove(
+      'dictionary_slot_15',
+    );
+    expect(
+      () => AnimationBindingRegistry.parse(incompleteRoman),
+      throwsA(
+        isA<AnimationBindingException>().having(
+          (error) => error.message,
+          'message',
+          contains('complete profile must select every exact binding once'),
+        ),
+      ),
+    );
   });
 
   test('runtime state entry points resolve exact authored variants', () async {
@@ -413,6 +468,27 @@ void main() {
         state: 'hero_slot_75',
       )['clip'],
       '0183.animation.json',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'basic-roman-enemy',
+        state: 'dictionary_slot_15',
+      )['clip'],
+      '0203.animation.json',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'roman-leader-equipment',
+        state: 'dictionary_slot_23',
+      )['clip'],
+      '0292.animation.json',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'roman-leader-body',
+        state: 'dictionary_slot_2',
+      )['clip'],
+      '0294.animation.json',
     );
     expect(
       () => registry.resolveRuntimeState(

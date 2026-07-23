@@ -35,20 +35,26 @@ attacks/combo, damage/recovery, interactions, traversal, water и swim.
 Полный `idefix-player` добавляет ещё 28 selectors: три стабильных состояния и
 25 точных dictionary-slot entry points для locomotion, idle variants, attacks,
 interactions, death и swim.
+Три enemy actor-instance profiles добавляют 85 concrete selectors: 41 для
+обычного Roman skin 48, 41 для equipment-слоя лидера skin 27 и три для body
+skin 28. Составной лидер требует оба 30-node профиля, а basic Roman — отдельный
+28-node профиль; seed entity и номер перехода детерминированно выбирают вариант
+для runtime state/event.
 Остальные profiles требуют последующего подключения и cold-start/scenario
 приёмки.
 
-Проверенный после п. 86 fresh gate содержит 345 bound clips, 408
-декларативных bindings и 190 concrete runtime bindings; `unboundClips`,
+Проверенный после п. 87 fresh gate содержит 345 bound clips, 408
+декларативных bindings и 275 concrete runtime bindings; `unboundClips`,
 `unexplainedClips`,
 `clipsWithoutRuntimePath` и `unknownBindingClips` равны нулю. SHA-256 отчёта:
-`d85d61564afabbce27656d13b224a59acaef5102be3401d3be3ef5f1e8db98bd`.
+`1a8aba62a3e594310d411fce000dac1f82274087e2e74deb824b4b1b6013754c`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
 
 Representative sequences зафиксированы только как versioned metadata в
 `assets/animation_visual_acceptance.v1.json`: locomotion/combat Астерикса,
-locomotion/combat/swim Обеликса и Идефикса, machinegun fire/recoil и cinematic
+locomotion/combat/swim Обеликса и Идефикса, combat обычного Roman и лидера,
+machinegun fire/recoil и cinematic
 scene-data-1. Они сверены side-by-side с локально установленным оригиналом и
 разрешаются в точные registry bindings.
 Кадры, извлечённые clips и остальные оригинальные/производные игровые ресурсы

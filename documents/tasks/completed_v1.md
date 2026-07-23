@@ -1,5 +1,36 @@
 # Выполненные задачи первой итерации
 
+## П. 87 — Runtime-анимации basic Roman и Roman leader
+
+**Выполнено:** 23 июля 2026.
+
+Добавлены три полных actor-instance профиля, биективно покрывающих все 85
+gameplay bindings: `basic-roman-enemy` (dictionary 48 / skin 48 / 41 selector),
+`roman-leader-equipment` (dictionary 27 / skin 27 / 41 selector) и
+`roman-leader-body` (dictionary 28 / skin 28 / 3 selector). Exact
+`dictionary_slot_N` entry points сохраняют отдельные semantic bindings для
+idle, perception/pursuit/return, attack variants и impact phase,
+hit/stun/knockback, special actions и terminal death/despawn.
+
+Enemy runtime связывает каждую entity с basic или leader profile и
+детерминированно выбирает authored variant по seed и номеру animation
+transition. Лидер использует подтверждённую составную render composition body
+28 + equipment 27; registry и Metal отклоняют missing, duplicate, fallback,
+ambiguous, 28/30-node incompatible и cross-profile selectors. Native scenario
+проверяет воспроизводимость вариантов, оба слоя лидера и отказ пустого набора.
+
+Fresh gate подтвердил 345 clips / 518 slots / 408 bindings, из которых 275
+concrete и 133 относятся к п. 88–90; все error counters равны нулю. SHA-256
+отчёта: `1a8aba62a3e594310d411fce000dac1f82274087e2e74deb824b4b1b6013754c`.
+Fresh/cached ASTPAK размером 68 681 140 байт совпал и имеет SHA-256
+`3c5d7f21d146f382a5e5127af4a32e993b41cf5e7b2438af0fe3680949d4744a`;
+установленный пакет совпал, release-приложение сохранило процесс после cold
+start. Visual metadata фиксирует combat sequences обычного Roman и составного
+лидера по task-62 character review; оригинальные и производные игровые данные
+в Git не добавлены. Прошли scoped и полный Flutter test, analyze, native XCTest,
+release build, resource policy и diff review. Описание:
+[animation_binding_registry.md](../architecture/animation_binding_registry.md).
+
 ## П. 86 — Полный runtime-профиль анимаций Идефикса
 
 **Выполнено:** 23 июля 2026.

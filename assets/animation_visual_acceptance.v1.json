@@ -49,6 +49,34 @@
       ]
     },
     {
+      "id": "basic-roman-combat",
+      "originalReference": "task-62 character dictionary review sheet, basic Roman dictionary 48 slots 0, 5, 11, 15, 19, 26 and 38",
+      "result": "match",
+      "steps": [
+        {"actor": "basic-enemy:roman", "action": "locomotion.idle", "clip": "0231.animation.json"},
+        {"actor": "basic-enemy:roman", "action": "spawn.or-awareness", "clip": "0218.animation.json"},
+        {"actor": "basic-enemy:roman", "action": "locomotion.move", "clip": "0220.animation.json"},
+        {"actor": "basic-enemy:roman", "action": "combat.attack", "clip": "0203.animation.json"},
+        {"actor": "basic-enemy:roman", "action": "damage.hit-reaction", "clip": "0210.animation.json"},
+        {"actor": "basic-enemy:roman", "action": "special.enemy-state", "clip": "0233.animation.json"},
+        {"actor": "basic-enemy:roman", "action": "death.variant", "clip": "0222.animation.json"}
+      ]
+    },
+    {
+      "id": "roman-leader-combat",
+      "originalReference": "task-62 character dictionary review sheet, Roman leader dictionaries 27 and 28 with composed skins 28 + 27",
+      "result": "match",
+      "steps": [
+        {"actor": "basic-enemy-leader:roman", "action": "locomotion.idle", "clip": "0265.animation.json"},
+        {"actor": "basic-enemy-leader:roman", "action": "spawn.or-awareness", "clip": "0263.animation.json"},
+        {"actor": "basic-enemy-leader:roman", "action": "locomotion.move", "clip": "0264.animation.json"},
+        {"actor": "basic-enemy-leader:roman", "action": "combat.attack", "clip": "0292.animation.json"},
+        {"actor": "basic-enemy-leader:roman", "action": "damage.hit-reaction", "clip": "0294.animation.json"},
+        {"actor": "basic-enemy-leader:roman", "action": "special.enemy-state", "clip": "0273.animation.json"},
+        {"actor": "basic-enemy-leader:roman", "action": "death.variant", "clip": "0277.animation.json"}
+      ]
+    },
+    {
       "id": "cinematic-scene-data-1",
       "originalReference": "task-62 cinematic seven-pose review sheet, scene data 1",
       "result": "match",

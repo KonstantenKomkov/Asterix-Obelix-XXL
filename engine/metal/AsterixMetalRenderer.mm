@@ -821,6 +821,9 @@ struct AsterixPushMesh {
   NSDictionary* playerProfile=nil;
   NSDictionary* obelixProfile=nil;
   NSDictionary* idefixProfile=nil;
+  NSDictionary* basicRomanProfile=nil;
+  NSDictionary* romanLeaderEquipmentProfile=nil;
+  NSDictionary* romanLeaderBodyProfile=nil;
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
     if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
       for (NSDictionary* profile in animationBindings[@"runtimeProfiles"]) {
@@ -843,6 +846,24 @@ struct AsterixPushMesh {
             return NO;
           }
           idefixProfile=profile;
+        } else if ([profile[@"id"] isEqual:@"basic-roman-enemy"]) {
+          if (basicRomanProfile!=nil) {
+            @synchronized(self) { _sceneError=@"Ambiguous basic-roman-enemy runtime profile"; }
+            return NO;
+          }
+          basicRomanProfile=profile;
+        } else if ([profile[@"id"] isEqual:@"roman-leader-equipment"]) {
+          if (romanLeaderEquipmentProfile!=nil) {
+            @synchronized(self) { _sceneError=@"Ambiguous roman-leader-equipment runtime profile"; }
+            return NO;
+          }
+          romanLeaderEquipmentProfile=profile;
+        } else if ([profile[@"id"] isEqual:@"roman-leader-body"]) {
+          if (romanLeaderBodyProfile!=nil) {
+            @synchronized(self) { _sceneError=@"Ambiguous roman-leader-body runtime profile"; }
+            return NO;
+          }
+          romanLeaderBodyProfile=profile;
         }
       }
     }
@@ -1007,6 +1028,68 @@ struct AsterixPushMesh {
     if (idefixResolved!=idefixSelectors.count) {
       @synchronized(self) { _sceneError=@"Incomplete idefix-player runtime profile"; }
       return NO;
+    }
+    NSArray<NSDictionary*>* enemyProfileSpecs=@[
+      @{@"profile":basicRomanProfile ?: @{}, @"id":@"basic-roman-enemy",
+        @"actor":@"basic-enemy:roman", @"skin":@48, @"states":@41, @"nodes":@28},
+      @{@"profile":romanLeaderEquipmentProfile ?: @{}, @"id":@"roman-leader-equipment",
+        @"actor":@"basic-enemy-leader:roman", @"skin":@27, @"states":@41, @"nodes":@30},
+      @{@"profile":romanLeaderBodyProfile ?: @{}, @"id":@"roman-leader-body",
+        @"actor":@"basic-enemy-leader:roman", @"skin":@28, @"states":@3, @"nodes":@30}
+    ];
+    for (NSDictionary* spec in enemyProfileSpecs) {
+      NSDictionary* profile=spec[@"profile"];
+      NSDictionary* enemySelectors=profile[@"states"];
+      NSString* profileId=spec[@"id"];
+      if (![profile[@"actor"] isEqual:spec[@"actor"]] ||
+          ![profile[@"skin"] isKindOfClass:NSNumber.class] ||
+          [profile[@"skin"] integerValue]!=[spec[@"skin"] integerValue] ||
+          ![profile[@"costume"] isEqual:@"roman-default"] ||
+          ![profile[@"context"] isEqual:@"gameplay"] ||
+          ![profile[@"complete"] isKindOfClass:NSNumber.class] ||
+          ![profile[@"complete"] boolValue] ||
+          ![enemySelectors isKindOfClass:NSDictionary.class] ||
+          enemySelectors.count!=[spec[@"states"] unsignedIntegerValue]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:
+            @"Missing or invalid %@ runtime profile",profileId]; }
+        return NO;
+      }
+      NSMutableSet<NSString*>* enemySelected=[NSMutableSet set];
+      for (NSString* state in enemySelectors) {
+        NSDictionary* selector=enemySelectors[state];
+        NSString* action=[selector isKindOfClass:NSDictionary.class] ? selector[@"action"] : nil;
+        NSString* variant=[selector isKindOfClass:NSDictionary.class] ? selector[@"variant"] : nil;
+        NSString* selectorKey=(action&&variant)
+            ? [NSString stringWithFormat:@"%@|%@",action,variant] : nil;
+        if (selectorKey==nil || [enemySelected containsObject:selectorKey]) {
+          @synchronized(self) { _sceneError=[NSString stringWithFormat:
+              @"Invalid or duplicate runtime selector for %@/%@",profileId,state]; }
+          return NO;
+        }
+        [enemySelected addObject:selectorKey];
+        NSUInteger matches=0;
+        for (NSDictionary* binding in animationBindings[@"bindings"]) {
+          if (![binding isKindOfClass:NSDictionary.class] ||
+              ![binding[@"actor"] isEqual:profile[@"actor"]] ||
+              [binding[@"skin"] integerValue]!=[profile[@"skin"] integerValue] ||
+              ![binding[@"costume"] isEqual:profile[@"costume"]] ||
+              ![binding[@"context"] isEqual:profile[@"context"]] ||
+              ![binding[@"action"] isEqual:action] ||
+              ![binding[@"variant"] isEqual:variant]) continue;
+          if ([binding[@"fallback"] boolValue] ||
+              [binding[@"skeletonNodes"] integerValue]!=[spec[@"nodes"] integerValue]) {
+            @synchronized(self) { _sceneError=[NSString stringWithFormat:
+                @"Invalid runtime binding for %@/%@",profileId,state]; }
+            return NO;
+          }
+          matches++;
+        }
+        if (matches!=1) {
+          @synchronized(self) { _sceneError=[NSString stringWithFormat:
+              @"Ambiguous runtime selector for %@/%@",profileId,state]; }
+          return NO;
+        }
+      }
     }
   }
   NSMutableDictionary<NSString*, NSString*>* animationKeys=[NSMutableDictionary dictionary];
