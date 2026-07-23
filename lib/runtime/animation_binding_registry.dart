@@ -118,15 +118,13 @@ final class AnimationBindingRegistry {
             'bindings[$index].phases must be a non-empty object',
           );
         }
-        var previous = 0.0;
         for (final phase in phases.entries) {
           final value = phase.value;
-          if (value is! num || value < previous || value < 0 || value > 1) {
+          if (value is! num || !value.isFinite || value < 0 || value > 1) {
             throw AnimationBindingException(
-              'bindings[$index].phases must be ordered in [0, 1]',
+              'bindings[$index].phases must be finite values in [0, 1]',
             );
           }
-          previous = value.toDouble();
         }
       }
       final variant = raw['variant'];
@@ -961,12 +959,14 @@ final class AnimationBindingRegistry {
     }
     final phases = binding['phases'];
     if (phases is! Map<String, Object?>) return const [];
-    return phases.entries
-        .where((entry) {
+    final crossed =
+        phases.entries.where((entry) {
           final value = (entry.value! as num).toDouble();
           return value > from && value <= to;
-        })
-        .map((entry) => entry.key)
-        .toList(growable: false);
+        }).toList()..sort((left, right) {
+          final order = (left.value! as num).compareTo(right.value! as num);
+          return order != 0 ? order : left.key.compareTo(right.key);
+        });
+    return crossed.map((entry) => entry.key).toList(growable: false);
   }
 }

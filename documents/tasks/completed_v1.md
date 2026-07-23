@@ -1,5 +1,35 @@
 # Выполненные задачи первой итерации
 
+## П. 92 — Fresh ASTPAK и release-приёмка доказанных анимаций
+
+**Выполнено:** 23 июля 2026.
+
+Сборочный pipeline получил явный локальный вход для принятого registry п. 91.10,
+а новый строгий post-build gate проверяет его digest и структурное совпадение с
+единственным embedded `animation-bindings`. Gate подтвердил ровно 345
+уникальных authored animation resources, 408 proven non-fallback selectors,
+пустые missing/unknown списки, нулевые unresolved/ambiguous/visual-only итоги
+и отдельные single/double jump assertions `0031` / `0064`.
+
+Fresh и полностью cached ASTPAK размером 68 805 044 байта побайтно совпали;
+SHA-256: `2c9f093a8177934acbaec16deada90e05e9e37b76688f70b7108f6eb0de9dfd9`.
+Установленный
+`~/Library/Application Support/AsterixXXL/gaul-stage-1.astpak` побайтно
+совпадает с fresh artifact. Общий slice audit прошёл.
+
+Metal Runner smoke загрузил установленный пакет и все
+hero/character/world/cinematic profiles без loader/runtime/fallback
+diagnostics, подтвердил 90 authored clips Астерикса и отдельно открыл single
+jump `0031` и double jump `0064`. Release-приложение прошло cold start.
+Устранена зависимость authored phase order от сериализации JSON: runtime
+валидирует значения независимо от порядка ключей и выдаёт события по числовой
+фазе.
+
+Прошли полный `make check`, 58 native XCTest, 10 Runner XCTest, release build,
+resource policy и отдельное diff review. Оригинальные и производные игровые
+данные в Git не добавлены. Команды и результаты:
+[task92_animation_release_acceptance.md](../architecture/task92_animation_release_acceptance.md).
+
 ## П. 91.10 — Итоговые catalog, registry и acceptance
 
 **Выполнено:** 23 июля 2026.

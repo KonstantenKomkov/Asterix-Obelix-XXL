@@ -19,7 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
-| 92 | **Пересобрать и принять запускаемый ASTPAK после доказательной приёмки анимаций:** выполнить fresh rebuild без использования прежнего package, установить полученный пакет по runtime-пути приложения, доказать post-build соответствие всех animation resources и embedded registry результатам п. 91.10, затем провести release cold-start и runtime smoke | Animation release gate | P0 | M | После п. 91.10; fresh и cached rebuild побайтно совпадают; ASTPAK содержит ровно 345 authored animations и актуальный `animation-bindings` registry со всеми 408 proven non-fallback selectors; package audit не сообщает missing/duplicate/stale/unknown resources; установленный `~/Library/Application Support/AsterixXXL/gaul-stage-1.astpak` побайтно совпадает с принятым fresh artifact; release cold-start и representative runtime sequences всех групп, включая отдельные single/double jump Астерикса, проходят без loader/runtime/fallback diagnostics; SHA-256 и команды воспроизведения документированы |
 ---
 
 ## Последующие итерации
@@ -136,14 +135,14 @@
 - [x] П. 89 — 46 world/UI/FX bindings
 - [x] П. 90 — 63 cinematic bindings
 - [x] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
-- [ ] П. 92 — fresh ASTPAK, post-build audit и release runtime-приёмка доказанных анимаций
+- [x] П. 92 — fresh ASTPAK, post-build audit и release runtime-приёмка доказанных анимаций
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — добавлен п. 92: после metadata-only приёмки п. 91.10 требуется fresh/cached rebuild запускаемого ASTPAK, post-build доказательство 345 authored animations и актуального registry всех 408 proven selectors, установка побайтно принятого пакета и release cold-start/runtime smoke без fallback diagnostics.
+**Последнее обновление:** 23 июля 2026 — п. 92 выполнен: fresh/cached ASTPAK побайтно совпали, post-build gate подтвердил 345 authored animations и точный registry всех 408 proven selectors, установленный пакет совпал с fresh artifact, а Metal runtime smoke и release cold-start прошли без diagnostics.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 91.10 и зонтичный п. 91 выполнены: финализатор обновляет локальные catalog и registry доказанными связями всех 408 runtime bindings; итоговая acceptance содержит 408 confirmed и ноль unresolved/ambiguous/visual-only, а single/double jump Астерикса приняты отдельными assertions. Два независимых metadata-only результата побайтно совпали.
 

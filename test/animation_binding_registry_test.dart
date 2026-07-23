@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:asterix_xxl/runtime/animation_binding_registry.dart';
+import 'package:asterix_xxl/runtime/asset_package.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -81,7 +82,7 @@ void main() {
   test('rejects malformed phases and unreachable graph actions', () {
     final malformed = manifest();
     (malformed['bindings']! as List).first['phases'] = {
-      'impact': 0.7,
+      'impact': 1.2,
       'windup': 0.2,
     };
     expect(
@@ -913,6 +914,29 @@ void main() {
       );
       expect(registry.allowsTransition(first, idle), isTrue);
       expect(registry.phasesCrossed(first, 0, 0.55), ['windup', 'impact']);
+    },
+  );
+
+  test(
+    'canonical JSON key order does not change authored phase order',
+    () async {
+      final source = jsonDecode(
+        await File('assets/animation_bindings.v1.json').readAsString(),
+      );
+      final canonical = jsonDecode(utf8.decode(encodeCanonicalJson(source)));
+      final registry = AnimationBindingRegistry.parse(canonical);
+      final attack = registry.select(
+        actor: 'asterix',
+        skin: 4,
+        costume: 'default',
+        action: 'combat.attack',
+      );
+
+      expect(registry.phasesCrossed(attack, 0, 1), [
+        'windup',
+        'impact',
+        'recovery',
+      ]);
     },
   );
 

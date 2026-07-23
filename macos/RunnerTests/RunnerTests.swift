@@ -4,6 +4,32 @@ import XCTest
 
 class RunnerTests: XCTestCase {
   @MainActor
+  func testInstalledReleasePackageLoadsAllProvenAnimationProfiles() throws {
+    guard MTLCreateSystemDefaultDevice() != nil else {
+      throw XCTSkip("Metal is unavailable")
+    }
+    let support = try XCTUnwrap(
+      FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+    )
+    let package = support
+      .appendingPathComponent("AsterixXXL")
+      .appendingPathComponent("gaul-stage-1.astpak")
+    guard FileManager.default.fileExists(atPath: package.path) else {
+      throw XCTSkip("Installed local ASTPAK is unavailable")
+    }
+    let view = MTKView(frame: CGRect(x: 0, y: 0, width: 1280, height: 720),
+                       device: MTLCreateSystemDefaultDevice())
+    let renderer = AsterixMetalRenderer(view: view)
+
+    XCTAssertTrue(renderer.loadAssetPackage(at: package))
+    XCTAssertTrue(renderer.isSceneReady)
+    XCTAssertNil(renderer.sceneError)
+    XCTAssertEqual(renderer.animationReviewCandidates.count, 90)
+    XCTAssertTrue(renderer.previewAnimationClip("0031"))
+    XCTAssertTrue(renderer.previewAnimationClip("0064"))
+  }
+
+  @MainActor
   func testRendererLifecycleIsIdempotent() {
     let view = MTKView(frame: .zero, device: nil)
     let renderer = AsterixMetalRenderer(view: view)

@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory task91-corpus task91-headless task91-anchors task91-primitives task91-dispatch task91-asterix-profile task91-controlled-heroes-profile task91-enemies-scripted-profile task91-world-cinematics-profile task91-provenance-gate task91-final-acceptance task91-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory task91-corpus task91-headless task91-anchors task91-primitives task91-dispatch task91-asterix-profile task91-controlled-heroes-profile task91-enemies-scripted-profile task91-world-cinematics-profile task91-provenance-gate task91-final-acceptance task91-tooling-test task92-release-audit importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -79,6 +79,10 @@ task91-tooling-test: ## Проверить metadata-only tooling задачи 91
 	python3 -m unittest test/task91_provenance_gate_test.py
 	python3 -m unittest test/task91_final_acceptance_test.py
 	bash -n scripts/task91_headless_analysis.sh
+
+task92-release-audit: ## Проверить ASTPAK против принятого registry п. 91.10 (INPUT=... REGISTRY=... ACCEPTANCE=...)
+	@test -n "$(INPUT)" -a -n "$(REGISTRY)" -a -n "$(ACCEPTANCE)" || (echo 'Укажите INPUT=... REGISTRY=... ACCEPTANCE=...' >&2; exit 2)
+	$(DART) run bin/task92_release_audit.dart "$(INPUT)" "$(REGISTRY)" "$(ACCEPTANCE)"
 
 importer-inspect: ## Проверить файл каркасом импортёра (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/файлу' >&2; exit 2)
