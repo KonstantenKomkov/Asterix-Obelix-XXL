@@ -19,6 +19,7 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
+| 91 | **Восстановить точные соответствия authored animation clips игровым действиям:** исследовать доступный исходный код, символы, таблицы состояний и обращения к animation dictionaries оригинальной игры; заменить предположительные semantic labels доказанными actor/state/event → dictionary/slot/clip связями | Animation fidelity | P0 | XL | Законный локальный источник; документированная цепочка доказательств для каждого runtime binding; отдельно подтверждены одинарный/двойной прыжок Астерикса; обновлены catalog, bindings и acceptance; визуальный preview не считается достаточным доказательством |
 
 ---
 
@@ -135,13 +136,16 @@
 - [x] П. 88 — 24 scripted bindings NPC и существ
 - [x] П. 89 — 46 world/UI/FX bindings
 - [x] П. 90 — 63 cinematic bindings
+- [ ] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 83 выполнен: итоговый strict gate требует 345 clips / 518 slots / ровно 408 concrete runtime bindings / 0 declarative-only и полный набор 22 representative visual sequences всех групп. Повторно собран fresh ASTPAK всех 345 animations, release cold start прошёл без loader/runtime diagnostics.
+**Последнее обновление:** 23 июля 2026 — добавлен исследовательский п. 91: прежние structural/visual gates не доказали семантическую правильность всех привязок. Требуется восстановить точные actor/state/event → dictionary/slot/clip соответствия из доступного исходного кода, символов и управляющих таблиц оригинальной игры; runtime preview оставлен только как отключённый диагностический инструмент и не является источником истины.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 83 выполнен: итоговый strict gate требует 345 clips / 518 slots / ровно 408 concrete runtime bindings / 0 declarative-only и полный набор 22 representative visual sequences всех групп. Повторно собран fresh ASTPAK всех 345 animations, release cold start прошёл без loader/runtime diagnostics.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 90 выполнен: 14 полных cinematic timeline профилей биективно связывают 63 cues с exact dictionary-slot actor/prop selectors. Native lifecycle поддерживает simultaneous tracks, control/presentation cues, complete/skip/interrupt/resume и restore без replay; fresh gate подтвердил 408 concrete и 0 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
 

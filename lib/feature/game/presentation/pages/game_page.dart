@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,10 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
+  static const _animationReviewEnabled = bool.fromEnvironment(
+    'ASTERIX_ANIMATION_REVIEW',
+    defaultValue: false,
+  );
   static const _controllerEvents = EventChannel('asterix/controller-events');
   static const _inputChannel = MethodChannel('asterix/game-input');
   static const _statsChannel = EventChannel('asterix/metal-stats');
@@ -209,6 +214,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               ),
             ),
             if (MediaQuery.sizeOf(context).width >= 760) const _DebugPanel(),
+            if (_animationReviewEnabled &&
+                MediaQuery.sizeOf(context).width >= 760)
+              const _AnimationReviewPanel(),
             if (_paused)
               _PauseOverlay(
                 onResume: () => _setPaused(false),
@@ -476,6 +484,297 @@ class _DebugPanelState extends State<_DebugPanel> {
                 'Triggers/Navmesh: 0',
                 style: TextStyle(color: Colors.white54, fontSize: 11),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimationReviewPanel extends StatefulWidget {
+  const _AnimationReviewPanel();
+
+  @override
+  State<_AnimationReviewPanel> createState() => _AnimationReviewPanelState();
+}
+
+class _AnimationReviewPanelState extends State<_AnimationReviewPanel> {
+  static const _channel = MethodChannel('asterix/game-input');
+  static const _assignmentsKey = 'animationReviewAssignmentsV1';
+  static const _coreActions = <String>[
+    'locomotion.idle',
+    'locomotion.run',
+    'locomotion.jump',
+    'locomotion.airborne',
+    'locomotion.fall',
+    'combat.attack',
+    'damage.hurt',
+    'damage.death',
+  ];
+
+  bool _expanded = false;
+  bool _loading = false;
+  List<Map<String, String>> _candidates = const [];
+  Map<String, String> _assignments = const {};
+  int _index = 0;
+  String _action = 'locomotion.jump';
+  String _message = '';
+
+  Future<void> _open() async {
+    setState(() {
+      _expanded = true;
+      _loading = true;
+      _message = '';
+    });
+    try {
+      List<Object?>? raw;
+      for (var attempt = 0; attempt < 40; attempt++) {
+        raw = await _channel.invokeListMethod<Object?>(
+          'animationReviewCandidates',
+        );
+        if (raw?.isNotEmpty == true) break;
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        if (!mounted || !_expanded) return;
+      }
+      final candidates = <Map<String, String>>[];
+      for (final value in raw ?? const []) {
+        if (value is! Map) continue;
+        final map = Map<Object?, Object?>.from(value);
+        final clip = map['clip'];
+        if (clip is! String || clip.isEmpty) continue;
+        candidates.add({
+          'clip': clip,
+          'action': map['action'] as String? ?? 'unknown',
+          'variant': map['variant'] as String? ?? '',
+        });
+      }
+      final preferences = await SharedPreferences.getInstance();
+      final stored = preferences.getString(_assignmentsKey);
+      final assignments = <String, String>{};
+      if (stored != null) {
+        final decoded = jsonDecode(stored);
+        if (decoded is Map) {
+          for (final entry in decoded.entries) {
+            if (entry.key is String && entry.value is String) {
+              assignments[entry.key as String] = entry.value as String;
+            }
+          }
+        }
+      }
+      if (!mounted) return;
+      final selectedClip = assignments[_action];
+      final selectedIndex = selectedClip == null
+          ? 0
+          : candidates.indexWhere(
+              (candidate) => candidate['clip'] == selectedClip,
+            );
+      setState(() {
+        _candidates = candidates;
+        _assignments = assignments;
+        _index = selectedIndex < 0 ? 0 : selectedIndex;
+        _loading = false;
+        _message = candidates.isEmpty
+            ? 'Не удалось загрузить совместимые клипы.'
+            : '';
+      });
+      if (candidates.isNotEmpty) await _preview();
+    } on MissingPluginException {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _message = 'Просмотр доступен в macOS-сборке.';
+        });
+      }
+    } on FormatException {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _preview() async {
+    if (_candidates.isEmpty) return;
+    final clip = _candidates[_index]['clip']!;
+    final accepted =
+        await _channel.invokeMethod<bool>('previewAnimation', clip) ?? false;
+    if (mounted) {
+      setState(() {
+        _message = accepted ? '' : 'Клип $clip не удалось воспроизвести.';
+      });
+    }
+  }
+
+  Future<void> _move(int delta) async {
+    if (_candidates.isEmpty) return;
+    setState(() {
+      _index = (_index + delta) % _candidates.length;
+      if (_index < 0) _index += _candidates.length;
+    });
+    await _preview();
+  }
+
+  Future<void> _confirm() async {
+    if (_candidates.isEmpty) return;
+    final clip = _candidates[_index]['clip']!;
+    final next = Map<String, String>.from(_assignments)..[_action] = clip;
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(_assignmentsKey, jsonEncode(next));
+    if (mounted) {
+      setState(() {
+        _assignments = next;
+        _message = 'Подтверждено: $_action → $clip';
+      });
+    }
+  }
+
+  Future<void> _close() async {
+    await _channel.invokeMethod<void>('clearAnimationPreview');
+    if (mounted) setState(() => _expanded = false);
+  }
+
+  List<String> get _actions {
+    final result = <String>{..._coreActions};
+    for (final candidate in _candidates) {
+      result.add(candidate['action']!);
+    }
+    return result.toList()..sort();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_expanded) {
+      return SafeArea(
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: FilledButton.icon(
+              key: const Key('animation-review-open'),
+              onPressed: _open,
+              icon: const Icon(Icons.animation),
+              label: const Text('Разметить анимации'),
+            ),
+          ),
+        ),
+      );
+    }
+    final candidate = _candidates.isEmpty ? null : _candidates[_index];
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: Container(
+          key: const Key('animation-review-panel'),
+          width: 390,
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xEE101722),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.gold),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'РАЗМЕТКА АНИМАЦИЙ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('animation-review-close'),
+                    onPressed: _close,
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              DropdownButtonFormField<String>(
+                key: const Key('animation-review-action'),
+                initialValue: _action,
+                decoration: const InputDecoration(
+                  labelText: 'Искомое действие',
+                ),
+                items: [
+                  for (final action in _actions)
+                    DropdownMenuItem(value: action, child: Text(action)),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  final assigned = _assignments[value];
+                  final assignedIndex = assigned == null
+                      ? -1
+                      : _candidates.indexWhere(
+                          (candidate) => candidate['clip'] == assigned,
+                        );
+                  setState(() {
+                    _action = value;
+                    if (assignedIndex >= 0) _index = assignedIndex;
+                  });
+                  unawaited(_preview());
+                },
+              ),
+              const SizedBox(height: 10),
+              if (_loading)
+                const Center(child: CircularProgressIndicator())
+              else ...[
+                Text(
+                  candidate == null
+                      ? 'Нет доступных клипов'
+                      : 'Клип ${candidate['clip']}  •  ${_index + 1}/${_candidates.length}',
+                  key: const Key('animation-review-current'),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (candidate != null)
+                  Text(
+                    'Текущая метка: ${candidate['action']}\n'
+                    'Вариант: ${candidate['variant']}',
+                    style: const TextStyle(color: Colors.white60),
+                  ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    IconButton(
+                      key: const Key('animation-review-previous'),
+                      onPressed: _candidates.isEmpty ? null : () => _move(-1),
+                      icon: const Icon(Icons.skip_previous),
+                    ),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: const Key('animation-review-replay'),
+                        onPressed: _candidates.isEmpty ? null : _preview,
+                        icon: const Icon(Icons.replay),
+                        label: const Text('Повторить'),
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('animation-review-next'),
+                      onPressed: _candidates.isEmpty ? null : () => _move(1),
+                      icon: const Icon(Icons.skip_next),
+                    ),
+                  ],
+                ),
+                FilledButton.icon(
+                  key: const Key('animation-review-confirm'),
+                  onPressed: _candidates.isEmpty ? null : _confirm,
+                  icon: const Icon(Icons.check),
+                  label: Text('Это $_action'),
+                ),
+                if (_message.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      _message,
+                      style: const TextStyle(color: AppTheme.gold),
+                    ),
+                  ),
+                if (_candidates.isEmpty)
+                  TextButton(onPressed: _open, child: const Text('Обновить')),
+              ],
             ],
           ),
         ),

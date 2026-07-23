@@ -54,6 +54,13 @@ final class MetalViewportFactory: NSObject, FlutterPlatformViewFactory, FlutterS
         self?.pendingGameplayState = state
         self?.viewport?.restoreGameplaySaveState(state)
         result(nil)
+      } else if call.method == "animationReviewCandidates" {
+        result(self?.viewport?.animationReviewCandidates ?? [])
+      } else if call.method == "previewAnimation", let clip = call.arguments as? String {
+        result(self?.viewport?.previewAnimation(clip) ?? false)
+      } else if call.method == "clearAnimationPreview" {
+        self?.viewport?.clearAnimationPreview()
+        result(nil)
       } else {
         result(FlutterMethodNotImplemented)
       }
@@ -197,6 +204,18 @@ final class MetalViewportView: MTKView {
     if renderer?.restoreGameplaySaveState(state) == true {
       pendingGameplayState = nil
     }
+  }
+
+  var animationReviewCandidates: [[String: Any]] {
+    renderer?.animationReviewCandidates as? [[String: Any]] ?? []
+  }
+
+  func previewAnimation(_ clip: String) -> Bool {
+    renderer?.previewAnimationClip(clip) ?? false
+  }
+
+  func clearAnimationPreview() {
+    renderer?.clearAnimationPreview()
   }
 
   func loadAssetPackage(at url: URL) {

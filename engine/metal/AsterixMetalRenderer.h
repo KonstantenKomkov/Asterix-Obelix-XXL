@@ -45,6 +45,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) BOOL audioReady;
 @property(nonatomic, readonly) NSUInteger activeAudioEffects;
 @property(nonatomic, readonly, nullable) NSString* sceneError;
+@property(nonatomic, readonly) NSArray<NSDictionary*>* animationReviewCandidates;
+@property(nonatomic, readonly, nullable) NSString* animationReviewClip;
 
 - (instancetype)initWithView:(MTKView*)view NS_DESIGNATED_INITIALIZER;
 - (instancetype)init NS_UNAVAILABLE;
@@ -56,6 +58,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)reportSceneError:(NSString*)message;
 - (void)setDebugOptions:(uint32_t)options;
 - (void)setMusicVolume:(float)music effectsVolume:(float)effects;
+- (BOOL)previewAnimationClip:(NSString*)clip;
+- (void)clearAnimationPreview;
 - (void)setInputMoveX:(float)moveX
                 moveZ:(float)moveZ
                  jump:(BOOL)jump

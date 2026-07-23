@@ -122,4 +122,10 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     }
   });
+
+  testWidgets('animation review is disabled in normal builds', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    expect(find.byKey(const Key('animation-review-open')), findsNothing);
+  });
 }
