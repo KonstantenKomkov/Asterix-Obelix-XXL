@@ -266,10 +266,37 @@
       ]
     },
     {
-      "id": "cinematic-scene-data-1",
-      "originalReference": "task-62 cinematic seven-pose review sheet, scene data 1",
+      "id": "cinematic-scene-data-0",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 0",
       "result": "match",
       "steps": [
+        {
+          "actor": "cinematic-actor:scene-data-0",
+          "action": "cinematic.scene-0.performance.cue-0",
+          "clip": "0241.animation.json"
+        },
+        {
+          "actor": "cinematic-actor:scene-data-0",
+          "action": "cinematic.scene-0.performance.cue-1",
+          "clip": "0240.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-1",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 1",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-0",
+          "clip": "0058.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-1",
+          "clip": "0078.animation.json"
+        },
         {
           "actor": "asterix",
           "action": "cinematic.scene-1.performance.cue-2",
@@ -277,8 +304,377 @@
         },
         {
           "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-3",
+          "clip": "0081.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-4",
+          "clip": "0079.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-5",
+          "clip": "0080.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-6",
+          "clip": "0058.animation.json"
+        },
+        {
+          "actor": "asterix",
           "action": "cinematic.scene-1.performance.cue-7",
           "clip": "0025.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-10",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 10",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-10.performance.cue-0",
+          "clip": "0058.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-10.performance.cue-1",
+          "clip": "0025.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-10.performance.cue-2",
+          "clip": "0077.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-10.performance.cue-3",
+          "clip": "0076.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-10.performance.cue-4",
+          "clip": "0075.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-10.performance.cue-5",
+          "clip": "0094.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-11",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 11",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "action": "cinematic.scene-11.performance.cue-0",
+          "clip": "0234.animation.json"
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "action": "cinematic.scene-11.performance.cue-1",
+          "clip": "0235.animation.json"
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "action": "cinematic.scene-11.performance.cue-2",
+          "clip": "0236.animation.json"
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "action": "cinematic.scene-11.performance.cue-3",
+          "clip": "0234.animation.json"
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "action": "cinematic.scene-11.performance.cue-4",
+          "clip": "0238.animation.json"
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "action": "cinematic.scene-11.performance.cue-5",
+          "clip": "0237.animation.json"
+        },
+        {
+          "actor": "cinematic-actor:scene-data-11",
+          "action": "cinematic.scene-11.performance.cue-6",
+          "clip": "0239.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-12",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 12",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "cinematic-prop:scene-data-12",
+          "action": "cinematic.scene-12.performance.cue-0",
+          "clip": "0298.animation.json"
+        },
+        {
+          "actor": "cinematic-prop:scene-data-12",
+          "action": "cinematic.scene-12.performance.cue-1",
+          "clip": "0299.animation.json"
+        },
+        {
+          "actor": "cinematic-prop:scene-data-12",
+          "action": "cinematic.scene-12.performance.cue-2",
+          "clip": "0300.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-13",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 13",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "idefix",
+          "action": "cinematic.scene-13.performance.cue-0",
+          "clip": "0198.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "cinematic.scene-13.performance.cue-1",
+          "clip": "0185.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-2",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 2",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-0",
+          "clip": "0145.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-1",
+          "clip": "0125.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-2",
+          "clip": "0159.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-3",
+          "clip": "0162.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-4",
+          "clip": "0160.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-5",
+          "clip": "0161.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-6",
+          "clip": "0158.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-7",
+          "clip": "0116.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-2.performance.cue-8",
+          "clip": "0142.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-3",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 3",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "animated-character:dictionary-7",
+          "action": "cinematic.scene-3.performance.cue-0",
+          "clip": "0302.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-4",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 4",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "idefix",
+          "action": "cinematic.scene-4.performance.cue-0",
+          "clip": "0176.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "cinematic.scene-4.performance.cue-1",
+          "clip": "0179.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "cinematic.scene-4.performance.cue-2",
+          "clip": "0185.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "cinematic.scene-4.performance.cue-3",
+          "clip": "0187.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "cinematic.scene-4.performance.cue-4",
+          "clip": "0188.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-5",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 5",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "animated-character:dictionary-9",
+          "action": "cinematic.scene-5.performance.cue-0",
+          "clip": "0343.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-6",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 6",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "animated-character:dictionary-10",
+          "action": "cinematic.scene-6.performance.cue-0",
+          "clip": "0344.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-7",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 7",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-7.performance.cue-0",
+          "clip": "0145.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-7.performance.cue-1",
+          "clip": "0142.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-7.performance.cue-2",
+          "clip": "0157.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-7.performance.cue-3",
+          "clip": "0158.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-7.performance.cue-4",
+          "clip": "0125.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-7.performance.cue-5",
+          "clip": "0140.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-8",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 8",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-8.performance.cue-0",
+          "clip": "0058.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-8.performance.cue-1",
+          "clip": "0035.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-8.performance.cue-2",
+          "clip": "0075.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-8.performance.cue-3",
+          "clip": "0076.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-8.performance.cue-4",
+          "clip": "0053.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-8.performance.cue-5",
+          "clip": "0025.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "cinematic-scene-data-9",
+      "originalReference": "task-62 cinematic pose review sheet, scene data 9",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-9.performance.cue-0",
+          "clip": "0145.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-9.performance.cue-1",
+          "clip": "0116.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-9.performance.cue-2",
+          "clip": "0156.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-9.performance.cue-3",
+          "clip": "0125.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-9.performance.cue-4",
+          "clip": "0157.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "cinematic.scene-9.performance.cue-5",
+          "clip": "0158.animation.json"
         }
       ]
     }

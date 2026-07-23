@@ -521,6 +521,8 @@ final class AnimationBindingRegistry {
     final ids = <String>{};
     var worldProfileCount = 0;
     var worldSelectorCount = 0;
+    var cinematicProfileCount = 0;
+    var cinematicSelectorCount = 0;
     for (var profileIndex = 0; profileIndex < profiles.length; profileIndex++) {
       final profile = profiles[profileIndex];
       if (profile is! Map<String, Object?> ||
@@ -655,12 +657,100 @@ final class AnimationBindingRegistry {
           );
         }
         worldSelectorCount += states.length;
+      } else if (profile['context'] == 'cinematic') {
+        cinematicProfileCount++;
+        final states = profile['states']! as Map<String, Object?>;
+        final cueStates = profile['cueStates'];
+        final idMatch = profile['id'] is String
+            ? RegExp(
+                r'^cinematic-scene-data-(\d+)$',
+              ).firstMatch(profile['id']! as String)
+            : null;
+        final scene = idMatch == null ? -1 : int.parse(idMatch.group(1)!);
+        final expectedTimeline = 'scene-data-$scene';
+        final timeline = (manifest['cinematicTimelines']! as List<Object?>)
+            .whereType<Map<String, Object?>>()
+            .where((item) => item['id'] == expectedTimeline);
+        if (scene < 0 ||
+            timeline.length != 1 ||
+            profile['instance'] != 'cinematic-timeline-$scene' ||
+            profile['scriptEvent'] != 'script.cinematic.scene-data-$scene' ||
+            profile['costume'] != 'scene-$scene' ||
+            profile['restorePolicy'] != 'snapshot-without-replay' ||
+            profile['controlPolicy'] != 'lock-on-start-return-on-terminal' ||
+            profile['skipPolicy'] != 'apply-terminal-state' ||
+            profile['interruptPolicy'] != 'checkpoint-current-cue' ||
+            profile['reentryPolicy'] !=
+                'resume-checkpoint-or-restart-after-interrupt' ||
+            cueStates is! Map<String, Object?> ||
+            cueStates.isEmpty ||
+            !(timeline.single['tracks']! as List<Object?>).every(
+              (track) =>
+                  track is Map<String, Object?> &&
+                  track['actor'] == profile['actor'] &&
+                  track['dictionaryId'] == profile['skin'],
+            )) {
+          throw AnimationBindingException(
+            'runtimeProfiles[$profileIndex] has invalid cinematic metadata',
+          );
+        }
+        final selectedStates = <String>[];
+        for (final cue in cueStates.entries) {
+          final cueMatch = RegExp(r'^cue_(\d+)$').firstMatch(cue.key);
+          if (cueMatch == null ||
+              cue.value is! List ||
+              (cue.value! as List).isEmpty ||
+              (cue.value! as List).any(
+                (state) => state is! String || !states.containsKey(state),
+              )) {
+            throw AnimationBindingException(
+              'runtimeProfiles[$profileIndex].cueStates.${cue.key} is invalid',
+            );
+          }
+          final cueIndex = int.parse(cueMatch.group(1)!);
+          for (final state in (cue.value! as List).cast<String>()) {
+            final selector = states[state]! as Map<String, Object?>;
+            final matches = bindings.where(
+              (binding) =>
+                  binding['actor'] == profile['actor'] &&
+                  binding['skin'] == profile['skin'] &&
+                  binding['costume'] == profile['costume'] &&
+                  binding['context'] == 'cinematic' &&
+                  binding['action'] == selector['action'] &&
+                  binding['variant'] == selector['variant'] &&
+                  binding['timeline'] == expectedTimeline &&
+                  binding['cueIndex'] == cueIndex &&
+                  binding['trigger'] ==
+                      '${profile['scriptEvent']}:cue-$cueIndex',
+            );
+            if (matches.length != 1) {
+              throw AnimationBindingException(
+                'runtimeProfiles[$profileIndex].cueStates.${cue.key} '
+                'does not resolve its authored cue',
+              );
+            }
+            selectedStates.add(state);
+          }
+        }
+        if (selectedStates.length != states.length ||
+            selectedStates.toSet().length != states.length) {
+          throw AnimationBindingException(
+            'runtimeProfiles[$profileIndex] must bind every cinematic state once',
+          );
+        }
+        cinematicSelectorCount += states.length;
       }
     }
     if (worldProfileCount != 0 &&
         (worldProfileCount != 13 || worldSelectorCount != 46)) {
       throw const AnimationBindingException(
         'world runtime profiles must contain 13 profiles and 46 selectors',
+      );
+    }
+    if (cinematicProfileCount != 0 &&
+        (cinematicProfileCount != 14 || cinematicSelectorCount != 63)) {
+      throw const AnimationBindingException(
+        'cinematic runtime profiles must contain 14 profiles and 63 selectors',
       );
     }
   }

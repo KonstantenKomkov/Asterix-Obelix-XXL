@@ -1,5 +1,36 @@
 # Выполненные задачи первой итерации
 
+## П. 90 — Scripted/cinematic timelines
+
+**Выполнено:** 23 июля 2026.
+
+Добавлены 14 полных `cinematic-scene-data-N` runtime-профилей для всех
+scene-data timelines. Каждый уникальный `script.cinematic.scene-data-N` event
+адресует отдельный timeline instance, а 63 cue states биективно разрешают
+exact actor/prop dictionary-slot selectors без clip ID, semantic alias или
+fallback. Registry и Metal отклоняют missing, duplicate, ambiguous,
+cross-cue, неверные trigger/timeline и неполные профили.
+
+Native cinematic coordinator поддерживает одновременные actor tracks и tracks
+с поздним стартом без искусственных padding actions. Output сохраняет actor
+target, concrete profile и state selector. Start блокирует управление и
+включает camera/audio/subtitle cues; normal completion и skip применяют
+terminal state и возвращают gameplay presentation/control. Interrupt сохраняет
+cue, resume повторно выбирает текущие позы, а checkpoint restore меняет
+snapshot без replay.
+
+Fresh gate подтвердил 345 clips / 518 slots / 408 bindings, все 408 concrete,
+declarative-only равен нулю; все error counters равны нулю. SHA-256 отчёта:
+`cc7a4ca9eb1e6a7e910381ba511604973713b0b4faf85c5b592bb3b9b17003bb`.
+Fresh ASTPAK размером 68 714 788 байт имеет SHA-256
+`f6d4fd699842190fa522c8257a4f4637d1fae8f94a2d7f305585ac1b1b564694`;
+release-приложение сохранило процесс после cold start без loader diagnostics.
+Visual metadata покрывает все 14 timelines и 63 cues по локальным task-62
+cinematic review sheets; оригинальные и производные игровые данные в Git не
+добавлены. Прошли полный Flutter test/analyze, native XCTest, release build,
+resource policy и отдельное diff review. Описание:
+[animation_binding_registry.md](../architecture/animation_binding_registry.md).
+
 ## П. 89 — Runtime-анимации world, UI и FX
 
 **Выполнено:** 23 июля 2026.

@@ -826,6 +826,7 @@ struct AsterixPushMesh {
   NSDictionary* romanLeaderBodyProfile=nil;
   NSMutableArray<NSDictionary*>* scriptedCharacterProfiles=[NSMutableArray array];
   NSMutableArray<NSDictionary*>* worldRuntimeProfiles=[NSMutableArray array];
+  NSMutableArray<NSDictionary*>* cinematicRuntimeProfiles=[NSMutableArray array];
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
     if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
       for (NSDictionary* profile in animationBindings[@"runtimeProfiles"]) {
@@ -870,6 +871,8 @@ struct AsterixPushMesh {
           [scriptedCharacterProfiles addObject:profile];
         } else if ([profile[@"context"] isEqual:@"world"]) {
           [worldRuntimeProfiles addObject:profile];
+        } else if ([profile[@"context"] isEqual:@"cinematic"]) {
+          [cinematicRuntimeProfiles addObject:profile];
         }
       }
     }
@@ -1247,6 +1250,101 @@ struct AsterixPushMesh {
     }
     if (worldResolved!=46) {
       @synchronized(self) { _sceneError=@"Incomplete world animation runtime selector catalog"; }
+      return NO;
+    }
+    if (cinematicRuntimeProfiles.count!=14) {
+      @synchronized(self) { _sceneError=@"Incomplete cinematic animation runtime profiles"; }
+      return NO;
+    }
+    NSMutableSet<NSString*>* cinematicIds=[NSMutableSet set];
+    NSMutableSet<NSString*>* cinematicEvents=[NSMutableSet set];
+    NSUInteger cinematicResolved=0;
+    for (NSDictionary* profile in cinematicRuntimeProfiles) {
+      NSString* profileId=profile[@"id"];
+      NSString* scene=[profileId isKindOfClass:NSString.class] &&
+          [profileId hasPrefix:@"cinematic-scene-data-"]
+          ? [profileId substringFromIndex:[@"cinematic-scene-data-" length]]
+          : nil;
+      NSString* timeline=scene
+          ? [NSString stringWithFormat:@"scene-data-%@",scene] : nil;
+      NSString* expectedEvent=scene
+          ? [NSString stringWithFormat:@"script.cinematic.scene-data-%@",scene] : nil;
+      NSString* expectedInstance=scene
+          ? [NSString stringWithFormat:@"cinematic-timeline-%@",scene] : nil;
+      NSDictionary* cinematicSelectors=profile[@"states"];
+      NSDictionary* cueStates=profile[@"cueStates"];
+      if (scene.length==0 ||
+          ![profile[@"instance"] isEqual:expectedInstance] ||
+          ![profile[@"scriptEvent"] isEqual:expectedEvent] ||
+          ![profile[@"costume"] isEqual:
+              [NSString stringWithFormat:@"scene-%@",scene]] ||
+          ![profile[@"restorePolicy"] isEqual:@"snapshot-without-replay"] ||
+          ![profile[@"controlPolicy"] isEqual:@"lock-on-start-return-on-terminal"] ||
+          ![profile[@"skipPolicy"] isEqual:@"apply-terminal-state"] ||
+          ![profile[@"interruptPolicy"] isEqual:@"checkpoint-current-cue"] ||
+          ![profile[@"reentryPolicy"] isEqual:
+              @"resume-checkpoint-or-restart-after-interrupt"] ||
+          ![profile[@"complete"] boolValue] ||
+          ![cinematicSelectors isKindOfClass:NSDictionary.class] ||
+          ![cueStates isKindOfClass:NSDictionary.class] ||
+          [cinematicIds containsObject:profileId] ||
+          [cinematicEvents containsObject:expectedEvent]) {
+        @synchronized(self) { _sceneError=@"Invalid cinematic animation runtime profile"; }
+        return NO;
+      }
+      [cinematicIds addObject:profileId];
+      [cinematicEvents addObject:expectedEvent];
+      NSMutableSet<NSString*>* selectedStates=[NSMutableSet set];
+      for (NSString* cue in cueStates) {
+        if (![cue hasPrefix:@"cue_"] ||
+            [cueStates[cue] isKindOfClass:NSArray.class]==NO) {
+          @synchronized(self) { _sceneError=@"Invalid cinematic cue selectors"; }
+          return NO;
+        }
+        NSString* cueIndex=[cue substringFromIndex:4];
+        NSString* trigger=[NSString stringWithFormat:@"%@:cue-%@",
+                            expectedEvent,cueIndex];
+        for (NSString* state in cueStates[cue]) {
+          NSDictionary* selector=[state isKindOfClass:NSString.class]
+              ? cinematicSelectors[state] : nil;
+          if (![selector isKindOfClass:NSDictionary.class] ||
+              [selectedStates containsObject:state]) {
+            @synchronized(self) { _sceneError=@"Duplicate cinematic runtime selector"; }
+            return NO;
+          }
+          [selectedStates addObject:state];
+          NSUInteger matches=0;
+          for (NSDictionary* binding in animationBindings[@"bindings"]) {
+            if (![binding[@"actor"] isEqual:profile[@"actor"]] ||
+                [binding[@"skin"] integerValue]!=[profile[@"skin"] integerValue] ||
+                ![binding[@"costume"] isEqual:profile[@"costume"]] ||
+                ![binding[@"context"] isEqual:@"cinematic"] ||
+                ![binding[@"action"] isEqual:selector[@"action"]] ||
+                ![binding[@"variant"] isEqual:selector[@"variant"]] ||
+                ![binding[@"timeline"] isEqual:timeline] ||
+                ![binding[@"trigger"] isEqual:trigger] ||
+                [binding[@"cueIndex"] integerValue]!=cueIndex.integerValue) continue;
+            if ([binding[@"fallback"] boolValue] ||
+                [binding[@"skeletonNodes"] integerValue]<=0) {
+              @synchronized(self) { _sceneError=@"Invalid cinematic runtime binding"; }
+              return NO;
+            }
+            matches++;
+          }
+          if (matches!=1) {
+            @synchronized(self) { _sceneError=@"Ambiguous cinematic runtime selector"; }
+            return NO;
+          }
+          cinematicResolved++;
+        }
+      }
+      if (selectedStates.count!=cinematicSelectors.count) {
+        @synchronized(self) { _sceneError=@"Incomplete cinematic runtime profile"; }
+        return NO;
+      }
+    }
+    if (cinematicResolved!=63) {
+      @synchronized(self) { _sceneError=@"Incomplete cinematic runtime selector catalog"; }
       return NO;
     }
   }

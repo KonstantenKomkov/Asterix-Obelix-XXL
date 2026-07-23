@@ -96,19 +96,33 @@
   using namespace asterix::cinematic;
   Runtime runtime;
   runtime.add("scene-data-1",{"script.cinematic.scene-data-1",
-    {{"asterix",{"enter","gesture","exit"}},
-     {"obelix",{"enter","react","exit"}}}});
+    {{"asterix",{"dictionary_slot_0"},0,"cinematic-scene-data-1"},
+     {"obelix",{"dictionary_slot_4"},0,"cinematic-scene-data-2"},
+     {"prop",{"dictionary_slot_1"},1,"cinematic-scene-data-1"},
+     {"asterix",{"dictionary_slot_2"},2,"cinematic-scene-data-1"}}});
   XCTAssertTrue(runtime.start("script.cinematic.scene-data-1"));
   auto outputs=runtime.drain();
   XCTAssertEqual(outputs.size(),6u); // lock + camera/audio/subtitle + two actors
+  XCTAssertEqual(outputs[4].target,"asterix");
+  XCTAssertEqual(outputs[4].profile_id,"cinematic-scene-data-1");
+  XCTAssertEqual(outputs[5].target,"obelix");
+  XCTAssertEqual(outputs[5].profile_id,"cinematic-scene-data-2");
   XCTAssertTrue(runtime.advance());
+  outputs=runtime.drain();
+  XCTAssertEqual(outputs.size(),1u);
+  XCTAssertEqual(outputs.front().target,"prop");
+  XCTAssertEqual(outputs.front().profile_id,"cinematic-scene-data-1");
+  XCTAssertEqual(outputs.front().value,"dictionary_slot_1");
   const Snapshot checkpoint=runtime.snapshot();
   XCTAssertTrue(runtime.interrupt());
   XCTAssertEqual(runtime.snapshot().state,State::interrupted);
   XCTAssertTrue(runtime.restore(checkpoint));
+  XCTAssertTrue(runtime.drain().empty()); // restore never replays a cue
   XCTAssertTrue(runtime.interrupt());
   XCTAssertTrue(runtime.resume());
   XCTAssertEqual(runtime.snapshot().cue,1u);
+  outputs=runtime.drain();
+  XCTAssertEqual(outputs.size(),3u); // return + lock + resumed cue selector
   XCTAssertTrue(runtime.skip());
   outputs=runtime.drain();
   XCTAssertEqual(runtime.snapshot().state,State::complete);

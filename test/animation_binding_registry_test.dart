@@ -689,10 +689,27 @@ void main() {
     });
     final timelines = (decoded['cinematicTimelines']! as List)
         .cast<Map<String, Object?>>();
+    final profiles = (decoded['runtimeProfiles']! as List)
+        .cast<Map<String, Object?>>()
+        .where((profile) => profile['context'] == 'cinematic')
+        .toList();
     expect(timelines, hasLength(14));
+    expect(profiles, hasLength(14));
     final clips = <Object?>{};
     var contexts = 0;
     for (final timeline in timelines) {
+      final scene = (timeline['id']! as String).substring(11);
+      final profile = profiles.singleWhere(
+        (profile) => profile['id'] == 'cinematic-scene-data-$scene',
+      );
+      expect(profile['scriptEvent'], timeline['scriptEvent']);
+      expect(profile['instance'], 'cinematic-timeline-$scene');
+      expect(profile['restorePolicy'], 'snapshot-without-replay');
+      expect(profile['complete'], isTrue);
+      expect(profile['controlPolicy'], timeline['controlPolicy']);
+      expect(profile['skipPolicy'], timeline['skipPolicy']);
+      expect(profile['interruptPolicy'], timeline['interruptPolicy']);
+      expect(profile['reentryPolicy'], timeline['reentryPolicy']);
       expect((timeline['cues']! as List).map((cue) => cue['type']).toSet(), {
         'camera',
         'audio',
@@ -700,6 +717,12 @@ void main() {
       });
       for (final track
           in (timeline['tracks']! as List).cast<Map<String, Object?>>()) {
+        final state = 'dictionary_slot_${track['slot']}';
+        expect(
+          (profile['cueStates']!
+              as Map<String, Object?>)['cue_${track['cueIndex']}'],
+          contains(state),
+        );
         final binding = registry.resolve(
           AnimationBindingQuery(
             actor: track['actor']! as String,
@@ -712,6 +735,13 @@ void main() {
           ),
         );
         expect(binding['timeline'], timeline['id']);
+        expect(
+          registry.resolveRuntimeState(
+            profileId: profile['id']! as String,
+            state: state,
+          ),
+          binding,
+        );
         clips.add(binding['clip']);
         contexts++;
       }

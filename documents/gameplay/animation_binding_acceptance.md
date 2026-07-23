@@ -50,13 +50,17 @@ mechanism component, activator, checkpoint, двух shop, wild boar, трёх
 square-turtle, двух interface и lightning FX. Event lists поддерживают
 одновременные tracks, а loop/clamp, commit phase и object/material/particle
 synchronization читаются из binding data; restore не повторяет side effects.
-Остались только 63 cue-driven selectors cinematic timelines из п. 90.
+Четырнадцать `cinematic-scene-data-N` profiles добавляют последние 63 exact
+selectors. Каждый script event адресует одну timeline, а cue выбирает
+биективный dictionary-slot state; control lock/return, camera/audio/subtitle,
+normal completion, skip, interrupt, resume и checkpoint restore без replay
+проверяются native scenario.
 
-Проверенный после п. 89 fresh gate содержит 345 bound clips, 408
-декларативных bindings и 345 concrete runtime bindings; `unboundClips`,
+Проверенный после п. 90 fresh gate содержит 345 bound clips, 408 bindings и
+408 concrete runtime bindings при нуле declarative-only; `unboundClips`,
 `unexplainedClips`,
 `clipsWithoutRuntimePath` и `unknownBindingClips` равны нулю. SHA-256 отчёта:
-`2ec1c2873ba8bddb895548504ba3a550b11ddf804c6de378e1532619a3d6037b`.
+`cc7a4ca9eb1e6a7e910381ba511604973713b0b4faf85c5b592bb3b9b17003bb`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
 
@@ -64,7 +68,8 @@ Representative sequences зафиксированы только как versione
 `assets/animation_visual_acceptance.v1.json`: locomotion/combat Астерикса,
 locomotion/combat/swim Обеликса и Идефикса, combat обычного Roman и лидера,
 scripted NPC/creature events, machinegun fire/recoil, representative
-world/UI/FX events и cinematic scene-data-1. Они сверены side-by-side с локально
+world/UI/FX events и все 14 cinematic scene-data timelines / 63 cues. Они
+сверены side-by-side с локально
 установленным оригиналом и разрешаются в точные registry bindings.
 Кадры, извлечённые clips и остальные оригинальные/производные игровые ресурсы
 остаются вне Git.

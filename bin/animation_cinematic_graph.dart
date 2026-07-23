@@ -23,6 +23,11 @@ Future<void> main(List<String> arguments) async {
         (raw) => raw is! Map<String, Object?> || raw['context'] != 'cinematic',
       )
       .toList();
+  final runtimeProfiles = (manifest['runtimeProfiles']! as List<Object?>)
+      .where(
+        (raw) => raw is! Map<String, Object?> || raw['context'] != 'cinematic',
+      )
+      .toList();
   final timelines = <int, Map<String, Object?>>{};
   final cinematicClips = <String>{};
   var cueCount = 0;
@@ -105,6 +110,35 @@ Future<void> main(List<String> arguments) async {
     timeline['terminalCue'] = tracks
         .map((track) => track['cueIndex']! as int)
         .fold<int>(0, (a, b) => a > b ? a : b);
+    final scene = (timeline['id']! as String).substring(11);
+    final first = tracks.first;
+    final states = <String, Object?>{};
+    final cueStates = <String, List<String>>{};
+    for (final track in tracks) {
+      final state = 'dictionary_slot_${track['slot']}';
+      states[state] = {
+        'action': track['action'],
+        'variant': 'dictionary-${track['dictionaryId']}-slot-${track['slot']}',
+      };
+      cueStates.putIfAbsent('cue_${track['cueIndex']}', () => []).add(state);
+    }
+    runtimeProfiles.add({
+      'id': 'cinematic-scene-data-$scene',
+      'actor': first['actor'],
+      'skin': first['dictionaryId'],
+      'costume': 'scene-$scene',
+      'context': 'cinematic',
+      'instance': 'cinematic-timeline-$scene',
+      'scriptEvent': timeline['scriptEvent'],
+      'cueStates': cueStates,
+      'controlPolicy': timeline['controlPolicy'],
+      'skipPolicy': timeline['skipPolicy'],
+      'interruptPolicy': timeline['interruptPolicy'],
+      'reentryPolicy': timeline['reentryPolicy'],
+      'restorePolicy': 'snapshot-without-replay',
+      'complete': true,
+      'states': states,
+    });
   }
   manifest
     ..['cinematicGraphVersion'] = 1
@@ -114,6 +148,7 @@ Future<void> main(List<String> arguments) async {
       'timelineCount': ordered.length,
     }
     ..['cinematicTimelines'] = ordered
+    ..['runtimeProfiles'] = runtimeProfiles
     ..['bindings'] = bindings;
   await File(arguments[3]).writeAsString(
     '${const JsonEncoder.withIndent('  ').convert(manifest)}\n',

@@ -2316,6 +2316,713 @@
           "variant": "dictionary-51-slot-0"
         }
       }
+    },
+    {
+      "id": "cinematic-scene-data-0",
+      "actor": "cinematic-actor:scene-data-0",
+      "skin": 3,
+      "costume": "scene-0",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-0",
+      "scriptEvent": "script.cinematic.scene-data-0",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-0.performance.cue-0",
+          "variant": "dictionary-3-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-0.performance.cue-1",
+          "variant": "dictionary-3-slot-1"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-1",
+      "actor": "asterix",
+      "skin": 5,
+      "costume": "scene-1",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-1",
+      "scriptEvent": "script.cinematic.scene-data-1",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ],
+        "cue_5": [
+          "dictionary_slot_5"
+        ],
+        "cue_6": [
+          "dictionary_slot_6"
+        ],
+        "cue_7": [
+          "dictionary_slot_7"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-1.performance.cue-0",
+          "variant": "dictionary-5-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-1.performance.cue-1",
+          "variant": "dictionary-5-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-1.performance.cue-2",
+          "variant": "dictionary-5-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-1.performance.cue-3",
+          "variant": "dictionary-5-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-1.performance.cue-4",
+          "variant": "dictionary-5-slot-4"
+        },
+        "dictionary_slot_5": {
+          "action": "cinematic.scene-1.performance.cue-5",
+          "variant": "dictionary-5-slot-5"
+        },
+        "dictionary_slot_6": {
+          "action": "cinematic.scene-1.performance.cue-6",
+          "variant": "dictionary-5-slot-6"
+        },
+        "dictionary_slot_7": {
+          "action": "cinematic.scene-1.performance.cue-7",
+          "variant": "dictionary-5-slot-7"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-10",
+      "actor": "asterix",
+      "skin": 14,
+      "costume": "scene-10",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-10",
+      "scriptEvent": "script.cinematic.scene-data-10",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ],
+        "cue_5": [
+          "dictionary_slot_5"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-10.performance.cue-0",
+          "variant": "dictionary-14-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-10.performance.cue-1",
+          "variant": "dictionary-14-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-10.performance.cue-2",
+          "variant": "dictionary-14-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-10.performance.cue-3",
+          "variant": "dictionary-14-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-10.performance.cue-4",
+          "variant": "dictionary-14-slot-4"
+        },
+        "dictionary_slot_5": {
+          "action": "cinematic.scene-10.performance.cue-5",
+          "variant": "dictionary-14-slot-5"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-11",
+      "actor": "cinematic-actor:scene-data-11",
+      "skin": 15,
+      "costume": "scene-11",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-11",
+      "scriptEvent": "script.cinematic.scene-data-11",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ],
+        "cue_5": [
+          "dictionary_slot_5"
+        ],
+        "cue_6": [
+          "dictionary_slot_6"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-11.performance.cue-0",
+          "variant": "dictionary-15-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-11.performance.cue-1",
+          "variant": "dictionary-15-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-11.performance.cue-2",
+          "variant": "dictionary-15-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-11.performance.cue-3",
+          "variant": "dictionary-15-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-11.performance.cue-4",
+          "variant": "dictionary-15-slot-4"
+        },
+        "dictionary_slot_5": {
+          "action": "cinematic.scene-11.performance.cue-5",
+          "variant": "dictionary-15-slot-5"
+        },
+        "dictionary_slot_6": {
+          "action": "cinematic.scene-11.performance.cue-6",
+          "variant": "dictionary-15-slot-6"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-12",
+      "actor": "cinematic-prop:scene-data-12",
+      "skin": 16,
+      "costume": "scene-12",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-12",
+      "scriptEvent": "script.cinematic.scene-data-12",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-12.performance.cue-0",
+          "variant": "dictionary-16-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-12.performance.cue-1",
+          "variant": "dictionary-16-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-12.performance.cue-2",
+          "variant": "dictionary-16-slot-2"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-13",
+      "actor": "idefix",
+      "skin": 18,
+      "costume": "scene-13",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-13",
+      "scriptEvent": "script.cinematic.scene-data-13",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-13.performance.cue-0",
+          "variant": "dictionary-18-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-13.performance.cue-1",
+          "variant": "dictionary-18-slot-1"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-2",
+      "actor": "obelix",
+      "skin": 6,
+      "costume": "scene-2",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-2",
+      "scriptEvent": "script.cinematic.scene-data-2",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ],
+        "cue_5": [
+          "dictionary_slot_5"
+        ],
+        "cue_6": [
+          "dictionary_slot_6"
+        ],
+        "cue_7": [
+          "dictionary_slot_7"
+        ],
+        "cue_8": [
+          "dictionary_slot_8"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-2.performance.cue-0",
+          "variant": "dictionary-6-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-2.performance.cue-1",
+          "variant": "dictionary-6-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-2.performance.cue-2",
+          "variant": "dictionary-6-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-2.performance.cue-3",
+          "variant": "dictionary-6-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-2.performance.cue-4",
+          "variant": "dictionary-6-slot-4"
+        },
+        "dictionary_slot_5": {
+          "action": "cinematic.scene-2.performance.cue-5",
+          "variant": "dictionary-6-slot-5"
+        },
+        "dictionary_slot_6": {
+          "action": "cinematic.scene-2.performance.cue-6",
+          "variant": "dictionary-6-slot-6"
+        },
+        "dictionary_slot_7": {
+          "action": "cinematic.scene-2.performance.cue-7",
+          "variant": "dictionary-6-slot-7"
+        },
+        "dictionary_slot_8": {
+          "action": "cinematic.scene-2.performance.cue-8",
+          "variant": "dictionary-6-slot-8"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-3",
+      "actor": "animated-character:dictionary-7",
+      "skin": 7,
+      "costume": "scene-3",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-3",
+      "scriptEvent": "script.cinematic.scene-data-3",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-3.performance.cue-0",
+          "variant": "dictionary-7-slot-0"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-4",
+      "actor": "idefix",
+      "skin": 8,
+      "costume": "scene-4",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-4",
+      "scriptEvent": "script.cinematic.scene-data-4",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-4.performance.cue-0",
+          "variant": "dictionary-8-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-4.performance.cue-1",
+          "variant": "dictionary-8-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-4.performance.cue-2",
+          "variant": "dictionary-8-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-4.performance.cue-3",
+          "variant": "dictionary-8-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-4.performance.cue-4",
+          "variant": "dictionary-8-slot-4"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-5",
+      "actor": "animated-character:dictionary-9",
+      "skin": 9,
+      "costume": "scene-5",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-5",
+      "scriptEvent": "script.cinematic.scene-data-5",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-5.performance.cue-0",
+          "variant": "dictionary-9-slot-0"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-6",
+      "actor": "animated-character:dictionary-10",
+      "skin": 10,
+      "costume": "scene-6",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-6",
+      "scriptEvent": "script.cinematic.scene-data-6",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-6.performance.cue-0",
+          "variant": "dictionary-10-slot-0"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-7",
+      "actor": "obelix",
+      "skin": 11,
+      "costume": "scene-7",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-7",
+      "scriptEvent": "script.cinematic.scene-data-7",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ],
+        "cue_5": [
+          "dictionary_slot_5"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-7.performance.cue-0",
+          "variant": "dictionary-11-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-7.performance.cue-1",
+          "variant": "dictionary-11-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-7.performance.cue-2",
+          "variant": "dictionary-11-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-7.performance.cue-3",
+          "variant": "dictionary-11-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-7.performance.cue-4",
+          "variant": "dictionary-11-slot-4"
+        },
+        "dictionary_slot_5": {
+          "action": "cinematic.scene-7.performance.cue-5",
+          "variant": "dictionary-11-slot-5"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-8",
+      "actor": "asterix",
+      "skin": 12,
+      "costume": "scene-8",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-8",
+      "scriptEvent": "script.cinematic.scene-data-8",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ],
+        "cue_5": [
+          "dictionary_slot_5"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-8.performance.cue-0",
+          "variant": "dictionary-12-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-8.performance.cue-1",
+          "variant": "dictionary-12-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-8.performance.cue-2",
+          "variant": "dictionary-12-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-8.performance.cue-3",
+          "variant": "dictionary-12-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-8.performance.cue-4",
+          "variant": "dictionary-12-slot-4"
+        },
+        "dictionary_slot_5": {
+          "action": "cinematic.scene-8.performance.cue-5",
+          "variant": "dictionary-12-slot-5"
+        }
+      }
+    },
+    {
+      "id": "cinematic-scene-data-9",
+      "actor": "obelix",
+      "skin": 13,
+      "costume": "scene-9",
+      "context": "cinematic",
+      "instance": "cinematic-timeline-9",
+      "scriptEvent": "script.cinematic.scene-data-9",
+      "cueStates": {
+        "cue_0": [
+          "dictionary_slot_0"
+        ],
+        "cue_1": [
+          "dictionary_slot_1"
+        ],
+        "cue_2": [
+          "dictionary_slot_2"
+        ],
+        "cue_3": [
+          "dictionary_slot_3"
+        ],
+        "cue_4": [
+          "dictionary_slot_4"
+        ],
+        "cue_5": [
+          "dictionary_slot_5"
+        ]
+      },
+      "controlPolicy": "lock-on-start-return-on-terminal",
+      "skipPolicy": "apply-terminal-state",
+      "interruptPolicy": "checkpoint-current-cue",
+      "reentryPolicy": "resume-checkpoint-or-restart-after-interrupt",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "cinematic.scene-9.performance.cue-0",
+          "variant": "dictionary-13-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "cinematic.scene-9.performance.cue-1",
+          "variant": "dictionary-13-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "cinematic.scene-9.performance.cue-2",
+          "variant": "dictionary-13-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "cinematic.scene-9.performance.cue-3",
+          "variant": "dictionary-13-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "cinematic.scene-9.performance.cue-4",
+          "variant": "dictionary-13-slot-4"
+        },
+        "dictionary_slot_5": {
+          "action": "cinematic.scene-9.performance.cue-5",
+          "variant": "dictionary-13-slot-5"
+        }
+      }
     }
   ],
   "bindings": [

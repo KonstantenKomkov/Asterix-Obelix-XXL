@@ -125,8 +125,17 @@ independent because the imported level proves four `CKCinematicScene` objects
 and fourteen `CKCinematicSceneData` owners but does not yet prove a reliable
 parent-scene mapping; no story grouping is invented.
 
+Fourteen complete `cinematic-scene-data-N` runtime profiles make those graph
+paths concrete. Each profile is bound to one timeline instance, its unique
+script event and a cue-to-state list; every state resolves exactly one
+non-fallback dictionary-slot selector with the same timeline, cue index and
+trigger. Registry and Metal require all 14 profiles / 63 selectors and reject
+missing, duplicate, ambiguous, cross-cue or incomplete data before playback.
+
 The native coordinator supports multiple actor tracks on the same cue and
-defines lifecycle behavior explicitly. Starting locks player control; normal
+tracks that begin on later cues without padded fallback actions. Its output
+names the concrete runtime profile and state selector. Starting locks player
+control; normal
 completion and skip apply the terminal state, clear presentation cues, restore
 gameplay camera/audio and return control. Interrupt retains the current cue,
 checkpoint restore changes state without replaying outputs, resume re-emits the

@@ -27,7 +27,7 @@ void main() {
       everyElement(isIn(paths.keys)),
     );
     expect(paths.values, everyElement(isNotEmpty));
-    expect(concretePaths, hasLength(345));
+    expect(concretePaths, hasLength(408));
     expect(
       concretePaths.values.expand((paths) => paths),
       everyElement(
@@ -40,6 +40,7 @@ void main() {
           startsWith('runtime-profile:roman-leader-body:'),
           startsWith('runtime-profile:scripted-dictionary-'),
           startsWith('runtime-profile:world-dictionary-'),
+          startsWith('runtime-profile:cinematic-scene-data-'),
         ]),
       ),
     );

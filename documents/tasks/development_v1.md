@@ -19,7 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 83 | **Провести сквозной runtime-аудит и правильно привязать все анимации игры:** сопоставить каждое фактически достижимое действие, состояние, событие и переход с authored clip оригинала, устранить общие состояния, ошибочные semantic aliases и fallback, скрывающие разные анимации | M4 fidelity | P0 | XL | Зонтичная приёмка после п. 84–90. После п. 84 strict gate различает 90 concrete bindings Астерикса и 318 declarative-only bindings оставшихся групп. Для каждого actor/object/profile требуется полный список достижимых runtime-состояний, переходов и событий; обязательны покадровая сверка каждого binding с локальным оригиналом и соответствующим исходным dictionary/slot/event, отдельное data-driven runtime-состояние для каждого визуально различимого действия без clip IDs в renderer, корректные loop/clamp, cadence, blend, root motion и animation events. Итоговая машинная проверка должна подтвердить 345 clips / 518 slots / 408 concrete runtime bindings / 0 declarative-only bindings, а fresh ASTPAK, cold-start representative sequences всех групп и зафиксированная visual acceptance — работу без diagnostic overrides и silent fallback |
-| 90 | **Подключить scripted/cinematic timelines:** перевести 63 cinematic bindings четырнадцати scene-data timelines из declarative-only в реальные cue-driven actor/prop selectors | M4 fidelity | P0 | XL | После п. 84–89 и восстановления фактических scene/script entry points; каждый cue выбирает ровно один compatible binding, поддерживает simultaneous tracks, control lock/return, camera/audio/subtitle cues, normal completion, skip, interrupt, resume и checkpoint restore без replay. Обязательны сценарии всех 14 timelines, fresh ASTPAK и покадровая visual acceptance против локального оригинала |
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 
 ---
@@ -136,14 +135,16 @@
 - [x] П. 87 — 85 runtime bindings врагов и лидеров
 - [x] П. 88 — 24 scripted bindings NPC и существ
 - [x] П. 89 — 46 world/UI/FX bindings
-- [ ] П. 90 — 63 cinematic bindings
+- [x] П. 90 — 63 cinematic bindings
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 89 выполнен: 13 полных world object/event профилей биективно связывают 46 bindings механизмов, shop, fauna, checkpoint, UI и lightning FX с exact dictionary-slot selectors. Native lifecycle поддерживает multi-track event, data-driven loop/commit/synchronization и restore без replay, fresh gate подтвердил 345 concrete и 63 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
+**Последнее обновление:** 23 июля 2026 — п. 90 выполнен: 14 полных cinematic timeline профилей биективно связывают 63 cues с exact dictionary-slot actor/prop selectors. Native lifecycle поддерживает simultaneous tracks, control/presentation cues, complete/skip/interrupt/resume и restore без replay; fresh gate подтвердил 408 concrete и 0 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 89 выполнен: 13 полных world object/event профилей биективно связывают 46 bindings механизмов, shop, fauna, checkpoint, UI и lightning FX с exact dictionary-slot selectors. Native lifecycle поддерживает multi-track event, data-driven loop/commit/synchronization и restore без replay, fresh gate подтвердил 345 concrete и 63 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 88 выполнен: 24 scripted actor-instance профиля биективно связывают animated-character/cinematic-scene dictionary owners с уникальными script events и exact selectors. Native lifecycle поддерживает complete/interrupt/restore без replay, fresh gate подтвердил 299 concrete и 109 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
 
