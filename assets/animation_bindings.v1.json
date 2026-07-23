@@ -4,45 +4,143 @@
   "eventTracks": [
     {
       "id": "asterix.locomotion.run.default",
-      "actor": "asterix", "action": "locomotion.run",
-      "context": "gameplay", "loop": true,
+      "actor": "asterix",
+      "action": "locomotion.run",
+      "context": "gameplay",
+      "loop": true,
       "events": [
-        {"id": "left-foot", "phase": 0.2, "type": "footstep", "target": "asterix", "value": "surface"},
-        {"id": "root-motion", "phase": 0.5, "type": "root-motion", "target": "asterix", "value": "clip-delta"},
-        {"id": "right-foot", "phase": 0.7, "type": "footstep", "target": "asterix", "value": "surface"}
+        {
+          "id": "left-foot",
+          "phase": 0.2,
+          "type": "footstep",
+          "target": "asterix",
+          "value": "surface"
+        },
+        {
+          "id": "root-motion",
+          "phase": 0.5,
+          "type": "root-motion",
+          "target": "asterix",
+          "value": "clip-delta"
+        },
+        {
+          "id": "right-foot",
+          "phase": 0.7,
+          "type": "footstep",
+          "target": "asterix",
+          "value": "surface"
+        }
       ]
     },
     {
       "id": "asterix.combat.attack.default",
-      "actor": "asterix", "action": "combat.attack",
-      "context": "gameplay", "loop": false,
+      "actor": "asterix",
+      "action": "combat.attack",
+      "context": "gameplay",
+      "loop": false,
       "events": [
-        {"id": "impulse", "phase": 0.1, "type": "impulse", "target": "asterix", "value": "attack-forward"},
-        {"id": "hit-open", "phase": 0.2, "type": "hit-window-open", "target": "asterix.weapon", "value": "attack"},
-        {"id": "swing", "phase": 0.25, "type": "sfx", "target": "asterix", "value": "combat.swing"},
-        {"id": "trail", "phase": 0.25, "type": "vfx", "target": "asterix.weapon", "value": "combat.trail"},
-        {"id": "impact-camera", "phase": 0.3, "type": "camera", "target": "main", "value": "combat-impact"},
-        {"id": "hit-close", "phase": 0.4, "type": "hit-window-close", "target": "asterix.weapon", "value": "attack"},
-        {"id": "complete", "phase": 1.0, "type": "one-shot-complete", "target": "asterix", "value": "combat.attack"}
+        {
+          "id": "impulse",
+          "phase": 0.1,
+          "type": "impulse",
+          "target": "asterix",
+          "value": "attack-forward"
+        },
+        {
+          "id": "hit-open",
+          "phase": 0.2,
+          "type": "hit-window-open",
+          "target": "asterix.weapon",
+          "value": "attack"
+        },
+        {
+          "id": "swing",
+          "phase": 0.25,
+          "type": "sfx",
+          "target": "asterix",
+          "value": "combat.swing"
+        },
+        {
+          "id": "trail",
+          "phase": 0.25,
+          "type": "vfx",
+          "target": "asterix.weapon",
+          "value": "combat.trail"
+        },
+        {
+          "id": "impact-camera",
+          "phase": 0.3,
+          "type": "camera",
+          "target": "main",
+          "value": "combat-impact"
+        },
+        {
+          "id": "hit-close",
+          "phase": 0.4,
+          "type": "hit-window-close",
+          "target": "asterix.weapon",
+          "value": "attack"
+        },
+        {
+          "id": "complete",
+          "phase": 1.0,
+          "type": "one-shot-complete",
+          "target": "asterix",
+          "value": "combat.attack"
+        }
       ]
     },
     {
       "id": "asterix.damage.hurt.default",
-      "actor": "asterix", "action": "damage.hurt",
-      "context": "gameplay", "loop": false,
+      "actor": "asterix",
+      "action": "damage.hurt",
+      "context": "gameplay",
+      "loop": false,
       "events": [
-        {"id": "hurt-open", "phase": 0.0, "type": "hurt-window-open", "target": "asterix", "value": "invulnerable"},
-        {"id": "hurt-close", "phase": 0.8, "type": "hurt-window-close", "target": "asterix", "value": "invulnerable"},
-        {"id": "complete", "phase": 1.0, "type": "one-shot-complete", "target": "asterix", "value": "damage.hurt"}
+        {
+          "id": "hurt-open",
+          "phase": 0.0,
+          "type": "hurt-window-open",
+          "target": "asterix",
+          "value": "invulnerable"
+        },
+        {
+          "id": "hurt-close",
+          "phase": 0.8,
+          "type": "hurt-window-close",
+          "target": "asterix",
+          "value": "invulnerable"
+        },
+        {
+          "id": "complete",
+          "phase": 1.0,
+          "type": "one-shot-complete",
+          "target": "asterix",
+          "value": "damage.hurt"
+        }
       ]
     },
     {
       "id": "mechanism.component.activate.default",
-      "actor": "mechanism:component", "action": "mechanism.activate",
-      "context": "world", "loop": false,
+      "actor": "mechanism:component",
+      "action": "mechanism.activate",
+      "context": "world",
+      "loop": false,
       "events": [
-        {"id": "commit", "phase": 0.6, "type": "object-state", "target": "mechanism:component", "value": "active"},
-        {"id": "complete", "phase": 1.0, "type": "one-shot-complete", "target": "mechanism:component", "value": "mechanism.activate"}
+        {
+          "id": "commit",
+          "phase": 0.6,
+          "type": "object-state",
+          "target": "mechanism:component",
+          "value": "active"
+        },
+        {
+          "id": "complete",
+          "phase": 1.0,
+          "type": "one-shot-complete",
+          "target": "mechanism:component",
+          "value": "mechanism.activate"
+        }
       ]
     }
   ],
@@ -130,15 +228,368 @@
       "costume": "default",
       "context": "gameplay",
       "states": {
-        "idle": {"action": "locomotion.idle", "variant": "clip-0058"},
-        "run": {"action": "locomotion.run", "variant": "clip-0035"},
-        "jump": {"action": "locomotion.jump", "variant": "clip-0031"},
-        "double_jump": {"action": "locomotion.airborne", "variant": "clip-0064"},
-        "fall": {"action": "locomotion.fall", "variant": "clip-0039"},
-        "attack": {"action": "combat.attack", "variant": "clip-0000"},
-        "hurt": {"action": "damage.hurt", "variant": "clip-0009"},
-        "death": {"action": "damage.death", "variant": "clip-0033"}
-      }
+        "idle": {
+          "action": "locomotion.idle",
+          "variant": "clip-0058"
+        },
+        "run": {
+          "action": "locomotion.run",
+          "variant": "clip-0035"
+        },
+        "jump": {
+          "action": "locomotion.jump",
+          "variant": "clip-0031"
+        },
+        "double_jump": {
+          "action": "locomotion.airborne",
+          "variant": "clip-0064"
+        },
+        "fall": {
+          "action": "locomotion.fall",
+          "variant": "clip-0039"
+        },
+        "attack": {
+          "action": "combat.attack",
+          "variant": "clip-0000"
+        },
+        "hurt": {
+          "action": "damage.hurt",
+          "variant": "clip-0009"
+        },
+        "death": {
+          "action": "damage.death",
+          "variant": "clip-0033"
+        },
+        "hero_slot_92": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0001"
+        },
+        "hero_slot_91": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0002"
+        },
+        "hero_slot_94": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0003"
+        },
+        "hero_slot_96": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0004"
+        },
+        "hero_slot_95": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0005"
+        },
+        "hero_slot_57": {
+          "action": "damage.launch",
+          "variant": "clip-0006"
+        },
+        "hero_slot_60": {
+          "action": "damage.tumble",
+          "variant": "clip-0007"
+        },
+        "hero_slot_62": {
+          "action": "damage.tumble",
+          "variant": "clip-0008"
+        },
+        "hero_slot_59": {
+          "action": "damage.land-or-recover",
+          "variant": "clip-0010"
+        },
+        "hero_slot_63": {
+          "action": "damage.recovery",
+          "variant": "clip-0011"
+        },
+        "hero_slot_69": {
+          "action": "traversal.ledge-hang",
+          "variant": "clip-0012"
+        },
+        "hero_slot_67": {
+          "action": "traversal.ledge-grab-or-shift",
+          "variant": "clip-0013"
+        },
+        "hero_slot_68": {
+          "action": "traversal.ledge-climb",
+          "variant": "clip-0014"
+        },
+        "hero_slot_66": {
+          "action": "traversal.ledge-drop",
+          "variant": "clip-0015"
+        },
+        "hero_slot_42": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0016"
+        },
+        "hero_slot_43": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0017"
+        },
+        "hero_slot_44": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0018"
+        },
+        "hero_slot_46": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0019"
+        },
+        "hero_slot_47": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0020"
+        },
+        "hero_slot_48": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0021"
+        },
+        "hero_slot_53": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0022"
+        },
+        "hero_slot_7": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0023"
+        },
+        "hero_slot_4": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0024"
+        },
+        "hero_slot_3": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0025"
+        },
+        "hero_slot_30": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0026"
+        },
+        "hero_slot_29": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0027"
+        },
+        "hero_slot_49": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0028"
+        },
+        "hero_slot_50": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0029"
+        },
+        "hero_slot_51": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0030"
+        },
+        "hero_slot_6": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0032"
+        },
+        "hero_slot_5": {
+          "action": "locomotion.move-directional",
+          "variant": "clip-0034"
+        },
+        "hero_slot_88": {
+          "action": "interaction.contextual",
+          "variant": "clip-0036"
+        },
+        "hero_slot_87": {
+          "action": "interaction.contextual",
+          "variant": "clip-0037"
+        },
+        "hero_slot_31": {
+          "action": "locomotion.airborne",
+          "variant": "clip-0038"
+        },
+        "hero_slot_32": {
+          "action": "locomotion.airborne",
+          "variant": "clip-0040"
+        },
+        "hero_slot_20": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0041"
+        },
+        "hero_slot_17": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0042"
+        },
+        "hero_slot_26": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0043"
+        },
+        "hero_slot_23": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0044"
+        },
+        "hero_slot_21": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0045"
+        },
+        "hero_slot_15": {
+          "action": "locomotion.transition",
+          "variant": "clip-0046"
+        },
+        "hero_slot_27": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0047"
+        },
+        "hero_slot_22": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0048"
+        },
+        "hero_slot_19": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0049"
+        },
+        "hero_slot_16": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0050"
+        },
+        "hero_slot_28": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0051"
+        },
+        "hero_slot_25": {
+          "action": "combat.attack-combo",
+          "variant": "clip-0052"
+        },
+        "hero_slot_8": {
+          "action": "locomotion.idle",
+          "variant": "clip-0053"
+        },
+        "hero_slot_9": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0054"
+        },
+        "hero_slot_10": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0055"
+        },
+        "hero_slot_11": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0056"
+        },
+        "hero_slot_12": {
+          "action": "locomotion.idle-variant",
+          "variant": "clip-0057"
+        },
+        "hero_slot_33": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0059"
+        },
+        "hero_slot_14": {
+          "action": "locomotion.transition",
+          "variant": "clip-0060"
+        },
+        "hero_slot_104": {
+          "action": "interaction.contextual",
+          "variant": "clip-0061"
+        },
+        "hero_slot_89": {
+          "action": "interaction.contextual",
+          "variant": "clip-0062"
+        },
+        "hero_slot_103": {
+          "action": "interaction.contextual",
+          "variant": "clip-0063"
+        },
+        "hero_slot_55": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0065"
+        },
+        "hero_slot_90": {
+          "action": "interaction.contextual",
+          "variant": "clip-0066"
+        },
+        "hero_slot_34": {
+          "action": "locomotion.directional-transition",
+          "variant": "clip-0067"
+        },
+        "hero_slot_100": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0068"
+        },
+        "hero_slot_45": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0069"
+        },
+        "hero_slot_37": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0070"
+        },
+        "hero_slot_38": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0071"
+        },
+        "hero_slot_39": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0072"
+        },
+        "hero_slot_40": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0073"
+        },
+        "hero_slot_41": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0074"
+        },
+        "hero_slot_99": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0082"
+        },
+        "hero_slot_72": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0083"
+        },
+        "hero_slot_71": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0084"
+        },
+        "hero_slot_75": {
+          "action": "traversal.swim-directional",
+          "variant": "clip-0085"
+        },
+        "hero_slot_76": {
+          "action": "traversal.swim-directional",
+          "variant": "clip-0086"
+        },
+        "hero_slot_77": {
+          "action": "traversal.swim-directional",
+          "variant": "clip-0087"
+        },
+        "hero_slot_84": {
+          "action": "traversal.swim-transition",
+          "variant": "clip-0088"
+        },
+        "hero_slot_85": {
+          "action": "traversal.swim-transition",
+          "variant": "clip-0089"
+        },
+        "hero_slot_52": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0090"
+        },
+        "hero_slot_54": {
+          "action": "combat.contextual-attack",
+          "variant": "clip-0091"
+        },
+        "hero_slot_70": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0092"
+        },
+        "hero_slot_74": {
+          "action": "traversal.water-transition",
+          "variant": "clip-0093"
+        },
+        "hero_slot_109": {
+          "action": "interaction.contextual",
+          "variant": "clip-0095"
+        },
+        "hero_slot_97": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0096"
+        },
+        "hero_slot_98": {
+          "action": "combat.attack-variant",
+          "variant": "clip-0097"
+        }
+      },
+      "complete": true
     }
   ],
   "bindings": [

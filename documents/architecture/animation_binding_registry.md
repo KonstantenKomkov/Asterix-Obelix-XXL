@@ -12,13 +12,18 @@ payloads. `SliceAssetPipeline` validates it before producing an
 missing required states, unknown transition targets and incompatible skeleton
 declarations stop the build with a diagnostic instead of selecting a pose.
 
-At load time Metal resolves the eight currently reachable Asterix states through
-the versioned `asterix-player` runtime profile. Every state selects one exact
-semantic binding by actor, skin, costume, context, action and variant. The
-runtime rejects missing or ambiguous selectors and checks the declared 58-node
-skeleton before any clip is sampled. Looping is read from the binding rather
-than inferred from a state index. `ASTERIX_ANIMATION_REVIEW_CLIP` remains an
-explicit diagnostic override and does not change the normal registry.
+At load time Metal resolves the complete 90-binding Asterix graph through the
+versioned `asterix-player` runtime profile. Eight stable state names remain the
+automatic locomotion/combat entry points; the other 82 entry points retain
+their exact source dictionary slot names (`hero_slot_N`) so combo, contextual,
+damage, interaction and traversal events cannot collapse into a shared alias.
+Every state selects one exact semantic binding by actor, skin, costume, context,
+action and variant. A profile marked `complete` is accepted only when it selects
+every matching binding exactly once. The runtime rejects missing or ambiguous
+selectors and checks the declared 58-node skeleton before any clip is sampled.
+Looping is read from the binding rather than inferred from a state index.
+`ASTERIX_ANIMATION_REVIEW_CLIP` remains an explicit diagnostic override and
+does not change the normal registry.
 
 `graphVersion: 1` extends the same registry with the complete controllable-hero
 graph. It contains all 183 confirmed hero clips: 90 for Asterix, 71 for Obelix
@@ -37,9 +42,11 @@ interaction commit and locomotion contact/cycle boundaries to gameplay without
 wall-clock timers. The richer versioned event-track transport, including
 low-FPS and loop-boundary delivery guarantees, remains task 68.
 
-The old short Asterix aliases are not part of the registry. Gameplay enum names
-are mapped to semantic actions only by `runtimeProfiles`; clip IDs remain in
-data and do not appear in the renderer or gameplay state machine.
+The old short Asterix aliases are not part of the registry. Gameplay enum and
+source-slot event names are mapped to semantic actions only by
+`runtimeProfiles`; clip IDs remain in data and do not appear in the renderer or
+gameplay state machine. `resolveRuntimeState` is the shared strict entry point
+used by scenario tests and higher-level event orchestration.
 
 `characterGraphVersion: 1` adds exact profiles for enemies, leaders, NPC and
 animated characters. The checked-in graph covers the confirmed 92 clips and

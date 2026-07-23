@@ -182,16 +182,25 @@ void main() {
         (decoded['runtimeProfiles']! as List<Object?>).single
             as Map<String, Object?>;
     final states = profile['states']! as Map<String, Object?>;
-    expect(states.keys, {
-      'idle',
-      'run',
-      'jump',
-      'double_jump',
-      'fall',
-      'attack',
-      'hurt',
-      'death',
-    });
+    expect(profile['complete'], isTrue);
+    expect(states, hasLength(90));
+    expect(
+      states.keys,
+      containsAll({
+        'idle',
+        'run',
+        'jump',
+        'double_jump',
+        'fall',
+        'attack',
+        'hurt',
+        'death',
+        'hero_slot_92',
+        'hero_slot_57',
+        'hero_slot_40',
+        'hero_slot_75',
+      }),
+    );
     for (final selector in states.values.cast<Map<String, Object?>>()) {
       expect(
         registry.resolve(
@@ -226,6 +235,53 @@ void main() {
           contains('double_jump must resolve exactly one'),
         ),
       ),
+    );
+
+    final incomplete = jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
+    final incompleteProfile =
+        (incomplete['runtimeProfiles']! as List<Object?>).single
+            as Map<String, Object?>;
+    (incompleteProfile['states']! as Map<String, Object?>).remove(
+      'hero_slot_92',
+    );
+    expect(
+      () => AnimationBindingRegistry.parse(incomplete),
+      throwsA(
+        isA<AnimationBindingException>().having(
+          (error) => error.message,
+          'message',
+          contains('complete profile must select every exact binding once'),
+        ),
+      ),
+    );
+  });
+
+  test('runtime state entry points resolve exact authored variants', () async {
+    final registry = AnimationBindingRegistry.parse(
+      jsonDecode(
+        await File('assets/animation_bindings.v1.json').readAsString(),
+      ),
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'asterix-player',
+        state: 'hero_slot_92',
+      )['clip'],
+      '0001.animation.json',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'asterix-player',
+        state: 'hero_slot_75',
+      )['action'],
+      'traversal.swim-directional',
+    );
+    expect(
+      () => registry.resolveRuntimeState(
+        profileId: 'asterix-player',
+        state: 'missing',
+      ),
+      throwsA(isA<AnimationBindingException>()),
     );
   });
 

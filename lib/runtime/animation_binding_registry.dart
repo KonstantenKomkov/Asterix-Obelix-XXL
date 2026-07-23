@@ -561,6 +561,36 @@ final class AnimationBindingRegistry {
           );
         }
       }
+      final complete = profile['complete'];
+      if (complete != null && complete is! bool) {
+        throw AnimationBindingException(
+          'runtimeProfiles[$profileIndex].complete must be a boolean',
+        );
+      }
+      if (complete == true) {
+        final profileBindings = bindings
+            .where(
+              (binding) =>
+                  binding['actor'] == profile['actor'] &&
+                  binding['skin'] == profile['skin'] &&
+                  binding['costume'] == profile['costume'] &&
+                  binding['context'] == profile['context'],
+            )
+            .map((binding) => '${binding['action']}|${binding['variant']}')
+            .toSet();
+        final selectors = (profile['states']! as Map<String, Object?>).values
+            .cast<Map<String, Object?>>()
+            .map((selector) => '${selector['action']}|${selector['variant']}')
+            .toList(growable: false);
+        if (selectors.length != selectors.toSet().length ||
+            selectors.toSet().difference(profileBindings).isNotEmpty ||
+            profileBindings.difference(selectors.toSet()).isNotEmpty) {
+          throw AnimationBindingException(
+            'runtimeProfiles[$profileIndex] complete profile must select '
+            'every exact binding once',
+          );
+        }
+      }
     }
   }
 
@@ -723,6 +753,35 @@ final class AnimationBindingRegistry {
       throw AnimationBindingException('unknown binding $actor/$action');
     }
     return matches[selector.abs() % matches.length];
+  }
+
+  Map<String, Object?> resolveRuntimeState({
+    required String profileId,
+    required String state,
+  }) {
+    final profiles = (manifest['runtimeProfiles'] as List<Object?>? ?? const [])
+        .cast<Map<String, Object?>>();
+    final matches = profiles.where((profile) => profile['id'] == profileId);
+    if (matches.length != 1) {
+      throw AnimationBindingException('unknown runtime profile $profileId');
+    }
+    final profile = matches.single;
+    final selector = (profile['states']! as Map<String, Object?>)[state];
+    if (selector is! Map<String, Object?>) {
+      throw AnimationBindingException(
+        'unknown runtime state $profileId/$state',
+      );
+    }
+    return resolve(
+      AnimationBindingQuery(
+        actor: profile['actor']! as String,
+        skin: profile['skin']! as int,
+        costume: profile['costume']! as String,
+        action: selector['action']! as String,
+        context: profile['context']! as String,
+        variant: selector['variant']! as String,
+      ),
+    );
   }
 
   bool allowsTransition(Map<String, Object?> from, Map<String, Object?> to) =>

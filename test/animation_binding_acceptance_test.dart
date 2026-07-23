@@ -27,7 +27,7 @@ void main() {
       everyElement(isIn(paths.keys)),
     );
     expect(paths.values, everyElement(isNotEmpty));
-    expect(concretePaths, hasLength(8));
+    expect(concretePaths, hasLength(90));
     expect(
       concretePaths.values.expand((paths) => paths),
       everyElement(startsWith('runtime-profile:asterix-player:')),

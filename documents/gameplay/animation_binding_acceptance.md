@@ -28,14 +28,15 @@ binding, semantic context без clip join или binding без runtime path о
 только bindings, которые точный versioned `runtimeProfiles` selector реально
 передаёт исполняемому state machine; `declarativeOnlyBindings` нельзя трактовать
 как завершённую runtime-интеграцию. На текущем этапе конкретно интегрированы
-восемь состояний `asterix-player`, остальные profiles требуют последующего
-подключения и cold-start/scenario приёмки.
+полные 90 selectors `asterix-player`: восемь стабильных автоматических
+состояний и 82 точных dictionary-slot event entry points. Остальные profiles
+требуют последующего подключения и cold-start/scenario приёмки.
 
-Проверенный 23 июля 2026 локальный результат содержит 345 bound clips, 408
-декларативных bindings и 8 concrete runtime bindings; `unboundClips`,
+Проверенный после п. 84 fresh gate содержит 345 bound clips, 408
+декларативных bindings и 90 concrete runtime bindings; `unboundClips`,
 `unexplainedClips`,
 `clipsWithoutRuntimePath` и `unknownBindingClips` равны нулю. SHA-256 отчёта:
-`01bd4b27a2b53699ad72d97be0d65163145c7aa40067141c4d8c1e4bcd620cd7`.
+`14dea84b3c60471c8a96d8b2217e9a9a47a3ffb85485c2217bd6310c688fec5f`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
 

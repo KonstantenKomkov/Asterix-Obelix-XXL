@@ -817,6 +817,7 @@ struct AsterixPushMesh {
   NSArray<NSString*>* requiredStates=@[
       @"idle",@"run",@"jump",@"double_jump",@"fall",@"attack",@"hurt",@"death"];
   NSMutableDictionary<NSString*, NSDictionary*>* stateBindings=[NSMutableDictionary dictionary];
+  NSMutableSet<NSString*>* selectedBindings=[NSMutableSet set];
   NSDictionary* playerProfile=nil;
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
     if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
@@ -835,12 +836,14 @@ struct AsterixPushMesh {
         [playerProfile[@"skin"] integerValue]!=4 ||
         ![playerProfile[@"costume"] isEqual:@"default"] ||
         ![playerProfile[@"context"] isEqual:@"gameplay"] ||
+        ![playerProfile[@"complete"] isKindOfClass:NSNumber.class] ||
+        ![playerProfile[@"complete"] boolValue] ||
         ![selectors isKindOfClass:NSDictionary.class] ||
-        selectors.count!=requiredStates.count) {
+        selectors.count!=90) {
       @synchronized(self) { _sceneError=@"Missing or invalid asterix-player runtime profile"; }
       return NO;
     }
-    for (NSString* state in requiredStates) {
+    for (NSString* state in selectors) {
       id rawSelector=selectors[state];
       if (![rawSelector isKindOfClass:NSDictionary.class]) {
         @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime selector for asterix/%@",state]; }
@@ -854,6 +857,12 @@ struct AsterixPushMesh {
         @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime selector for asterix/%@",state]; }
         return NO;
       }
+      NSString* selectorKey=[NSString stringWithFormat:@"%@|%@",action,variant];
+      if ([selectedBindings containsObject:selectorKey]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Duplicate runtime selector for asterix/%@",state]; }
+        return NO;
+      }
+      [selectedBindings addObject:selectorKey];
       for (NSDictionary* binding in animationBindings[@"bindings"]) {
         if (![binding isKindOfClass:NSDictionary.class] ||
             ![binding[@"actor"] isEqual:playerProfile[@"actor"]] ||
@@ -869,9 +878,13 @@ struct AsterixPushMesh {
         stateBindings[state]=binding;
       }
     }
+    if (stateBindings.count!=selectors.count) {
+      @synchronized(self) { _sceneError=@"Incomplete asterix-player runtime profile"; }
+      return NO;
+    }
   }
   NSMutableDictionary<NSString*, NSString*>* animationKeys=[NSMutableDictionary dictionary];
-  for (NSString* state in requiredStates) {
+  for (NSString* state in stateBindings) {
     NSDictionary* binding=stateBindings[state];
     NSString* clip=binding[@"clip"];
     NSNumber* looping=binding[@"loop"];
@@ -882,6 +895,12 @@ struct AsterixPushMesh {
       return NO;
     }
     animationKeys[state]=clip;
+  }
+  for (NSString* state in requiredStates) {
+    if (stateBindings[state]==nil) {
+      @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Missing core runtime selector for asterix/%@",state]; }
+      return NO;
+    }
   }
   NSString* reviewClip = NSProcessInfo.processInfo.environment[@"ASTERIX_ANIMATION_REVIEW_CLIP"];
   NSCharacterSet* nonDigits = NSCharacterSet.decimalDigitCharacterSet.invertedSet;

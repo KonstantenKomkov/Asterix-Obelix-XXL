@@ -1,5 +1,36 @@
 # Выполненные задачи первой итерации
 
+## П. 84 — Полный runtime-профиль анимаций Астерикса
+
+**Выполнено:** 23 июля 2026.
+
+`asterix-player` расширен с восьми автоматических состояний до полного
+биективного профиля всех 90 gameplay bindings. Оставшиеся 82 entry points
+сохраняют точные имена исходных `heroAnimDict` slots и выбирают единственную
+пару semantic action/variant без clip IDs в Metal или gameplay-коде. Профиль
+охватывает idle/directional transitions, airborne/landing, combo/contextual
+attacks, damage/recovery, interactions, ledge, water и swim.
+
+Новый флаг `complete` заставляет registry и Metal отклонять пропущенный,
+повторный, fallback или несовместимый с 58-node skin selector. Общий
+`resolveRuntimeState` предоставляет строгий state/event entry point; loop,
+phases, transitions и versioned fixed-tick animation events продолжают
+разрешаться из binding data. Native event regressions проверяют low FPS,
+loop-boundary, pause/restore и blend, а scoped tests — точные combat/swim
+selectors и отказ неполного профиля.
+
+Fresh gate подтвердил 345 clips / 518 slots / 408 bindings, из которых 90
+concrete и 318 относятся к следующим п. 85–90; все unbound, unexplained,
+unreachable и unknown counters равны нулю. SHA-256 отчёта:
+`14dea84b3c60471c8a96d8b2217e9a9a47a3ffb85485c2217bd6310c688fec5f`.
+Fresh/cached ASTPAK размером 68 665 972 байта совпал и имеет SHA-256
+`bd42baca0be665b60deb61c03bdfcc868ef4743a873d48963eaf26a407e825c9`;
+release-приложение собрано с установленным пакетом. Визуальные сопоставления
+используют уже принятую task-62 side-by-side review metadata; оригинальные и
+производные игровые данные в Git не добавлены. Прошли native XCTest,
+`make check`, release build, resource policy и отдельное diff review. Описание:
+[animation_binding_registry.md](../architecture/animation_binding_registry.md).
+
 ## П. 81 — Согласованное направление движения и ориентации Астерикса
 
 **Выполнено:** 23 июля 2026.
