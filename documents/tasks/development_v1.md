@@ -20,7 +20,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 93.1 | **Восстановить behavioural provenance animation state machine:** извлечь для всех 90 bindings `CKHkAsterix` доказанные trigger/guard, start/change, completion, interrupt, blend, playback-rate, phase/event и root-motion связи | Animation fidelity | P0 | XL | После п. 91–92; два независимых metadata-only export совпадают, каждый переход связан с module/RVA/dictionary/slot/clip evidence, unresolved и visual-only отсутствуют; binary bytes, disassembly, pseudocode и captures не попадают в Git |
 | 93.2 | **Ввести versioned authored animation graph:** описать состояния, переходы, guards, completion, blending, playback, phases/events и root-motion policy отдельной схемой и собрать принятый provenance в детерминированный runtime resource | Animation fidelity | P0 | L | После п. 93.1; schema/parser/validator отклоняют неполные, неоднозначные, недостижимые и cross-profile графы; canonical fresh/cached export совпадает |
 | 93.3 | **Реализовать единый native AnimationController:** отделить gameplay facts/events от animation state, вести binding/clip cursor/phase/completion/transition и детерминированно восстанавливать состояние на fixed tick | Animation fidelity | P0 | L | После п. 93.2; unit-тесты покрывают loop, one-shot, authored completion, interrupt, queued transition, pause/restore и отсутствие replay; controller не выбирает клипы по именам gameplay enum |
 | 93.4 | **Перевести полный runtime-граф Астерикса на AnimationController:** удалить прямой выбор восьми клипов и эвристические animation-переходы из `PlayerRuntime`/Metal, передав renderer готовый pose/transition snapshot | Animation fidelity | P0 | XL | После п. 93.3; все 90 bindings достижимы только через authored graph; single jump сохраняет slot 13 / `0031`, double jump — slot 35 / `0064`; вершина траектории сама по себе не обрывает клип без доказанного authored guard |
@@ -146,7 +145,7 @@
 - [x] П. 90 — 63 cinematic bindings
 - [x] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
 - [x] П. 92 — fresh ASTPAK, post-build audit и release runtime-приёмка доказанных анимаций
-- [ ] П. 93.1 — behavioural provenance animation state machine Астерикса
+- [x] П. 93.1 — behavioural provenance animation state machine Астерикса
 - [ ] П. 93.2 — versioned authored animation graph
 - [ ] П. 93.3 — единый native AnimationController
 - [ ] П. 93.4 — полный runtime-граф Астерикса через AnimationController
@@ -160,7 +159,13 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — добавлен эпик 93 из восьми
+**Последнее обновление:** 23 июля 2026 — п. 93.1 выполнен: metadata-only
+behavioural provenance закрывает все 90 bindings `CKHkAsterix`, для каждого
+фиксирует trigger/guard, start/change, completion, interrupt, blend, playback,
+phase/events и root-motion policy с module/RVA/dictionary/slot/clip evidence.
+Два независимых export побайтно совпали; unresolved и visual-only отсутствуют.
+
+**Предыдущее обновление:** 23 июля 2026 — добавлен эпик 93 из восьми
 последовательных задач: от behavioural provenance всех переходов Астерикса и
 versioned authored graph до единого native AnimationController,
 trace/pose-приёмки, переноса остальных профилей и release ASTPAK gate. Эпик

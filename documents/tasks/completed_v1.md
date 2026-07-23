@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 93.1 — Behavioural provenance animation state machine Астерикса
+
+**Выполнено:** 23 июля 2026.
+
+Добавлен metadata-only exporter, который дополняет все 90 принятых bindings
+`CKHkAsterix` доказанными trigger/guard, start/change, completion, interrupt,
+blend, playback-rate, initial phase/events и root-motion связями. Каждая запись
+сохраняет непрерывную цепочку
+`GameModule.elb + RVA → CKHkHero.heroAnimDict → slot → clip`.
+
+Строгий gate требует ровно 90 уникальных `confirmed` bindings и биективные
+slot/clip/evidence ID, проверяет identity модуля и цель каждого относительного
+вызова animation primitive. Неполные policies, другая версия binary,
+`unresolved` и `visual-only` evidence отклоняются.
+
+Два независимых локальных metadata-only export побайтно совпали; SHA-256:
+`39d391e2933cf9da93a18c2c436170f9c9ba133e5387560854abf5b9e9e106ab`.
+Описание и воспроизводимая команда находятся в
+[`task93_asterix_behaviour.md`](../architecture/task93_asterix_behaviour.md).
+Полный `make check`, повторные целевые тесты и resource policy прошли; binary
+bytes, disassembly, pseudocode, traces и captures в Git не добавлялись.
+
 ## П. 92 — Fresh ASTPAK и release-приёмка доказанных анимаций
 
 **Выполнено:** 23 июля 2026.
