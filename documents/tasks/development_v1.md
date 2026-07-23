@@ -20,7 +20,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 93.2 | **Ввести versioned authored animation graph:** описать состояния, переходы, guards, completion, blending, playback, phases/events и root-motion policy отдельной схемой и собрать принятый provenance в детерминированный runtime resource | Animation fidelity | P0 | L | После п. 93.1; schema/parser/validator отклоняют неполные, неоднозначные, недостижимые и cross-profile графы; canonical fresh/cached export совпадает |
 | 93.3 | **Реализовать единый native AnimationController:** отделить gameplay facts/events от animation state, вести binding/clip cursor/phase/completion/transition и детерминированно восстанавливать состояние на fixed tick | Animation fidelity | P0 | L | После п. 93.2; unit-тесты покрывают loop, one-shot, authored completion, interrupt, queued transition, pause/restore и отсутствие replay; controller не выбирает клипы по именам gameplay enum |
 | 93.4 | **Перевести полный runtime-граф Астерикса на AnimationController:** удалить прямой выбор восьми клипов и эвристические animation-переходы из `PlayerRuntime`/Metal, передав renderer готовый pose/transition snapshot | Animation fidelity | P0 | XL | После п. 93.3; все 90 bindings достижимы только через authored graph; single jump сохраняет slot 13 / `0031`, double jump — slot 35 / `0064`; вершина траектории сама по себе не обрывает клип без доказанного authored guard |
 | 93.5 | **Реализовать authored pose playback:** поддержать cross-fade двух поз, playback rate и начальную фазу, completion sampling, in-place/root-motion/phase-synchronized policies и render interpolation без сброса cursor | Animation fidelity | P0 | L | После п. 93.4; pose tests проверяют контрольные joint transforms до/во время/после перехода, физическая capsule и render root не расходятся, low FPS и 30/60/120 Hz дают одинаковые fixed-tick результаты |
@@ -146,7 +145,7 @@
 - [x] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
 - [x] П. 92 — fresh ASTPAK, post-build audit и release runtime-приёмка доказанных анимаций
 - [x] П. 93.1 — behavioural provenance animation state machine Астерикса
-- [ ] П. 93.2 — versioned authored animation graph
+- [x] П. 93.2 — versioned authored animation graph
 - [ ] П. 93.3 — единый native AnimationController
 - [ ] П. 93.4 — полный runtime-граф Астерикса через AnimationController
 - [ ] П. 93.5 — authored pose playback, blending и root-motion policies
@@ -159,7 +158,13 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 93.1 выполнен: metadata-only
+**Последнее обновление:** 23 июля 2026 — п. 93.2 выполнен: принятый provenance
+скомпилирован в канонический versioned runtime graph из 90 states и 90
+selector transitions. Строгие schema/parser/validator отклоняют неполные,
+неоднозначные, недостижимые и cross-profile графы; fresh/cached export
+побайтно совпали.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 93.1 выполнен: metadata-only
 behavioural provenance закрывает все 90 bindings `CKHkAsterix`, для каждого
 фиксирует trigger/guard, start/change, completion, interrupt, blend, playback,
 phase/events и root-motion policy с module/RVA/dictionary/slot/clip evidence.

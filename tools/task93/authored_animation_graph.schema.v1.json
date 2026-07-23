@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://asterix.local/schemas/task93/authored-animation-graph.v1.json",
+  "title": "Versioned authored animation runtime graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "resourceType", "profile", "entryState", "states", "transitions", "source"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "resourceType": {"const": "asterix.authored-animation-graph"},
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "owner", "module", "moduleSha256"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^actor:"},
+        "owner": {"type": "string", "minLength": 1},
+        "module": {"const": "GameModule.elb"},
+        "moduleSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "entryState": {"type": "string", "minLength": 1},
+    "states": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "profile", "binding", "runtimeState", "clip", "playback", "phaseEvents", "rootMotion", "provenanceEvidenceId"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^binding:"},
+          "profile": {"type": "string"},
+          "binding": {"type": "string", "minLength": 1},
+          "runtimeState": {"type": "string", "minLength": 1},
+          "clip": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dictionary", "slot", "asset"],
+            "properties": {
+              "dictionary": {"type": "integer", "minimum": 0},
+              "slot": {"type": "integer", "minimum": 0},
+              "asset": {"type": "string", "minLength": 1}
+            }
+          },
+          "playback": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rate"],
+            "properties": {
+              "rate": {"type": "number", "exclusiveMinimum": 0}
+            }
+          },
+          "phaseEvents": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["initialPhase", "events"],
+            "properties": {
+              "initialPhase": {"type": "number", "minimum": 0, "maximum": 1},
+              "events": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "rootMotion": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["policy"],
+            "properties": {"policy": {"enum": ["inPlace", "physicsDriven", "authored"]}}
+          },
+          "provenanceEvidenceId": {"type": "string", "pattern": "^task93:v1:"}
+        }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "profile", "fromState", "toState", "trigger", "guard", "completion", "interrupt", "blend", "operation", "provenanceEvidenceId"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^select:"},
+          "profile": {"type": "string"},
+          "fromState": {"type": "string"},
+          "toState": {"type": "string"},
+          "trigger": {"type": "object"},
+          "guard": {"type": "object"},
+          "completion": {"type": "object"},
+          "interrupt": {"type": "object"},
+          "blend": {"type": "object"},
+          "operation": {"enum": ["start", "change"]},
+          "provenanceEvidenceId": {"type": "string", "pattern": "^task93:v1:"}
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "sha256"],
+      "properties": {
+        "schemaVersion": {"const": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

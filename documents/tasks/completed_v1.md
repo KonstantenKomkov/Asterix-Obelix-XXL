@@ -1,5 +1,29 @@
 # Выполненные задачи первой итерации
 
+## П. 93.2 — Versioned authored animation graph
+
+**Выполнено:** 23 июля 2026.
+
+Добавлены JSON Schema версии 1, metadata-only compiler и строгий runtime
+parser/validator. Принятый provenance п. 93.1 собран в канонический ресурс из
+90 states и 90 selector transitions профиля `CKHkAsterix`. Ресурс сохраняет
+binding/state, dictionary/slot/clip, trigger/guard, start/change, completion,
+interrupt, blending, playback, initial phase/events, root-motion policy и
+непрерывные evidence IDs.
+
+Validator отклоняет неизвестные и отсутствующие поля, несовместимую версию,
+неоднозначные selectors, недостижимые states, несовпадающие evidence и
+cross-profile ссылки. Unit-тесты покрывают все эти отрицательные сценарии и
+проверяют каноничность принятого runtime resource.
+
+Fresh export из принятого `run-a` и cached export из независимого `run-b`
+побайтно совпали. Итоговый ресурс имеет размер 87 894 байта и SHA-256
+`47c2d557315c6cefe3b98957438ff4be4b0346f5bccd6b8c3f28d2151d6a9965`.
+Полный `make check`, повторные целевые тесты, resource policy и отдельный
+diff-review прошли. Оригинальные binary/assets и локальный cache в Git не
+добавлены. Описание:
+[`task93_authored_animation_graph.md`](../architecture/task93_authored_animation_graph.md).
+
 ## П. 93.1 — Behavioural provenance animation state machine Астерикса
 
 **Выполнено:** 23 июля 2026.

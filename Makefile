@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory task91-corpus task91-headless task91-anchors task91-primitives task91-dispatch task91-asterix-profile task91-controlled-heroes-profile task91-enemies-scripted-profile task91-world-cinematics-profile task91-provenance-gate task91-final-acceptance task91-tooling-test task92-release-audit task93-asterix-behaviour task93-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory task91-corpus task91-headless task91-anchors task91-primitives task91-dispatch task91-asterix-profile task91-controlled-heroes-profile task91-enemies-scripted-profile task91-world-cinematics-profile task91-provenance-gate task91-final-acceptance task91-tooling-test task92-release-audit task93-asterix-behaviour task93-authored-graph task93-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -86,8 +86,14 @@ task93-asterix-behaviour: ## Behavioural provenance Астерикса (GAME_DIR
 	@test -n "$(OUTPUT)" || (echo "OUTPUT is required" >&2; exit 2)
 	python3 scripts/task93_asterix_behaviour.py "$(GAME_DIR)" "$(PROFILE)" "$(OUTPUT)"
 
-task93-tooling-test: ## Проверить metadata-only tooling задачи 93.1
+task93-authored-graph: ## Собрать runtime graph из принятого provenance (PROVENANCE=... OUTPUT=... CACHE_DIR=...)
+	@test -n "$(PROVENANCE)" || (echo "PROVENANCE is required" >&2; exit 2)
+	@test -n "$(OUTPUT)" || (echo "OUTPUT is required" >&2; exit 2)
+	python3 scripts/task93_authored_animation_graph.py "$(PROVENANCE)" "$(OUTPUT)" $(if $(CACHE_DIR),--cache-dir "$(CACHE_DIR)",)
+
+task93-tooling-test: ## Проверить metadata-only tooling задач 93.1–93.2
 	python3 -m unittest test/task93_asterix_behaviour_test.py
+	python3 -m unittest test/task93_authored_animation_graph_test.py
 
 task92-release-audit: ## Проверить ASTPAK против принятого registry п. 91.10 (INPUT=... REGISTRY=... ACCEPTANCE=...)
 	@test -n "$(INPUT)" -a -n "$(REGISTRY)" -a -n "$(ACCEPTANCE)" || (echo 'Укажите INPUT=... REGISTRY=... ACCEPTANCE=...' >&2; exit 2)
