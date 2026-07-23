@@ -1,5 +1,31 @@
 # Выполненные задачи первой итерации
 
+## П. 93.5 — Authored pose playback, blending и root-motion policies
+
+**Выполнено:** 23 июля 2026.
+
+Добавлен единый pose sampler поверх `AnimationController`: он сэмплирует
+локальные transforms source/target clips по независимым cursor и playback rate,
+смешивает их в течение authored cross-fade и затем строит 58-joint palette.
+Initial phase, точная конечная поза one-shot/terminal clips, advancing source
+cursor и явная synchronized/restart phase policy сохраняются на fixed tick.
+Completion больше не замораживает незавершённый blend.
+
+Metal загружает для каждого из 90 states строгую `inPlace`,
+`physicsDriven` или `authored` root-motion policy и строит render pose из
+предыдущего/текущего controller snapshot с wrap-aware interpolation. Motion
+root удаляется из skeletal palette, поэтому render root остаётся на capsule;
+authored displacement возвращается отдельно владельцу физики и не применяется
+renderer второй раз.
+
+Полный `make check`, native `xcodebuild test`, Metal Objective-C++ syntax-check
+с ARC, resource policy и отдельный diff-review прошли. Native pose regressions
+проверяют joint transforms до/во время/после перехода, playback rate/initial
+phase, completion sampling, три root-motion policy, phase synchronization и
+одинаковый fixed-tick результат при render cadence 30/60/120 Hz. Оригинальные
+binary/assets в Git не добавлены. Описание:
+[`task93_authored_pose_playback.md`](../architecture/task93_authored_pose_playback.md).
+
 ## П. 93.4 — Полный runtime-граф Астерикса через AnimationController
 
 **Выполнено:** 23 июля 2026.

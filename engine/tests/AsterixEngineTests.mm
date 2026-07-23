@@ -5,6 +5,7 @@
 #include "asterix/engine.h"
 #include "asterix/animation_runtime.hpp"
 #include "asterix/animation_controller.hpp"
+#include "asterix/animation_pose_runtime.hpp"
 #include "asterix/fog_volume_runtime.hpp"
 #include "asterix/animation_event_runtime.hpp"
 #include "asterix/collision_runtime.hpp"
@@ -54,7 +55,7 @@
      {"binding:attack",{0,18,"clip-attack"},.5,1,0}},
     {{"select:idle","*","binding:idle",Completion::loop,Operation::start,0},
      {"select:attack","*","binding:attack",
-      Completion::authored_clip_end,Operation::change,.05}}};
+      Completion::authored_clip_end,Operation::change,.8}}};
   AnimationController controller(graph);
   XCTAssertTrue(controller.request("select:attack",Request::interrupt));
   controller.advance(1.0/3.0);
@@ -62,6 +63,9 @@
   controller.advance(1.0/3.0);
   XCTAssertTrue(controller.snapshot().completed);
   XCTAssertEqualWithAccuracy(controller.snapshot().cursor_seconds,.5,1e-9);
+  XCTAssertTrue(controller.snapshot().blend.has_value());
+  controller.advance(.2);
+  XCTAssertFalse(controller.snapshot().blend.has_value());
   const auto activation=controller.snapshot().activation;
   controller.advance(1.0/60.0);
   XCTAssertFalse(controller.request("select:attack",Request::interrupt));
@@ -128,6 +132,117 @@
   auto invalid=checkpoint;
   invalid.profile="actor:other";
   XCTAssertFalse(controller.restore(invalid));
+}
+
+- (void)testAuthoredPosePlaybackBlendsAdvancingJointTransforms {
+  using namespace asterix;
+  using namespace asterix::animation_controller;
+  animation::Transform origin;
+  animation::Transform fromEnd=origin; fromEnd.translation={2,0,0};
+  animation::Transform toEnd=origin; toEnd.translation={0,4,0};
+  animation::Clip idle{1,true,
+      {{{{0,origin},{1,origin}}},{{{0,origin},{1,fromEnd}}}}};
+  animation::Clip action{1,false,
+      {{{{0,origin},{1,origin}}},{{{0,origin},{1,toEnd}}}}};
+  const std::unordered_map<std::string,animation::Clip> clips{
+      {"idle",idle},{"action",action}};
+  const std::vector<animation::Joint> joints{{-1},{0}};
+  Graph graph{"actor:test","binding:idle",
+    {{"binding:idle",{0,0,"idle"},1,1,0,RootMotionPolicy::in_place},
+     {"binding:action",{0,1,"action"},1,2,.25,RootMotionPolicy::in_place}},
+    {{"select:idle","*","binding:idle",Completion::loop,Operation::start,0},
+     {"select:action","*","binding:action",Completion::authored_clip_end,
+      Operation::change,.4}}};
+  AnimationController controller(graph);
+  controller.advance(.2);
+  const auto before=controller.snapshot();
+  controller.request("select:action",Request::interrupt);
+  const auto activated=controller.snapshot();
+  controller.advance(.2);
+  const auto after=controller.snapshot();
+  XCTAssertEqualWithAccuracy(after.cursor_seconds,.65,1e-9);
+  XCTAssertEqualWithAccuracy(after.blend->from_cursor_seconds,.4,1e-9);
+
+  animation_pose::Playback playback(clips,joints,0);
+  const auto start=playback.sample(before,activated,0);
+  const auto middle=playback.sample(activated,after,.5);
+  const auto end=playback.sample(activated,after,1);
+  XCTAssertEqualWithAccuracy(start.palette[1].value[12],.4,.0001f);
+  XCTAssertGreaterThan(middle.palette[1].value[13],
+                       start.palette[1].value[13]);
+  XCTAssertGreaterThan(end.palette[1].value[13],
+                       middle.palette[1].value[13]);
+  XCTAssertEqualWithAccuracy(end.blend_weight,.5,.0001f);
+}
+
+- (void)testAuthoredPoseRootPoliciesKeepRenderRootOnCapsule {
+  using namespace asterix;
+  using namespace asterix::animation_controller;
+  animation::Transform root;
+  animation::Transform motion=root; motion.translation={3,0,0};
+  animation::Clip clip{1,false,{{{{0,root},{1,motion}}}}};
+  const std::unordered_map<std::string,animation::Clip> clips{{"move",clip}};
+  const std::vector<animation::Joint> joints{{-1}};
+  animation_pose::Playback playback(clips,joints,0);
+  Snapshot pose;
+  pose.profile="actor:test"; pose.state="binding:move";
+  pose.binding={0,0,"move"}; pose.cursor_seconds=.5; pose.phase=.5;
+  pose.activation=1;
+  for(const auto policy:{RootMotionPolicy::in_place,
+                         RootMotionPolicy::physics_driven,
+                         RootMotionPolicy::authored}) {
+    pose.root_motion=policy;
+    const auto sampled=playback.sample(pose,pose,1);
+    XCTAssertEqualWithAccuracy(sampled.palette[0].value[12],0,.0001f);
+    XCTAssertEqualWithAccuracy(
+        sampled.authored_root_motion[0],
+        policy==RootMotionPolicy::authored?1.5f:0,.0001f);
+  }
+}
+
+- (void)testAuthoredPlaybackIsFixedTickDeterministicAndRenderReadOnly {
+  using namespace asterix::animation_controller;
+  Graph graph{"actor:test","binding:idle",
+    {{"binding:idle",{0,0,"idle"},1,1.5,.2}},
+    {{"select:idle","*","binding:idle",Completion::loop,Operation::start,0}}};
+  const auto run=[&](double renderHz) {
+    AnimationController controller(graph);
+    Snapshot previous=controller.snapshot(),current=previous;
+    double renderAccumulator=0;
+    for(int tick=0;tick<120;++tick) {
+      previous=current;
+      controller.advance(1.0/60.0);
+      current=controller.snapshot();
+      renderAccumulator+=renderHz;
+      while(renderAccumulator>=60) {
+        const double alpha=(renderAccumulator-60)/renderHz;
+        (void)(previous.cursor_seconds+
+               (current.cursor_seconds-previous.cursor_seconds)*alpha);
+        renderAccumulator-=60;
+      }
+    }
+    return controller.snapshot();
+  };
+  const auto at30=run(30),at60=run(60),at120=run(120);
+  XCTAssertEqualWithAccuracy(at30.cursor_seconds,at60.cursor_seconds,1e-12);
+  XCTAssertEqualWithAccuracy(at60.cursor_seconds,at120.cursor_seconds,1e-12);
+  XCTAssertEqual(at30.activation,at120.activation);
+}
+
+- (void)testAuthoredPhaseSynchronizedTransitionCarriesPhase {
+  using namespace asterix::animation_controller;
+  Graph graph{"actor:test","binding:a",
+    {{"binding:a",{0,0,"a"},2,1,.1},
+     {"binding:b",{0,1,"b"},4,1,0}},
+    {{"select:a","*","binding:a",Completion::loop,Operation::start,0},
+     {"select:b","*","binding:b",Completion::loop,Operation::start,.2,
+      PhasePolicy::synchronized}}};
+  AnimationController controller(graph);
+  controller.advance(.5);
+  const double phase=controller.snapshot().phase;
+  controller.request("select:b",Request::interrupt);
+  XCTAssertEqualWithAccuracy(controller.snapshot().phase,phase,1e-9);
+  XCTAssertEqualWithAccuracy(controller.snapshot().cursor_seconds,phase*4,1e-9);
 }
 
 - (void)testPlayerAnimationRuntimeKeepsAuthoredJumpAcrossPhysicsApex {

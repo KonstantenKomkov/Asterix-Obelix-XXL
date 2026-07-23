@@ -22,6 +22,12 @@ enum class Completion : std::uint8_t {
 
 enum class Operation : std::uint8_t { start, change };
 enum class Request : std::uint8_t { interrupt, queue };
+enum class RootMotionPolicy : std::uint8_t {
+  in_place,
+  physics_driven,
+  authored,
+};
+enum class PhasePolicy : std::uint8_t { restart, synchronized };
 
 struct Binding {
   std::int32_t dictionary = 0;
@@ -40,6 +46,7 @@ struct State {
   double duration_seconds = 0;
   double playback_rate = 1;
   double initial_phase = 0;
+  RootMotionPolicy root_motion = RootMotionPolicy::in_place;
 };
 
 struct Transition {
@@ -49,6 +56,7 @@ struct Transition {
   Completion completion = Completion::loop;
   Operation operation = Operation::change;
   double blend_seconds = 0;
+  PhasePolicy phase_policy = PhasePolicy::restart;
 };
 
 struct Graph {
@@ -62,6 +70,10 @@ struct Blend {
   std::string from_state;
   Binding from_binding;
   double from_cursor_seconds = 0;
+  double from_duration_seconds = 0;
+  double from_playback_rate = 1;
+  Completion from_completion = Completion::loop;
+  RootMotionPolicy from_root_motion = RootMotionPolicy::in_place;
   double elapsed_seconds = 0;
   double duration_seconds = 0;
 };
@@ -76,6 +88,7 @@ struct Snapshot {
   double phase = 0;
   bool completed = false;
   std::uint64_t activation = 0;
+  RootMotionPolicy root_motion = RootMotionPolicy::in_place;
   std::optional<Blend> blend;
   std::optional<std::string> queued_transition;
 };
@@ -114,11 +127,20 @@ class AnimationController {
   const Snapshot& advance(double fixed_dt, bool paused = false) {
     if (!std::isfinite(fixed_dt) || fixed_dt <= 0)
       throw std::invalid_argument("animation fixed dt is invalid");
-    if (paused || snapshot_.completed) return snapshot_;
+    if (paused) return snapshot_;
 
     const State& state = findState(snapshot_.state);
     const double scaled = fixed_dt * state.playback_rate;
     if (snapshot_.blend) {
+      Blend& blend = *snapshot_.blend;
+      blend.from_cursor_seconds += fixed_dt * blend.from_playback_rate;
+      if (blend.from_completion == Completion::loop) {
+        blend.from_cursor_seconds =
+            std::fmod(blend.from_cursor_seconds, blend.from_duration_seconds);
+      } else {
+        blend.from_cursor_seconds =
+            std::min(blend.from_cursor_seconds, blend.from_duration_seconds);
+      }
       snapshot_.blend->elapsed_seconds =
           std::min(snapshot_.blend->duration_seconds,
                    snapshot_.blend->elapsed_seconds + fixed_dt);
@@ -127,6 +149,7 @@ class AnimationController {
         snapshot_.blend.reset();
       }
     }
+    if (snapshot_.completed) return snapshot_;
 
     snapshot_.cursor_seconds += scaled;
     const Completion completion = active_completion_;
@@ -255,6 +278,7 @@ class AnimationController {
     snapshot_.cursor_seconds = state.initial_phase * state.duration_seconds;
     snapshot_.phase = state.initial_phase;
     snapshot_.completed = false;
+    snapshot_.root_motion = state.root_motion;
     ++snapshot_.activation;
     snapshot_.queued_transition.reset();
     snapshot_.blend.reset();
@@ -267,8 +291,17 @@ class AnimationController {
   }
 
   void activateTransition(const Transition& transition) {
-    Blend from{snapshot_.state, snapshot_.binding, snapshot_.cursor_seconds};
+    const State& from_state = findState(snapshot_.state);
+    Blend from{snapshot_.state, snapshot_.binding, snapshot_.cursor_seconds,
+               from_state.duration_seconds, from_state.playback_rate,
+               snapshot_.completion, from_state.root_motion};
+    const double synchronized_phase = snapshot_.phase;
     activateState(transition.to_state, &from, transition.blend_seconds);
+    if (transition.phase_policy == PhasePolicy::synchronized) {
+      const State& to_state = findState(snapshot_.state);
+      snapshot_.phase = synchronized_phase;
+      snapshot_.cursor_seconds = synchronized_phase * to_state.duration_seconds;
+    }
     snapshot_.transition = transition.id;
     snapshot_.completion = transition.completion;
     active_completion_ = transition.completion;
@@ -300,6 +333,7 @@ class AnimationController {
       return false;
     const State& definition = graph_.states[state->second];
     if (!(saved.binding == definition.binding) ||
+        saved.root_motion != definition.root_motion ||
         saved.cursor_seconds > definition.duration_seconds + 1e-9)
       return false;
     const double expected_phase =
@@ -319,8 +353,18 @@ class AnimationController {
           !(saved.blend->from_binding ==
             graph_.states[from->second].binding) ||
           !finiteNonNegative(saved.blend->from_cursor_seconds) ||
+          !std::isfinite(saved.blend->from_duration_seconds) ||
+          saved.blend->from_duration_seconds <= 0 ||
+          !std::isfinite(saved.blend->from_playback_rate) ||
+          saved.blend->from_playback_rate <= 0 ||
           saved.blend->from_cursor_seconds >
-              graph_.states[from->second].duration_seconds + 1e-9 ||
+              saved.blend->from_duration_seconds + 1e-9 ||
+          std::abs(saved.blend->from_duration_seconds -
+                   graph_.states[from->second].duration_seconds) > 1e-9 ||
+          std::abs(saved.blend->from_playback_rate -
+                   graph_.states[from->second].playback_rate) > 1e-9 ||
+          saved.blend->from_root_motion !=
+              graph_.states[from->second].root_motion ||
           !finiteNonNegative(saved.blend->elapsed_seconds) ||
           !finiteNonNegative(saved.blend->duration_seconds) ||
           saved.blend->duration_seconds <= 0 ||

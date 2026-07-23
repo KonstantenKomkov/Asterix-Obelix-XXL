@@ -17,6 +17,7 @@
 #include "asterix/interactive_runtime.hpp"
 #include "asterix/audio_runtime.hpp"
 #include "asterix/animation_runtime.hpp"
+#include "asterix/animation_pose_runtime.hpp"
 #include "asterix/fog_volume_runtime.hpp"
 
 typedef struct {
@@ -205,11 +206,19 @@ AsterixReadAuthoredGraph(NSDictionary* json,
     const double duration = [animation[@"duration"] doubleValue];
     const double rate = [value[@"playback"][@"rate"] doubleValue];
     const double phase = [value[@"phaseEvents"][@"initialPhase"] doubleValue];
+    NSString* rootPolicy = value[@"rootMotion"][@"policy"];
+    RootMotionPolicy rootMotion;
+    if ([rootPolicy isEqual:@"inPlace"]) rootMotion = RootMotionPolicy::in_place;
+    else if ([rootPolicy isEqual:@"physicsDriven"])
+      rootMotion = RootMotionPolicy::physics_driven;
+    else if ([rootPolicy isEqual:@"authored"])
+      rootMotion = RootMotionPolicy::authored;
+    else return std::nullopt;
     graph.states.push_back({
         [identifier UTF8String],
         {[clip[@"dictionary"] intValue], [clip[@"slot"] intValue],
          [asset UTF8String]},
-        duration, rate, phase});
+        duration, rate, phase, rootMotion});
   }
   for (NSDictionary* value in json[@"transitions"]) {
     NSString* identifier = value[@"id"];
@@ -333,6 +342,8 @@ struct AsterixPushMesh {
   std::unique_ptr<asterix::collision::CapsuleController> _capsuleController;
   std::unique_ptr<asterix::player::Runtime> _playerRuntime;
   std::unique_ptr<asterix::player_animation::Runtime> _playerAnimationRuntime;
+  asterix::animation_controller::Snapshot _previousPlayerPose;
+  asterix::animation_controller::Snapshot _currentPlayerPose;
   std::unique_ptr<asterix::collision::CapsuleController> _enemyCapsuleController;
   std::unique_ptr<asterix::enemy::Runtime> _enemyRuntime;
   std::unique_ptr<asterix::interactive::Runtime> _interactiveRuntime;
@@ -2200,6 +2211,10 @@ struct AsterixPushMesh {
     _capsuleController = std::move(capsuleController);
     _playerRuntime = std::move(playerRuntime);
     _playerAnimationRuntime = std::move(playerAnimationRuntime);
+    if(_playerAnimationRuntime) {
+      _previousPlayerPose=_playerAnimationRuntime->snapshot();
+      _currentPlayerPose=_previousPlayerPose;
+    }
     _enemyCapsuleController = std::move(enemyCapsuleController);
     _enemyRuntime = std::move(enemyRuntime);
     _interactiveRuntime = std::move(interactiveRuntime);
@@ -2483,9 +2498,11 @@ struct AsterixPushMesh {
               _enemyRuntime->applyDamage(event.damage,knockback);
             }
           }
-          if (_playerAnimationRuntime && _playerRuntime)
-            _playerAnimationRuntime->advance(
-                step, _playerRuntime->snapshot());
+          if (_playerAnimationRuntime && _playerRuntime) {
+            _previousPlayerPose=_currentPlayerPose;
+            _playerAnimationRuntime->advance(step,_playerRuntime->snapshot());
+            _currentPlayerPose=_playerAnimationRuntime->snapshot();
+          }
           if (_cameraRuntime && _playerRuntime && _collisionWorld) {
             _cameraRuntime->update(_playerRuntime->snapshot().body.position,
                                    *_collisionWorld,(float)step);
@@ -2665,16 +2682,12 @@ struct AsterixPushMesh {
           } catch(const std::exception&) {}
         } else if(_playerAnimationRuntime) {
           try {
-            const auto pose=_playerAnimationRuntime->snapshot();
-            constexpr std::string_view prefix="binding:";
-            const std::string binding=
-                pose.state.rfind(prefix,0)==0
-                    ?pose.state.substr(prefix.size()):pose.state;
-            const auto clip=_playerClips.find(binding);
-            if(clip==_playerClips.end())
-              throw std::runtime_error("authored animation clip is missing");
-            const auto palette=asterix::animation::skinningPalette(
-                clip->second,_playerJoints,pose.cursor_seconds);
+            const asterix::animation_pose::Playback playback(
+                _playerClips,_playerJoints);
+            const auto sampled=playback.sample(
+                _previousPlayerPose,_currentPlayerPose,
+                _simulationClock.interpolationAlpha());
+            const auto& palette=sampled.palette;
             playerBones.clear(); playerBones.reserve(palette.size());
             // Convert the authored -Z forward axis from its column-vector
             // rotation convention to the canonical gameplay facing.
