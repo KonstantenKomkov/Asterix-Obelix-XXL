@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "module": "GameModule.elb",
+  "primitives": [
+    {"id": "animation.start_or_change", "rva": "0x0001dd50", "kind": "animationStart", "expectedDirectXrefs": 41},
+    {"id": "animation.blend_update", "rva": "0x0001da70", "kind": "blend", "expectedDirectXrefs": 2},
+    {"id": "animation.complete_dispatch", "rva": "0x0001e390", "kind": "completionCallback", "expectedDirectXrefs": 6},
+    {"id": "cinematic.play_block", "rva": "0x00068870", "kind": "cinematicPlay", "expectedDirectXrefs": 0},
+    {"id": "cinematic.stop_block", "rva": "0x00068950", "kind": "cinematicStop", "expectedDirectXrefs": 0}
+  ],
+  "dictionarySelectors": [
+    {"id": "hero.slot_selector", "rva": "0x0008d650", "calls": "animation.start_or_change"},
+    {"id": "generic.slot_selector", "rva": "0x00064db0", "calls": "animation.start_or_change"},
+    {"id": "cinematic.slot_selector", "rva": "0x00068870", "calls": "animation.start_or_change"}
+  ]
+}

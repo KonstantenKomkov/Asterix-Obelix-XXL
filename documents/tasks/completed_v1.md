@@ -1,5 +1,26 @@
 # Выполненные задачи первой итерации
 
+## П. 91.3 — Animation dictionary access primitives
+
+**Выполнено:** 23 июля 2026.
+
+Для зафиксированного `GameModule.elb` восстановлены пять runtime primitives:
+start/change animation, blend update, completion callback dispatch и
+cinematic play/stop. Зафиксированы hero, generic и cinematic dictionary slot
+selectors, 49 прямых xrefs и call paths от vtable anchors 27 owners.
+
+Для 20 owners доказан прямой call graph. Семь data-owner/indirect-dispatch
+случаев сохранены с явной маркировкой и не выданы за прямые связи; их
+numeric dispatch относится к п. 91.4. Semantic labels и runtime registry на
+этом gate не менялись.
+
+Два независимых metadata-only export побайтно совпали; SHA-256:
+`2d6f06c9018e9ff7624af249a26c9d6a5bd2c2577704e32bcd90cf25564c15c9`.
+Прошли synthetic tooling regressions, resource policy и отдельное diff review.
+Binary bytes, disassembly, pseudocode и локальный export в Git не добавлены.
+Описание:
+[task91_animation_primitives.md](../architecture/task91_animation_primitives.md).
+
 ## П. 91.2 — Class/function anchors
 
 **Выполнено:** 23 июля 2026.
