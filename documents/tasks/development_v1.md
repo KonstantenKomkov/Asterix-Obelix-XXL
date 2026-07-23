@@ -26,7 +26,6 @@
 
 | № | Подзадача | Результат / gate |
 |---:|---|---|
-| 91.9 | Добавить versioned provenance schema и strict gate | Каждый binding биективно связан с binary/function/state/dictionary/slot/clip evidence |
 | 91.10 | Обновить catalog, registry и acceptance | 408 confirmed; 0 unresolved/ambiguous/visual-only; single/double jump приняты отдельно |
 
 ---
@@ -153,7 +152,7 @@
   - [x] П. 91.6 — профили Обеликса и Идефикса
   - [x] П. 91.7 — enemies и scripted actors
   - [x] П. 91.8 — world/UI/FX и cinematics
-  - [ ] П. 91.9 — versioned provenance gate
+  - [x] П. 91.9 — versioned provenance gate
   - [ ] П. 91.10 — итоговые catalog, registry и acceptance
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
@@ -161,7 +160,9 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 91.8 выполнен: доказаны все 46 bindings 13 world/UI/FX profiles и все 63 cues 14 cinematic timelines; двухдорожечный shop transaction и полное чтение slots каждой timeline приняты отдельно. Два независимых metadata-only export побайтно совпали.
+**Последнее обновление:** 23 июля 2026 — п. 91.9 выполнен: versioned provenance schema и strict gate биективно связали все 408 runtime bindings с module/function/state-or-event/dictionary/slot/clip evidence; unresolved, ambiguous, visual-only и membership-only записей нет. Два независимых metadata-only export побайтно совпали.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 91.8 выполнен: доказаны все 46 bindings 13 world/UI/FX profiles и все 63 cues 14 cinematic timelines; двухдорожечный shop transaction и полное чтение slots каждой timeline приняты отдельно. Два независимых metadata-only export побайтно совпали.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 91.7 выполнен: доказаны все 85 bindings basic Roman и составного Roman leader, включая три синхронных body/equipment выбора, а также 24 отдельных scripted dictionary owner. Два независимых metadata-only export побайтно совпали.
 

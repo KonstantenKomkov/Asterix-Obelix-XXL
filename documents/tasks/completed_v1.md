@@ -1,5 +1,24 @@
 # Выполненные задачи первой итерации
 
+## П. 91.9 — Versioned provenance schema и strict gate
+
+**Выполнено:** 23 июля 2026.
+
+Добавлены versioned JSON Schema и metadata-only validator, которые биективно
+соединяют ровно 408 полных runtime bindings с доказательной цепочкой
+`module hash + owner vtable/dispatch RVA → state/event → dictionary field/id →
+slot → authored clip`. Gate требует 408 уникальных binding keys и evidence IDs,
+нулевые unresolved/ambiguous/visual-only/membership-only totals и отклоняет
+неполные, повторные, лишние и cross-version записи.
+
+Два независимых gate-export из соответствующих результатов 91.5–91.8
+побайтно совпали; SHA-256:
+`f71e47e63439ef29e39a7aff955f32f0d45a770b53c2aed2b6adae825a01c943`.
+Прошли 31 tooling regression, Python compile, resource policy и отдельное diff
+review. Binary bytes, disassembly, pseudocode и локальные traces в Git не
+добавлены. Описание:
+[task91_provenance_gate.md](../architecture/task91_provenance_gate.md).
+
 ## П. 91.8 — Authored animation profiles world/UI/FX и cinematics
 
 **Выполнено:** 23 июля 2026.

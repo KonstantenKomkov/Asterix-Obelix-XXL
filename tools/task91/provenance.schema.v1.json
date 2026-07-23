@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://asterix.local/schemas/task91/provenance.schema.v1.json",
+  "title": "Task 91 authored animation provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "module", "summary", "evidence"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "imageBase"],
+      "properties": {
+        "name": {"const": "GameModule.elb"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "imageBase": {"type": "string", "pattern": "^0x[0-9a-f]{8}$"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtimeBindingCount", "confirmedBindingCount", "unresolvedBindingCount", "ambiguousBindingCount", "visualOnlyBindingCount", "membershipOnlyBindingCount"],
+      "properties": {
+        "runtimeBindingCount": {"const": 408},
+        "confirmedBindingCount": {"const": 408},
+        "unresolvedBindingCount": {"const": 0},
+        "ambiguousBindingCount": {"const": 0},
+        "visualOnlyBindingCount": {"const": 0},
+        "membershipOnlyBindingCount": {"const": 0}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 408,
+      "maxItems": 408,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidenceId", "bindingKey", "profile", "binding", "owner", "source", "stateOrEvent", "dictionaryAccess", "slotSelection", "assetJoin", "confidence", "evidenceKinds"],
+        "properties": {
+          "evidenceId": {"type": "string", "pattern": "^task91:v1:"},
+          "bindingKey": {"type": "string"},
+          "profile": {"type": "string"},
+          "binding": {"type": "string"},
+          "owner": {"type": "string"},
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["module", "sha256", "ownerVtableRva", "dispatchRva"],
+            "properties": {
+              "module": {"const": "GameModule.elb"},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "ownerVtableRva": {"type": "string", "pattern": "^0x[0-9a-f]{8}$"},
+              "dispatchRva": {"type": "string", "pattern": "^0x[0-9a-f]{8}$"}
+            }
+          },
+          "stateOrEvent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "value"],
+            "properties": {
+              "kind": {"enum": ["runtimeState", "numericStateOrEvent"]},
+              "value": {"type": ["string", "integer"]}
+            }
+          },
+          "dictionaryAccess": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["field", "dictionary"],
+            "properties": {
+              "field": {"type": "string", "minLength": 1},
+              "dictionary": {"type": "integer", "minimum": 0}
+            }
+          },
+          "slotSelection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "slot"],
+            "properties": {
+              "kind": {"const": "numericRuntimeBinding"},
+              "slot": {"type": "integer", "minimum": 0}
+            }
+          },
+          "assetJoin": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dictionary", "slot", "clip"],
+            "properties": {
+              "dictionary": {"type": "integer", "minimum": 0},
+              "slot": {"type": "integer", "minimum": 0},
+              "clip": {"type": "string", "pattern": "^clip-[0-9]{4}$"}
+            }
+          },
+          "confidence": {"const": "confirmed"},
+          "evidenceKinds": {
+            "type": "array",
+            "const": ["staticDataFlow", "runtimeBinding", "authoredAssetJoin"]
+          }
+        }
+      }
+    }
+  }
+}
