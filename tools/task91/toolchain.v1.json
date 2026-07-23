@@ -21,6 +21,7 @@
   "expectedKwnCount": 108,
   "exports": {
     "metadataOnly": true,
+    "classAnchors": true,
     "disassembly": false,
     "decompilerOutput": false
   }

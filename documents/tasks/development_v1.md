@@ -26,7 +26,6 @@
 
 | № | Подзадача | Результат / gate |
 |---:|---|---|
-| 91.2 | Восстановить class/function anchors по RTTI, vtables и XXL-Editor layouts | Карта owners, методов и полей animation dictionaries |
 | 91.3 | Найти primitives чтения slot и запуска animation | Call graph и xrefs от owners до dictionary access |
 | 91.4 | Восстановить numeric state/event dispatch | Switch/jump tables и доказанные входы без преждевременных semantic labels |
 | 91.5 | Восстановить полный профиль Астерикса | Отдельные статические цепочки и input traces для single/double jump |
@@ -153,7 +152,7 @@
 - [x] П. 90 — 63 cinematic bindings
 - [ ] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
   - [x] П. 91.1 — binary corpus и воспроизводимый toolchain
-  - [ ] П. 91.2 — class/function anchors
+  - [x] П. 91.2 — class/function anchors
   - [ ] П. 91.3 — animation dictionary access primitives
   - [ ] П. 91.4 — numeric state/event dispatch
   - [ ] П. 91.5 — полный профиль Астерикса и отдельные single/double jump chains
@@ -168,7 +167,9 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 91.1 выполнен: точная локальная версия зафиксирована как 2 PE32 x86-модуля и 108 KWN с детерминированным manifest; подтверждены sections/imports и отсутствие debug directory, PDB/MAP и стандартных MSVC RTTI descriptors. Два независимых metadata-only запуска дали одинаковый SHA-256; Ghidra 12.1.2 / OpenJDK 21 и clean-project headless export закреплены для последующего анализа.
+**Последнее обновление:** 23 июля 2026 — п. 91.2 выполнен: class-registration records, factories, vptr stores, vtables и доказанные virtual-slot prefixes восстановлены для 27 animation owners всех групп; 40 dictionary/index fields связаны с чистым XXL-Editor revision, unresolved отсутствуют. Два независимых metadata-only export побайтно совпали.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 91.1 выполнен: точная локальная версия зафиксирована как 2 PE32 x86-модуля и 108 KWN с детерминированным manifest; подтверждены sections/imports и отсутствие debug directory, PDB/MAP и стандартных MSVC RTTI descriptors. Два независимых metadata-only запуска дали одинаковый SHA-256; Ghidra 12.1.2 / OpenJDK 21 и clean-project headless export закреплены для последующего анализа.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 91 декомпозирован на 91.1–91.10: от фиксации точной версии stripped PE32 и восстановления RTTI/vtable/function anchors до provenance gate для всех 408 bindings. Декомпиляция и динамические traces выполняются только локально; в Git разрешены хеши, RVA-идентификаторы, восстановленные числовые связи и собственные валидаторы, но не листинги или псевдокод оригинала.
 

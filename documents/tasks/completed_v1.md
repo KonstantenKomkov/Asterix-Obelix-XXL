@@ -1,5 +1,28 @@
 # Выполненные задачи первой итерации
 
+## П. 91.2 — Class/function anchors
+
+**Выполнено:** 23 июля 2026.
+
+Для зафиксированного `GameModule.elb` восстановлены class-registration records,
+scalar/array factories, vptr stores, vtable RVA и доказанный 15-slot virtual
+prefix для 27 animation owners: 3 hero, 8 enemy, 2 scripted, 12 world/UI/FX и
+2 cinematic. Полная граница соседних MSVC vtables намеренно не угадывается.
+
+К owners привязаны 40 animation dictionary/index fields из чистого checkout
+XXL-Editor revision `d606cfccf8faa31287aa1326fa9d10c292c06157`, включая
+унаследованный `CKHkHero.heroAnimDict`, base/derived turtle layouts и цепочку
+`CKCinematicSceneData.animDict` + `CKPlayAnimCinematicBloc.paAnimIndex`.
+Другой module hash, revision или грязный checkout отклоняются.
+
+Два независимых metadata-only export побайтно совпали; SHA-256:
+`7ef67b5e5a852cf3970f3fde848e84b039325255a6fe8d1ffa29eb559bf2ec80`.
+Прошли synthetic anchor/layout regressions, resource policy, native FFI build,
+analyze, все 112 Flutter tests и отдельное diff review. Binary bytes,
+disassembly, pseudocode, проекты и локальный export в Git не добавлены.
+Описание:
+[task91_class_anchors.md](../architecture/task91_class_anchors.md).
+
 ## П. 91.1 — Binary corpus и воспроизводимый toolchain
 
 **Выполнено:** 23 июля 2026.

@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory task91-corpus task91-headless task91-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory task91-corpus task91-headless task91-anchors task91-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -31,8 +31,13 @@ task91-headless: ## Чистый headless-анализ задачи 91 (GAME_DIR
 	@test -n "$(GAME_DIR)" -a -n "$(WORKSPACE)" || (echo 'Укажите GAME_DIR=... WORKSPACE=...' >&2; exit 2)
 	./scripts/task91_headless_analysis.sh "$(GAME_DIR)" "$(WORKSPACE)"
 
+task91-anchors: ## Карта class/function anchors (GAME_DIR=... XXL_EDITOR=... OUTPUT=...)
+	@test -n "$(GAME_DIR)" -a -n "$(XXL_EDITOR)" -a -n "$(OUTPUT)" || (echo 'Укажите GAME_DIR=... XXL_EDITOR=... OUTPUT=...' >&2; exit 2)
+	python3 scripts/task91_class_anchors.py "$(GAME_DIR)" "$(XXL_EDITOR)" "$(OUTPUT)"
+
 task91-tooling-test: ## Проверить metadata-only tooling задачи 91
 	python3 -m unittest test/task91_corpus_test.py
+	python3 -m unittest test/task91_class_anchors_test.py
 	bash -n scripts/task91_headless_analysis.sh
 
 importer-inspect: ## Проверить файл каркасом импортёра (INPUT=...)
