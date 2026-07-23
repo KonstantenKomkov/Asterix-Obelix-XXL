@@ -9,10 +9,26 @@
       "originalReference": "task-62 review sheet and task-59 held-movement capture",
       "result": "match",
       "steps": [
-        {"actor": "asterix", "action": "locomotion.idle", "clip": "0058.animation.json"},
-        {"actor": "asterix", "action": "locomotion.run", "clip": "0035.animation.json"},
-        {"actor": "asterix", "action": "combat.attack", "clip": "0000.animation.json"},
-        {"actor": "asterix", "action": "damage.death", "clip": "0033.animation.json"}
+        {
+          "actor": "asterix",
+          "action": "locomotion.idle",
+          "clip": "0058.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "locomotion.run",
+          "clip": "0035.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "combat.attack",
+          "clip": "0000.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "damage.death",
+          "clip": "0033.animation.json"
+        }
       ]
     },
     {
@@ -20,11 +36,31 @@
       "originalReference": "task-62 hero dictionary review sheet, Obelix heroAnimDict slots 0, 2, 58, 75 and 93",
       "result": "match",
       "steps": [
-        {"actor": "obelix", "action": "locomotion.idle", "clip": "0145.animation.json"},
-        {"actor": "obelix", "action": "locomotion.run", "clip": "0125.animation.json"},
-        {"actor": "obelix", "action": "combat.attack", "clip": "0151.animation.json"},
-        {"actor": "obelix", "action": "damage.hurt", "clip": "0101.animation.json"},
-        {"actor": "obelix", "action": "traversal.swim-directional", "clip": "0171.animation.json"}
+        {
+          "actor": "obelix",
+          "action": "locomotion.idle",
+          "clip": "0145.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "locomotion.run",
+          "clip": "0125.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "combat.attack",
+          "clip": "0151.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "damage.hurt",
+          "clip": "0101.animation.json"
+        },
+        {
+          "actor": "obelix",
+          "action": "traversal.swim-directional",
+          "clip": "0171.animation.json"
+        }
       ]
     },
     {
@@ -32,11 +68,31 @@
       "originalReference": "task-62 hero dictionary review sheet, Idefix heroAnimDict slots 0, 1, 2, 26 and 75",
       "result": "match",
       "steps": [
-        {"actor": "idefix", "action": "locomotion.idle", "clip": "0176.animation.json"},
-        {"actor": "idefix", "action": "locomotion.run", "clip": "0187.animation.json"},
-        {"actor": "idefix", "action": "combat.attack-combo", "clip": "0187.animation.json"},
-        {"actor": "idefix", "action": "damage.death", "clip": "0179.animation.json"},
-        {"actor": "idefix", "action": "traversal.swim-directional", "clip": "0183.animation.json"}
+        {
+          "actor": "idefix",
+          "action": "locomotion.idle",
+          "clip": "0176.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "locomotion.run",
+          "clip": "0187.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "combat.attack-combo",
+          "clip": "0187.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "damage.death",
+          "clip": "0179.animation.json"
+        },
+        {
+          "actor": "idefix",
+          "action": "traversal.swim-directional",
+          "clip": "0183.animation.json"
+        }
       ]
     },
     {
@@ -44,8 +100,16 @@
       "originalReference": "task-62 world dictionary review sheet, dictionary 19",
       "result": "match",
       "steps": [
-        {"actor": "mechanism:machinegun", "action": "combat.fire", "clip": "0243.animation.json"},
-        {"actor": "mechanism:machinegun", "action": "combat.recoil", "clip": "0242.animation.json"}
+        {
+          "actor": "mechanism:machinegun",
+          "action": "combat.fire",
+          "clip": "0243.animation.json"
+        },
+        {
+          "actor": "mechanism:machinegun",
+          "action": "combat.recoil",
+          "clip": "0242.animation.json"
+        }
       ]
     },
     {
@@ -53,13 +117,41 @@
       "originalReference": "task-62 character dictionary review sheet, basic Roman dictionary 48 slots 0, 5, 11, 15, 19, 26 and 38",
       "result": "match",
       "steps": [
-        {"actor": "basic-enemy:roman", "action": "locomotion.idle", "clip": "0231.animation.json"},
-        {"actor": "basic-enemy:roman", "action": "spawn.or-awareness", "clip": "0218.animation.json"},
-        {"actor": "basic-enemy:roman", "action": "locomotion.move", "clip": "0220.animation.json"},
-        {"actor": "basic-enemy:roman", "action": "combat.attack", "clip": "0203.animation.json"},
-        {"actor": "basic-enemy:roman", "action": "damage.hit-reaction", "clip": "0210.animation.json"},
-        {"actor": "basic-enemy:roman", "action": "special.enemy-state", "clip": "0233.animation.json"},
-        {"actor": "basic-enemy:roman", "action": "death.variant", "clip": "0222.animation.json"}
+        {
+          "actor": "basic-enemy:roman",
+          "action": "locomotion.idle",
+          "clip": "0231.animation.json"
+        },
+        {
+          "actor": "basic-enemy:roman",
+          "action": "spawn.or-awareness",
+          "clip": "0218.animation.json"
+        },
+        {
+          "actor": "basic-enemy:roman",
+          "action": "locomotion.move",
+          "clip": "0220.animation.json"
+        },
+        {
+          "actor": "basic-enemy:roman",
+          "action": "combat.attack",
+          "clip": "0203.animation.json"
+        },
+        {
+          "actor": "basic-enemy:roman",
+          "action": "damage.hit-reaction",
+          "clip": "0210.animation.json"
+        },
+        {
+          "actor": "basic-enemy:roman",
+          "action": "special.enemy-state",
+          "clip": "0233.animation.json"
+        },
+        {
+          "actor": "basic-enemy:roman",
+          "action": "death.variant",
+          "clip": "0222.animation.json"
+        }
       ]
     },
     {
@@ -67,13 +159,41 @@
       "originalReference": "task-62 character dictionary review sheet, Roman leader dictionaries 27 and 28 with composed skins 28 + 27",
       "result": "match",
       "steps": [
-        {"actor": "basic-enemy-leader:roman", "action": "locomotion.idle", "clip": "0265.animation.json"},
-        {"actor": "basic-enemy-leader:roman", "action": "spawn.or-awareness", "clip": "0263.animation.json"},
-        {"actor": "basic-enemy-leader:roman", "action": "locomotion.move", "clip": "0264.animation.json"},
-        {"actor": "basic-enemy-leader:roman", "action": "combat.attack", "clip": "0292.animation.json"},
-        {"actor": "basic-enemy-leader:roman", "action": "damage.hit-reaction", "clip": "0294.animation.json"},
-        {"actor": "basic-enemy-leader:roman", "action": "special.enemy-state", "clip": "0273.animation.json"},
-        {"actor": "basic-enemy-leader:roman", "action": "death.variant", "clip": "0277.animation.json"}
+        {
+          "actor": "basic-enemy-leader:roman",
+          "action": "locomotion.idle",
+          "clip": "0265.animation.json"
+        },
+        {
+          "actor": "basic-enemy-leader:roman",
+          "action": "spawn.or-awareness",
+          "clip": "0263.animation.json"
+        },
+        {
+          "actor": "basic-enemy-leader:roman",
+          "action": "locomotion.move",
+          "clip": "0264.animation.json"
+        },
+        {
+          "actor": "basic-enemy-leader:roman",
+          "action": "combat.attack",
+          "clip": "0292.animation.json"
+        },
+        {
+          "actor": "basic-enemy-leader:roman",
+          "action": "damage.hit-reaction",
+          "clip": "0294.animation.json"
+        },
+        {
+          "actor": "basic-enemy-leader:roman",
+          "action": "special.enemy-state",
+          "clip": "0273.animation.json"
+        },
+        {
+          "actor": "basic-enemy-leader:roman",
+          "action": "death.variant",
+          "clip": "0277.animation.json"
+        }
       ]
     },
     {
@@ -81,9 +201,68 @@
       "originalReference": "task-62 character review sheet, animated-character dictionaries 31 and 9 plus cinematic-scene dictionary 15",
       "result": "match",
       "steps": [
-        {"actor": "animated-character:dictionary-31", "action": "special.scripted-performance", "clip": "0301.animation.json"},
-        {"actor": "animated-character:dictionary-9", "action": "special.scripted-performance", "clip": "0343.animation.json"},
-        {"actor": "cinematic-scene:dictionary-15", "action": "special.scripted-performance", "clip": "0235.animation.json"}
+        {
+          "actor": "animated-character:dictionary-31",
+          "action": "special.scripted-performance",
+          "clip": "0301.animation.json"
+        },
+        {
+          "actor": "animated-character:dictionary-9",
+          "action": "special.scripted-performance",
+          "clip": "0343.animation.json"
+        },
+        {
+          "actor": "cinematic-scene:dictionary-15",
+          "action": "special.scripted-performance",
+          "clip": "0235.animation.json"
+        }
+      ]
+    },
+    {
+      "id": "world-ui-fx-events",
+      "originalReference": "task-62 world dictionary review sheet, dictionaries 20, 23, 24, 29, 30, 49, 50 and 51",
+      "result": "match",
+      "steps": [
+        {
+          "actor": "mechanism:component",
+          "action": "mechanism.activate",
+          "clip": "0245.animation.json"
+        },
+        {
+          "actor": "shop:asterix-kiosk",
+          "action": "shop.open",
+          "clip": "0319.animation.json"
+        },
+        {
+          "actor": "fauna:square-turtle-a",
+          "action": "fauna.move",
+          "clip": "0307.animation.json"
+        },
+        {
+          "actor": "fauna:wild-boar",
+          "action": "fauna.attack",
+          "clip": "0258.animation.json"
+        },
+        {
+          "actor": "checkpoint:asterix",
+          "action": "checkpoint.activate",
+          "clip": "0297.animation.json"
+        },
+        {
+          "actor": "fx:lightning-object-node",
+          "action": "fx.lightning-loop",
+          "clip": "0304.animation.json"
+        },
+        {
+          "actor": "interface:in-game-primary",
+          "action": "interface.transition",
+          "clip": "0305.animation.json"
+        },
+        {
+          "actor": "interface:in-game-secondary",
+          "action": "interface.transition",
+          "clip": "0306.animation.json"
+        }
       ]
     },
     {
@@ -91,8 +270,16 @@
       "originalReference": "task-62 cinematic seven-pose review sheet, scene data 1",
       "result": "match",
       "steps": [
-        {"actor": "asterix", "action": "cinematic.scene-1.performance.cue-2", "clip": "0035.animation.json"},
-        {"actor": "asterix", "action": "cinematic.scene-1.performance.cue-7", "clip": "0025.animation.json"}
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-2",
+          "clip": "0035.animation.json"
+        },
+        {
+          "actor": "asterix",
+          "action": "cinematic.scene-1.performance.cue-7",
+          "clip": "0025.animation.json"
+        }
       ]
     }
   ]

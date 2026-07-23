@@ -102,12 +102,19 @@ loop policy, legal transition set and normalized phase. Profiles use
 state directly instead of emitting activate, break, collect or respawn effects
 again.
 
-The native world-animation runtime consumes monotonically increasing persistent
-event sequence numbers. Repeated or stale delivery is ignored, making one-shot
-transitions idempotent across fixed ticks and checkpoint restoration. Binding
-validation rejects missing event targets, cross-profile transitions,
-unreachable states and catalog count drift. Sub-frame event-track sampling is
-still owned by task 68.
+Thirteen complete `world-dictionary-N` runtime profiles bind those contexts to
+exact dictionary-slot selectors. Event-to-state lists preserve simultaneous
+tracks, including both authored kiosk transaction slots. The native
+world-animation runtime consumes monotonically increasing persistent sequence
+numbers and returns selector playback data with authored loop/clamp, commit
+phase and object/material/particle synchronization. Repeated or stale delivery
+is ignored; checkpoint restore applies the selector snapshot without emitting
+one-shot side effects.
+
+Registry and Metal require all 13 profiles and 46 selectors and reject missing,
+duplicate, ambiguous, fallback, cross-trigger or incomplete profiles. The
+world graph still owns legal transitions, while versioned event tracks deliver
+sub-frame object-state commits.
 
 `cinematicGraphVersion: 1` adds 14 independently addressable scene-data
 timelines for all 63 confirmed cinematic contexts / 44 unique clips. A script

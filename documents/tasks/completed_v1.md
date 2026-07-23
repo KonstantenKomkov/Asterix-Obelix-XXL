@@ -1,5 +1,37 @@
 # Выполненные задачи первой итерации
 
+## П. 89 — Runtime-анимации world, UI и FX
+
+**Выполнено:** 23 июля 2026.
+
+Добавлены 13 полных `world-dictionary-N` object/event профилей, биективно
+покрывающих все 46 world bindings: machinegun, mechanism component, activator,
+checkpoint, оба shop, wild boar, три square-turtle, обе in-game interface
+группы и lightning FX. Каждый event выбирает exact dictionary-slot selector;
+shop transaction сохраняет два одновременных authored tracks без semantic
+alias или fallback.
+
+Native world runtime доставляет монотонные persistent event sequence,
+игнорирует stale/duplicate one-shot и восстанавливает selector snapshot без
+повторной эмиссии. Playback получает loop/clamp, commit phase и
+object/material/particle synchronization из binding/profile data. Registry и
+Metal отклоняют missing, duplicate, ambiguous, fallback, cross-trigger и
+неполные профили; event/restore regression проверяет multi-track shop,
+mechanism commit, loop и restore без replay.
+
+Fresh gate подтвердил 345 clips / 518 slots / 408 bindings, из которых 345
+concrete и 63 cinematic bindings относятся к п. 90; все error counters равны
+нулю. SHA-256 отчёта:
+`2ec1c2873ba8bddb895548504ba3a550b11ddf804c6de378e1532619a3d6037b`.
+Две сборки ASTPAK размером 68 699 924 байта совпали и имеют SHA-256
+`ca8eb2c28513d26b40398c5884941782e7f5c0486d8c0713850af4defc77381a`;
+release-приложение сохранило процесс после cold start без loader diagnostics.
+Visual metadata фиксирует representative world/UI/FX sequence по task-62 world
+review; оригинальные и производные игровые данные в Git не добавлены. Прошли
+scoped и полный Flutter test, analyze, 59 native XCTest, release build,
+resource policy и отдельное diff review. Описание:
+[animation_binding_registry.md](../architecture/animation_binding_registry.md).
+
 ## П. 88 — Scripted-анимации NPC и существ
 
 **Выполнено:** 23 июля 2026.

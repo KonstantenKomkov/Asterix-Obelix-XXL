@@ -1788,6 +1788,534 @@
           "variant": "dictionary-10-slot-0"
         }
       }
+    },
+    {
+      "id": "world-dictionary-19",
+      "actor": "mechanism:machinegun",
+      "skin": 19,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-19",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-event:combat.recoil": [
+          "dictionary_slot_1"
+        ],
+        "world-event:combat.fire": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_1": {
+          "action": "combat.recoil",
+          "variant": "dictionary-19-slot-1"
+        },
+        "dictionary_slot_0": {
+          "action": "combat.fire",
+          "variant": "dictionary-19-slot-0"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-20",
+      "actor": "shop:asterix-kiosk",
+      "skin": 20,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-20",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "interaction-event:shop.open": [
+          "dictionary_slot_3"
+        ],
+        "interaction-event:shop.close": [
+          "dictionary_slot_2"
+        ],
+        "interaction-event:shop.transaction": [
+          "dictionary_slot_1",
+          "dictionary_slot_4"
+        ],
+        "world-state:shop.idle": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_3": {
+          "action": "shop.open",
+          "variant": "dictionary-20-slot-3"
+        },
+        "dictionary_slot_2": {
+          "action": "shop.close",
+          "variant": "dictionary-20-slot-2"
+        },
+        "dictionary_slot_1": {
+          "action": "shop.transaction",
+          "variant": "dictionary-20-slot-1"
+        },
+        "dictionary_slot_4": {
+          "action": "shop.transaction",
+          "variant": "dictionary-20-slot-4"
+        },
+        "dictionary_slot_0": {
+          "action": "shop.idle",
+          "variant": "dictionary-20-slot-0"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-21",
+      "actor": "shop:asterix-counter",
+      "skin": 21,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-21",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "interaction-event:shop.open": [
+          "dictionary_slot_3"
+        ],
+        "interaction-event:shop.transaction": [
+          "dictionary_slot_4"
+        ],
+        "interaction-event:shop.offer": [
+          "dictionary_slot_1"
+        ],
+        "interaction-event:shop.close": [
+          "dictionary_slot_2"
+        ],
+        "world-state:shop.idle": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_3": {
+          "action": "shop.open",
+          "variant": "dictionary-21-slot-3"
+        },
+        "dictionary_slot_4": {
+          "action": "shop.transaction",
+          "variant": "dictionary-21-slot-4"
+        },
+        "dictionary_slot_1": {
+          "action": "shop.offer",
+          "variant": "dictionary-21-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "shop.close",
+          "variant": "dictionary-21-slot-2"
+        },
+        "dictionary_slot_0": {
+          "action": "shop.idle",
+          "variant": "dictionary-21-slot-0"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-22",
+      "actor": "activator:world-switch",
+      "skin": 22,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-22",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-event:activator.activate": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "activator.activate",
+          "variant": "dictionary-22-slot-0"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-23",
+      "actor": "mechanism:component",
+      "skin": 23,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-23",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-event:mechanism.start": [
+          "dictionary_slot_9"
+        ],
+        "world-event:mechanism.activate": [
+          "dictionary_slot_1"
+        ],
+        "world-event:mechanism.reset": [
+          "dictionary_slot_11"
+        ],
+        "world-event:mechanism.deactivate": [
+          "dictionary_slot_2"
+        ],
+        "world-state:mechanism.active-loop": [
+          "dictionary_slot_3"
+        ],
+        "world-event:mechanism.reverse": [
+          "dictionary_slot_5"
+        ],
+        "world-event:mechanism.forward": [
+          "dictionary_slot_4"
+        ],
+        "world-event:mechanism.stop": [
+          "dictionary_slot_10"
+        ],
+        "world-event:mechanism.transition-a": [
+          "dictionary_slot_6"
+        ],
+        "world-event:mechanism.transition-b": [
+          "dictionary_slot_7"
+        ],
+        "world-event:mechanism.transition-c": [
+          "dictionary_slot_8"
+        ],
+        "world-state:mechanism.idle": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_9": {
+          "action": "mechanism.start",
+          "variant": "dictionary-23-slot-9"
+        },
+        "dictionary_slot_1": {
+          "action": "mechanism.activate",
+          "variant": "dictionary-23-slot-1"
+        },
+        "dictionary_slot_11": {
+          "action": "mechanism.reset",
+          "variant": "dictionary-23-slot-11"
+        },
+        "dictionary_slot_2": {
+          "action": "mechanism.deactivate",
+          "variant": "dictionary-23-slot-2"
+        },
+        "dictionary_slot_3": {
+          "action": "mechanism.active-loop",
+          "variant": "dictionary-23-slot-3"
+        },
+        "dictionary_slot_5": {
+          "action": "mechanism.reverse",
+          "variant": "dictionary-23-slot-5"
+        },
+        "dictionary_slot_4": {
+          "action": "mechanism.forward",
+          "variant": "dictionary-23-slot-4"
+        },
+        "dictionary_slot_10": {
+          "action": "mechanism.stop",
+          "variant": "dictionary-23-slot-10"
+        },
+        "dictionary_slot_6": {
+          "action": "mechanism.transition-a",
+          "variant": "dictionary-23-slot-6"
+        },
+        "dictionary_slot_7": {
+          "action": "mechanism.transition-b",
+          "variant": "dictionary-23-slot-7"
+        },
+        "dictionary_slot_8": {
+          "action": "mechanism.transition-c",
+          "variant": "dictionary-23-slot-8"
+        },
+        "dictionary_slot_0": {
+          "action": "mechanism.idle",
+          "variant": "dictionary-23-slot-0"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-24",
+      "actor": "fauna:square-turtle-a",
+      "skin": 24,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-24",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-event:fauna.move": [
+          "dictionary_slot_1"
+        ],
+        "world-event:fauna.turn-right": [
+          "dictionary_slot_3"
+        ],
+        "world-state:fauna.idle": [
+          "dictionary_slot_0"
+        ],
+        "world-event:fauna.react": [
+          "dictionary_slot_4"
+        ],
+        "world-event:fauna.turn-left": [
+          "dictionary_slot_2"
+        ],
+        "world-event:fauna.hide": [
+          "dictionary_slot_5"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_1": {
+          "action": "fauna.move",
+          "variant": "dictionary-24-slot-1"
+        },
+        "dictionary_slot_3": {
+          "action": "fauna.turn-right",
+          "variant": "dictionary-24-slot-3"
+        },
+        "dictionary_slot_0": {
+          "action": "fauna.idle",
+          "variant": "dictionary-24-slot-0"
+        },
+        "dictionary_slot_4": {
+          "action": "fauna.react",
+          "variant": "dictionary-24-slot-4"
+        },
+        "dictionary_slot_2": {
+          "action": "fauna.turn-left",
+          "variant": "dictionary-24-slot-2"
+        },
+        "dictionary_slot_5": {
+          "action": "fauna.hide",
+          "variant": "dictionary-24-slot-5"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-25",
+      "actor": "fauna:square-turtle-b",
+      "skin": 25,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-25",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-state:fauna.idle": [
+          "dictionary_slot_0"
+        ],
+        "world-event:fauna.move": [
+          "dictionary_slot_1"
+        ],
+        "world-event:fauna.react": [
+          "dictionary_slot_2"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "fauna.idle",
+          "variant": "dictionary-25-slot-0"
+        },
+        "dictionary_slot_1": {
+          "action": "fauna.move",
+          "variant": "dictionary-25-slot-1"
+        },
+        "dictionary_slot_2": {
+          "action": "fauna.react",
+          "variant": "dictionary-25-slot-2"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-26",
+      "actor": "fauna:square-turtle-c",
+      "skin": 26,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-26",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-event:fauna.move": [
+          "dictionary_slot_1"
+        ],
+        "world-state:fauna.idle": [
+          "dictionary_slot_0"
+        ],
+        "world-event:fauna.react": [
+          "dictionary_slot_2"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_1": {
+          "action": "fauna.move",
+          "variant": "dictionary-26-slot-1"
+        },
+        "dictionary_slot_0": {
+          "action": "fauna.idle",
+          "variant": "dictionary-26-slot-0"
+        },
+        "dictionary_slot_2": {
+          "action": "fauna.react",
+          "variant": "dictionary-26-slot-2"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-29",
+      "actor": "checkpoint:asterix",
+      "skin": 29,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-29",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-state:checkpoint.idle": [
+          "dictionary_slot_0"
+        ],
+        "checkpoint-event:checkpoint.activated": [
+          "dictionary_slot_2"
+        ],
+        "checkpoint-event:checkpoint.activate": [
+          "dictionary_slot_1"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "checkpoint.idle",
+          "variant": "dictionary-29-slot-0"
+        },
+        "dictionary_slot_2": {
+          "action": "checkpoint.activated",
+          "variant": "dictionary-29-slot-2"
+        },
+        "dictionary_slot_1": {
+          "action": "checkpoint.activate",
+          "variant": "dictionary-29-slot-1"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-30",
+      "actor": "fauna:wild-boar",
+      "skin": 30,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-30",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "world-state:fauna.idle": [
+          "dictionary_slot_0"
+        ],
+        "world-event:fauna.hit-reaction": [
+          "dictionary_slot_2"
+        ],
+        "world-event:fauna.attack": [
+          "dictionary_slot_1"
+        ]
+      },
+      "synchronization": "object-state",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "fauna.idle",
+          "variant": "dictionary-30-slot-0"
+        },
+        "dictionary_slot_2": {
+          "action": "fauna.hit-reaction",
+          "variant": "dictionary-30-slot-2"
+        },
+        "dictionary_slot_1": {
+          "action": "fauna.attack",
+          "variant": "dictionary-30-slot-1"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-49",
+      "actor": "fx:lightning-object-node",
+      "skin": 49,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-49",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "environment-event:fx.lightning-loop": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "particle",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "fx.lightning-loop",
+          "variant": "dictionary-49-slot-0"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-50",
+      "actor": "interface:in-game-primary",
+      "skin": 50,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-50",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "ui-event:interface.transition": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "material",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "interface.transition",
+          "variant": "dictionary-50-slot-0"
+        }
+      }
+    },
+    {
+      "id": "world-dictionary-51",
+      "actor": "interface:in-game-secondary",
+      "skin": 51,
+      "costume": "default",
+      "context": "world",
+      "instance": "world-object-51",
+      "entryState": "dictionary_slot_0",
+      "eventStates": {
+        "ui-event:interface.transition": [
+          "dictionary_slot_0"
+        ]
+      },
+      "synchronization": "material",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "dictionary_slot_0": {
+          "action": "interface.transition",
+          "variant": "dictionary-51-slot-0"
+        }
+      }
     }
   ],
   "bindings": [

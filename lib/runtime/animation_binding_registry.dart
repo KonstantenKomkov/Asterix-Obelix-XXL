@@ -519,6 +519,8 @@ final class AnimationBindingRegistry {
       );
     }
     final ids = <String>{};
+    var worldProfileCount = 0;
+    var worldSelectorCount = 0;
     for (var profileIndex = 0; profileIndex < profiles.length; profileIndex++) {
       final profile = profiles[profileIndex];
       if (profile is! Map<String, Object?> ||
@@ -591,6 +593,75 @@ final class AnimationBindingRegistry {
           );
         }
       }
+      if (profile['context'] == 'world') {
+        worldProfileCount++;
+        final states = profile['states']! as Map<String, Object?>;
+        final eventStates = profile['eventStates'];
+        final entryState = profile['entryState'];
+        final synchronization = profile['synchronization'];
+        if (profile['id'] != 'world-dictionary-${profile['skin']}' ||
+            profile['instance'] != 'world-object-${profile['skin']}' ||
+            profile['restorePolicy'] != 'snapshot-without-replay' ||
+            entryState is! String ||
+            !states.containsKey(entryState) ||
+            eventStates is! Map<String, Object?> ||
+            eventStates.isEmpty ||
+            !const {
+              'object-state',
+              'material',
+              'particle',
+            }.contains(synchronization)) {
+          throw AnimationBindingException(
+            'runtimeProfiles[$profileIndex] has invalid world runtime metadata',
+          );
+        }
+        final selectedStates = <String>[];
+        for (final event in eventStates.entries) {
+          if (event.value is! List ||
+              (event.value! as List).isEmpty ||
+              (event.value! as List).any(
+                (state) => state is! String || !states.containsKey(state),
+              )) {
+            throw AnimationBindingException(
+              'runtimeProfiles[$profileIndex].eventStates.${event.key} '
+              'is invalid',
+            );
+          }
+          for (final state in (event.value! as List).cast<String>()) {
+            final selector = states[state]! as Map<String, Object?>;
+            final matches = bindings.where(
+              (binding) =>
+                  binding['actor'] == profile['actor'] &&
+                  binding['skin'] == profile['skin'] &&
+                  binding['costume'] == profile['costume'] &&
+                  binding['context'] == 'world' &&
+                  binding['action'] == selector['action'] &&
+                  binding['variant'] == selector['variant'] &&
+                  binding['trigger'] == event.key,
+            );
+            if (matches.length != 1) {
+              throw AnimationBindingException(
+                'runtimeProfiles[$profileIndex].eventStates.${event.key} '
+                'does not resolve its authored trigger',
+              );
+            }
+            selectedStates.add(state);
+          }
+        }
+        if (selectedStates.length != states.length ||
+            selectedStates.toSet().length != states.length) {
+          throw AnimationBindingException(
+            'runtimeProfiles[$profileIndex] must bind every world state once',
+          );
+        }
+        worldSelectorCount += states.length;
+      }
+    }
+    if (worldProfileCount != 0 &&
+        (worldProfileCount != 13 || worldSelectorCount != 46)) {
+      throw const AnimationBindingException(
+        'world runtime profiles must contain 13 profiles and 46 selectors',
+      );
     }
   }
 

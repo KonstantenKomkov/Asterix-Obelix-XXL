@@ -159,22 +159,48 @@
 - (void)testWorldAnimationEventsAreIdempotentAndRestoreWithoutReplay {
   using namespace asterix::world_animation;
   Runtime runtime;
-  runtime.add(7,{"mechanism.idle",{{"activate","mechanism.activate"},
-                                    {"active","mechanism.active-loop"},
-                                    {"break","mechanism.break"}}});
-  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.idle");
+  runtime.add(7,{"world-dictionary-23",
+                 "slot_0",
+                 {{"slot_0",{"mechanism.idle","dictionary-23-slot-0",true}},
+                  {"slot_1",{"mechanism.activate","dictionary-23-slot-1",false,
+                             .6,Synchronization::object_state}},
+                  {"slot_3",{"mechanism.active-loop","dictionary-23-slot-3",true}},
+                  {"slot_8",{"mechanism.break","dictionary-23-slot-8",false}}},
+                 {{"activate",{"slot_1"}},
+                  {"active",{"slot_3"}},
+                  {"break",{"slot_8"}}}});
+  XCTAssertEqual(runtime.snapshot(7)->states.front(),"slot_0");
   XCTAssertTrue(runtime.dispatch(7,"activate",10));
-  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.activate");
+  auto output=runtime.drain();
+  XCTAssertEqual(output->profile_id,"world-dictionary-23");
+  XCTAssertEqual(output->selectors.front().variant,"dictionary-23-slot-1");
+  XCTAssertEqual(*output->selectors.front().commit_phase,.6);
   XCTAssertFalse(runtime.dispatch(7,"activate",10));
   XCTAssertFalse(runtime.dispatch(7,"active",9));
   XCTAssertTrue(runtime.dispatch(7,"active",11));
   const Snapshot checkpoint=*runtime.snapshot(7);
+  output=runtime.drain();
+  XCTAssertTrue(output->selectors.front().loop);
   XCTAssertTrue(runtime.dispatch(7,"break",12));
-  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.break");
   XCTAssertTrue(runtime.restore(7,checkpoint));
-  XCTAssertEqual(runtime.snapshot(7)->action,"mechanism.active-loop");
+  XCTAssertEqual(runtime.snapshot(7)->states.front(),"slot_3");
   XCTAssertEqual(runtime.snapshot(7)->last_event_sequence,11u);
+  XCTAssertFalse(runtime.drain().has_value());
   XCTAssertFalse(runtime.dispatch(7,"active",11));
+
+  runtime.add(8,{"world-dictionary-20",
+                 "slot_0",
+                 {{"slot_0",{"shop.idle","dictionary-20-slot-0",true}},
+                  {"slot_1",{"shop.transaction","dictionary-20-slot-1",false}},
+                  {"slot_4",{"shop.transaction","dictionary-20-slot-4",false}}},
+                 {{"transaction",{"slot_1","slot_4"}}}});
+  XCTAssertTrue(runtime.dispatch(8,"transaction",1));
+  XCTAssertTrue(runtime.dispatch(7,"break",12));
+  XCTAssertTrue(runtime.restore(7,checkpoint));
+  output=runtime.drain();
+  XCTAssertEqual(output->object_id,8u);
+  XCTAssertEqual(output->selectors.size(),2u);
+  XCTAssertFalse(runtime.drain().has_value());
 }
 
 - (void)testInteractivesTriggerLeverDestructionAndReward {

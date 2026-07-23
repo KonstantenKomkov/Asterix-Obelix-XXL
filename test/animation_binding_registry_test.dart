@@ -222,6 +222,18 @@ void main() {
       scriptedProfiles.map((profile) => profile['scriptEvent']).toSet(),
       hasLength(24),
     );
+    final worldRuntimeProfiles = profiles
+        .where((profile) => profile['context'] == 'world')
+        .toList(growable: false);
+    expect(worldRuntimeProfiles, hasLength(13));
+    expect(
+      worldRuntimeProfiles.fold<int>(
+        0,
+        (count, profile) =>
+            count + (profile['states']! as Map<String, Object?>).length,
+      ),
+      46,
+    );
     expect(
       idefixStates.keys,
       containsAll({
@@ -330,6 +342,33 @@ void main() {
         )['fallback'],
         isFalse,
       );
+    }
+    for (final worldProfile in worldRuntimeProfiles) {
+      expect(worldProfile['complete'], isTrue);
+      expect(worldProfile['restorePolicy'], 'snapshot-without-replay');
+      expect(
+        worldProfile['synchronization'],
+        isIn(const ['object-state', 'material', 'particle']),
+      );
+      final states = worldProfile['states']! as Map<String, Object?>;
+      final eventStates = worldProfile['eventStates']! as Map<String, Object?>;
+      expect(states, isNotEmpty);
+      expect(
+        eventStates.values
+            .cast<List<Object?>>()
+            .expand((states) => states)
+            .toSet(),
+        states.keys.toSet(),
+      );
+      for (final state in states.keys) {
+        expect(
+          registry.resolveRuntimeState(
+            profileId: worldProfile['id']! as String,
+            state: state,
+          )['fallback'],
+          isFalse,
+        );
+      }
     }
 
     final invalid = jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
@@ -446,6 +485,26 @@ void main() {
           (error) => error.message,
           'message',
           contains('runtimeProfiles'),
+        ),
+      ),
+    );
+
+    final incompleteWorld =
+        jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
+    final incompleteWorldProfile =
+        (incompleteWorld['runtimeProfiles']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .singleWhere((profile) => profile['id'] == 'world-dictionary-20');
+    (incompleteWorldProfile['eventStates']! as Map<String, Object?>).remove(
+      'interaction-event:shop.transaction',
+    );
+    expect(
+      () => AnimationBindingRegistry.parse(incompleteWorld),
+      throwsA(
+        isA<AnimationBindingException>().having(
+          (error) => error.message,
+          'message',
+          contains('every world state'),
         ),
       ),
     );

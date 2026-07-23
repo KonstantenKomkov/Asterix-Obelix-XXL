@@ -45,22 +45,26 @@ animated-character/cinematic-scene dictionary owner с отдельными inst
 script event и exact selector. Complete/interrupt возвращают прежнюю позу, а
 checkpoint restore сохраняет sequence/state без повторной доставки one-shot;
 два cinematic-scene owner не объединяются с scene-data timelines.
-Остальные profiles требуют последующего подключения и cold-start/scenario
-приёмки.
+Тринадцать world object profiles добавляют 46 exact selectors для machinegun,
+mechanism component, activator, checkpoint, двух shop, wild boar, трёх
+square-turtle, двух interface и lightning FX. Event lists поддерживают
+одновременные tracks, а loop/clamp, commit phase и object/material/particle
+synchronization читаются из binding data; restore не повторяет side effects.
+Остались только 63 cue-driven selectors cinematic timelines из п. 90.
 
-Проверенный после п. 88 fresh gate содержит 345 bound clips, 408
-декларативных bindings и 299 concrete runtime bindings; `unboundClips`,
+Проверенный после п. 89 fresh gate содержит 345 bound clips, 408
+декларативных bindings и 345 concrete runtime bindings; `unboundClips`,
 `unexplainedClips`,
 `clipsWithoutRuntimePath` и `unknownBindingClips` равны нулю. SHA-256 отчёта:
-`af93bbf64bdb7207f474fa97f750cfa2b72c886bdf5a4c1396cbcc142bb553a7`.
+`2ec1c2873ba8bddb895548504ba3a550b11ddf804c6de378e1532619a3d6037b`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
 
 Representative sequences зафиксированы только как versioned metadata в
 `assets/animation_visual_acceptance.v1.json`: locomotion/combat Астерикса,
 locomotion/combat/swim Обеликса и Идефикса, combat обычного Roman и лидера,
-scripted NPC/creature events, machinegun fire/recoil и cinematic
-scene-data-1. Они сверены side-by-side с локально установленным оригиналом и
-разрешаются в точные registry bindings.
+scripted NPC/creature events, machinegun fire/recoil, representative
+world/UI/FX events и cinematic scene-data-1. Они сверены side-by-side с локально
+установленным оригиналом и разрешаются в точные registry bindings.
 Кадры, извлечённые clips и остальные оригинальные/производные игровые ресурсы
 остаются вне Git.

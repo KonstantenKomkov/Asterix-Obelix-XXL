@@ -825,6 +825,7 @@ struct AsterixPushMesh {
   NSDictionary* romanLeaderEquipmentProfile=nil;
   NSDictionary* romanLeaderBodyProfile=nil;
   NSMutableArray<NSDictionary*>* scriptedCharacterProfiles=[NSMutableArray array];
+  NSMutableArray<NSDictionary*>* worldRuntimeProfiles=[NSMutableArray array];
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
     if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
       for (NSDictionary* profile in animationBindings[@"runtimeProfiles"]) {
@@ -867,6 +868,8 @@ struct AsterixPushMesh {
           romanLeaderBodyProfile=profile;
         } else if ([profile[@"context"] isEqual:@"scripted"]) {
           [scriptedCharacterProfiles addObject:profile];
+        } else if ([profile[@"context"] isEqual:@"world"]) {
+          [worldRuntimeProfiles addObject:profile];
         }
       }
     }
@@ -1158,6 +1161,93 @@ struct AsterixPushMesh {
         @synchronized(self) { _sceneError=@"Ambiguous scripted character runtime selector"; }
         return NO;
       }
+    }
+    if (worldRuntimeProfiles.count!=13) {
+      @synchronized(self) { _sceneError=@"Incomplete world animation runtime profiles"; }
+      return NO;
+    }
+    NSMutableSet<NSNumber*>* worldSkins=[NSMutableSet set];
+    NSMutableSet<NSString*>* worldInstances=[NSMutableSet set];
+    NSUInteger worldResolved=0;
+    for (NSDictionary* profile in worldRuntimeProfiles) {
+      NSNumber* skin=profile[@"skin"];
+      NSString* expectedId=[skin isKindOfClass:NSNumber.class]
+          ? [NSString stringWithFormat:@"world-dictionary-%@",skin] : nil;
+      NSString* expectedInstance=[skin isKindOfClass:NSNumber.class]
+          ? [NSString stringWithFormat:@"world-object-%@",skin] : nil;
+      NSDictionary* worldSelectors=profile[@"states"];
+      NSDictionary* eventStates=profile[@"eventStates"];
+      NSString* synchronization=profile[@"synchronization"];
+      NSString* entryState=profile[@"entryState"];
+      if (expectedId==nil ||
+          ![profile[@"id"] isEqual:expectedId] ||
+          ![profile[@"instance"] isEqual:expectedInstance] ||
+          ![profile[@"costume"] isEqual:@"default"] ||
+          ![profile[@"restorePolicy"] isEqual:@"snapshot-without-replay"] ||
+          ![profile[@"complete"] isKindOfClass:NSNumber.class] ||
+          ![profile[@"complete"] boolValue] ||
+          ![worldSelectors isKindOfClass:NSDictionary.class] ||
+          ![eventStates isKindOfClass:NSDictionary.class] ||
+          ![entryState isKindOfClass:NSString.class] ||
+          worldSelectors[entryState]==nil ||
+          ![@[@"object-state",@"material",@"particle"] containsObject:synchronization] ||
+          [worldSkins containsObject:skin] ||
+          [worldInstances containsObject:expectedInstance]) {
+        @synchronized(self) { _sceneError=@"Invalid world animation runtime profile"; }
+        return NO;
+      }
+      [worldSkins addObject:skin];
+      [worldInstances addObject:expectedInstance];
+      NSMutableSet<NSString*>* selectedStates=[NSMutableSet set];
+      for (NSString* event in eventStates) {
+        NSArray* states=eventStates[event];
+        if (![states isKindOfClass:NSArray.class] || states.count==0) {
+          @synchronized(self) { _sceneError=@"Invalid world animation event selectors"; }
+          return NO;
+        }
+        for (NSString* state in states) {
+          NSDictionary* selector=[state isKindOfClass:NSString.class]
+              ? worldSelectors[state] : nil;
+          if (![selector isKindOfClass:NSDictionary.class] ||
+              [selectedStates containsObject:state]) {
+            @synchronized(self) { _sceneError=@"Duplicate world animation runtime selector"; }
+            return NO;
+          }
+          [selectedStates addObject:state];
+          NSUInteger matches=0;
+          for (NSDictionary* binding in animationBindings[@"bindings"]) {
+            if (![binding isKindOfClass:NSDictionary.class] ||
+                ![binding[@"actor"] isEqual:profile[@"actor"]] ||
+                [binding[@"skin"] integerValue]!=skin.integerValue ||
+                ![binding[@"costume"] isEqual:profile[@"costume"]] ||
+                ![binding[@"context"] isEqual:@"world"] ||
+                ![binding[@"action"] isEqual:selector[@"action"]] ||
+                ![binding[@"variant"] isEqual:selector[@"variant"]] ||
+                ![binding[@"trigger"] isEqual:event]) continue;
+            if ([binding[@"fallback"] boolValue] ||
+                [binding[@"skeletonNodes"] integerValue]<=0 ||
+                ![binding[@"loop"] isKindOfClass:NSNumber.class] ||
+                ![binding[@"phases"] isKindOfClass:NSDictionary.class]) {
+              @synchronized(self) { _sceneError=@"Invalid world animation runtime binding"; }
+              return NO;
+            }
+            matches++;
+          }
+          if (matches!=1) {
+            @synchronized(self) { _sceneError=@"Ambiguous world animation runtime selector"; }
+            return NO;
+          }
+          worldResolved++;
+        }
+      }
+      if (selectedStates.count!=worldSelectors.count) {
+        @synchronized(self) { _sceneError=@"Incomplete world animation runtime profile"; }
+        return NO;
+      }
+    }
+    if (worldResolved!=46) {
+      @synchronized(self) { _sceneError=@"Incomplete world animation runtime selector catalog"; }
+      return NO;
     }
   }
   NSMutableDictionary<NSString*, NSString*>* animationKeys=[NSMutableDictionary dictionary];
