@@ -32,20 +32,23 @@ binding, semantic context без clip join или binding без runtime path о
 72 selectors Обеликса. Пять стабильных entry states Обеликса и 67 точных
 dictionary-slot event entry points охватывают locomotion, idle variants,
 attacks/combo, damage/recovery, interactions, traversal, water и swim.
+Полный `idefix-player` добавляет ещё 28 selectors: три стабильных состояния и
+25 точных dictionary-slot entry points для locomotion, idle variants, attacks,
+interactions, death и swim.
 Остальные profiles требуют последующего подключения и cold-start/scenario
 приёмки.
 
-Проверенный после п. 85 fresh gate содержит 345 bound clips, 408
-декларативных bindings и 162 concrete runtime bindings; `unboundClips`,
+Проверенный после п. 86 fresh gate содержит 345 bound clips, 408
+декларативных bindings и 190 concrete runtime bindings; `unboundClips`,
 `unexplainedClips`,
 `clipsWithoutRuntimePath` и `unknownBindingClips` равны нулю. SHA-256 отчёта:
-`95fd2411b19abccf1b42019f31abf0b60c9de4560587a53765a77219bbef7a50`.
+`d85d61564afabbce27656d13b224a59acaef5102be3401d3be3ef5f1e8db98bd`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
 
 Representative sequences зафиксированы только как versioned metadata в
 `assets/animation_visual_acceptance.v1.json`: locomotion/combat Астерикса,
-locomotion/combat/swim Обеликса, machinegun fire/recoil и cinematic
+locomotion/combat/swim Обеликса и Идефикса, machinegun fire/recoil и cinematic
 scene-data-1. Они сверены side-by-side с локально установленным оригиналом и
 разрешаются в точные registry bindings.
 Кадры, извлечённые clips и остальные оригинальные/производные игровые ресурсы

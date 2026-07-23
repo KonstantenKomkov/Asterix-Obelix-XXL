@@ -192,6 +192,25 @@ void main() {
     final obelixStates = obelixProfile['states']! as Map<String, Object?>;
     expect(obelixProfile['complete'], isTrue);
     expect(obelixStates, hasLength(72));
+    final idefixProfile = profiles.singleWhere(
+      (profile) => profile['id'] == 'idefix-player',
+    );
+    final idefixStates = idefixProfile['states']! as Map<String, Object?>;
+    expect(idefixProfile['complete'], isTrue);
+    expect(idefixStates, hasLength(28));
+    expect(
+      idefixStates.keys,
+      containsAll({
+        'idle',
+        'run',
+        'death',
+        'hero_slot_29',
+        'hero_slot_92',
+        'hero_slot_26',
+        'hero_slot_75',
+        'hero_slot_89',
+      }),
+    );
     expect(
       obelixStates.keys,
       containsAll({
@@ -232,6 +251,21 @@ void main() {
             costume: profile['costume']! as String,
             action: selector['action']! as String,
             context: profile['context']! as String,
+            variant: selector['variant']! as String,
+          ),
+        )['fallback'],
+        isFalse,
+      );
+    }
+    for (final selector in idefixStates.values.cast<Map<String, Object?>>()) {
+      expect(
+        registry.resolve(
+          AnimationBindingQuery(
+            actor: idefixProfile['actor']! as String,
+            skin: idefixProfile['skin']! as int,
+            costume: idefixProfile['costume']! as String,
+            action: selector['action']! as String,
+            context: idefixProfile['context']! as String,
             variant: selector['variant']! as String,
           ),
         )['fallback'],
@@ -296,6 +330,26 @@ void main() {
         ),
       ),
     );
+
+    final incompleteIdefix =
+        jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
+    final incompleteIdefixProfile =
+        (incompleteIdefix['runtimeProfiles']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .singleWhere((profile) => profile['id'] == 'idefix-player');
+    (incompleteIdefixProfile['states']! as Map<String, Object?>).remove(
+      'hero_slot_26',
+    );
+    expect(
+      () => AnimationBindingRegistry.parse(incompleteIdefix),
+      throwsA(
+        isA<AnimationBindingException>().having(
+          (error) => error.message,
+          'message',
+          contains('complete profile must select every exact binding once'),
+        ),
+      ),
+    );
   });
 
   test('runtime state entry points resolve exact authored variants', () async {
@@ -338,6 +392,27 @@ void main() {
         state: 'hero_slot_75',
       )['clip'],
       '0171.animation.json',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'idefix-player',
+        state: 'run',
+      )['clip'],
+      '0187.animation.json',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'idefix-player',
+        state: 'hero_slot_26',
+      )['action'],
+      'combat.attack-combo',
+    );
+    expect(
+      registry.resolveRuntimeState(
+        profileId: 'idefix-player',
+        state: 'hero_slot_75',
+      )['clip'],
+      '0183.animation.json',
     );
     expect(
       () => registry.resolveRuntimeState(

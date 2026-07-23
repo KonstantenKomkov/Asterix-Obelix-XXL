@@ -820,6 +820,7 @@ struct AsterixPushMesh {
   NSMutableSet<NSString*>* selectedBindings=[NSMutableSet set];
   NSDictionary* playerProfile=nil;
   NSDictionary* obelixProfile=nil;
+  NSDictionary* idefixProfile=nil;
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
     if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
       for (NSDictionary* profile in animationBindings[@"runtimeProfiles"]) {
@@ -836,6 +837,12 @@ struct AsterixPushMesh {
             return NO;
           }
           obelixProfile=profile;
+        } else if ([profile[@"id"] isEqual:@"idefix-player"]) {
+          if (idefixProfile!=nil) {
+            @synchronized(self) { _sceneError=@"Ambiguous idefix-player runtime profile"; }
+            return NO;
+          }
+          idefixProfile=profile;
         }
       }
     }
@@ -943,6 +950,62 @@ struct AsterixPushMesh {
     }
     if (obelixResolved!=obelixSelectors.count) {
       @synchronized(self) { _sceneError=@"Incomplete obelix-player runtime profile"; }
+      return NO;
+    }
+    NSDictionary* idefixSelectors=idefixProfile[@"states"];
+    if (![idefixProfile[@"actor"] isEqual:@"idefix"] ||
+        ![idefixProfile[@"skin"] isKindOfClass:NSNumber.class] ||
+        [idefixProfile[@"skin"] integerValue]!=0 ||
+        ![idefixProfile[@"costume"] isEqual:@"default"] ||
+        ![idefixProfile[@"context"] isEqual:@"gameplay"] ||
+        ![idefixProfile[@"complete"] isKindOfClass:NSNumber.class] ||
+        ![idefixProfile[@"complete"] boolValue] ||
+        ![idefixSelectors isKindOfClass:NSDictionary.class] ||
+        idefixSelectors.count!=28) {
+      @synchronized(self) { _sceneError=@"Missing or invalid idefix-player runtime profile"; }
+      return NO;
+    }
+    NSMutableSet<NSString*>* idefixSelected=[NSMutableSet set];
+    NSUInteger idefixResolved=0;
+    for (NSString* state in idefixSelectors) {
+      NSDictionary* selector=idefixSelectors[state];
+      NSString* action=[selector isKindOfClass:NSDictionary.class] ? selector[@"action"] : nil;
+      NSString* variant=[selector isKindOfClass:NSDictionary.class] ? selector[@"variant"] : nil;
+      if (![action isKindOfClass:NSString.class] ||
+          ![variant isKindOfClass:NSString.class]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime selector for idefix/%@",state]; }
+        return NO;
+      }
+      NSString* selectorKey=[NSString stringWithFormat:@"%@|%@",action,variant];
+      if ([idefixSelected containsObject:selectorKey]) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Duplicate runtime selector for idefix/%@",state]; }
+        return NO;
+      }
+      [idefixSelected addObject:selectorKey];
+      NSUInteger matches=0;
+      for (NSDictionary* binding in animationBindings[@"bindings"]) {
+        if (![binding isKindOfClass:NSDictionary.class] ||
+            ![binding[@"actor"] isEqual:idefixProfile[@"actor"]] ||
+            [binding[@"skin"] integerValue]!=[idefixProfile[@"skin"] integerValue] ||
+            ![binding[@"costume"] isEqual:idefixProfile[@"costume"]] ||
+            ![binding[@"context"] isEqual:idefixProfile[@"context"]] ||
+            ![binding[@"action"] isEqual:action] ||
+            ![binding[@"variant"] isEqual:variant]) continue;
+        if ([binding[@"fallback"] boolValue] ||
+            [binding[@"skeletonNodes"] integerValue]!=31) {
+          @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Invalid runtime binding for idefix/%@",state]; }
+          return NO;
+        }
+        matches++;
+      }
+      if (matches!=1) {
+        @synchronized(self) { _sceneError=[NSString stringWithFormat:@"Ambiguous runtime selector for idefix/%@",state]; }
+        return NO;
+      }
+      idefixResolved++;
+    }
+    if (idefixResolved!=idefixSelectors.count) {
+      @synchronized(self) { _sceneError=@"Incomplete idefix-player runtime profile"; }
       return NO;
     }
   }

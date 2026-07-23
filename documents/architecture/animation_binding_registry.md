@@ -19,14 +19,18 @@ locomotion/combat states and 82 exact source dictionary-slot entry points.
 hurt and death states plus 67 exact `hero_slot_N` event entry points covering
 directional locomotion, idle variants, combo/contextual attacks, airborne
 damage and recovery, interaction, ledge, water and swim.
+`idefix-player` contains all 28 gameplay bindings: stable idle, run and death
+states plus 25 exact `hero_slot_N` entry points for directional locomotion,
+idle variants, attacks, interactions and swim.
 
 Every state selects one exact semantic binding by actor, skin, costume, context,
 action and variant. Reused authored clips remain separate selectors when the
 source slots have different semantic actions; notably Obelix clip 0151 resolves
-independently as `combat.attack` and `combat.attack-variant`. A profile marked
+independently as `combat.attack` and `combat.attack-variant`, while Idefix clips
+0176, 0184, 0187 and 0190 retain their distinct state/event meanings. A profile marked
 `complete` is accepted only when it selects every matching binding exactly
 once. Registry and Metal reject missing, duplicate, fallback, ambiguous or
-non-58-node selectors before sampling. Looping, phases, transitions, root
+incompatible 58-node hero / 31-node Idefix selectors before sampling. Looping, phases, transitions, root
 motion and animation events are read from binding data rather than inferred
 from a state index.
 `ASTERIX_ANIMATION_REVIEW_CLIP` remains an explicit diagnostic override and

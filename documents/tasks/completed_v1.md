@@ -1,5 +1,38 @@
 # Выполненные задачи первой итерации
 
+## П. 86 — Полный runtime-профиль анимаций Идефикса
+
+**Выполнено:** 23 июля 2026.
+
+Новый полный `idefix-player` профиль биективно связывает все 28 gameplay
+bindings Идефикса с конкретными runtime state/event entry points. Три
+стабильных состояния `idle`, `run`, `death` и 25 точных `hero_slot_N`
+selectors охватывают directional locomotion и transitions, idle variants,
+attack/combo, interactions и swim. Все 22 authored clips разрешаются exact
+variants; повторно используемые clips 0176, 0184, 0187 и 0190 остаются
+отдельными semantic bindings там, где различается исходный runtime event.
+
+Registry и Metal отклоняют missing, duplicate, fallback, ambiguous и
+несовместимые с Idefix skin 0 / 31-node skeleton selectors. Общий
+`resolveRuntimeState` детерминированно разрешает точные run, combo и swim
+events; loop, phases, transitions, root motion и versioned fixed-tick animation
+events остаются data-driven. Scoped regressions проверяют полный набор,
+конкретные варианты и отказ неполного профиля.
+
+Fresh gate подтвердил 345 clips / 518 slots / 408 bindings, из которых 190
+concrete и 218 относятся к следующим п. 87–90; все unbound, unexplained,
+unreachable и unknown counters равны нулю. SHA-256 отчёта:
+`d85d61564afabbce27656d13b224a59acaef5102be3401d3be3ef5f1e8db98bd`.
+Fresh/cached ASTPAK размером 68 673 540 байт совпал и имеет SHA-256
+`860b9c6dc7c395ebf7b1ea5840a1f9dcc87cc87e3d1fa160bb94c85f282f387b`;
+release-приложение собрано, установленный пакет прошёл cold start. Visual
+metadata фиксирует representative locomotion/combat/swim sequence Идефикса по
+принятому task-62 hero review; оригинальные и производные игровые данные в Git
+не добавлены. Прошли native XCTest, `make check`, release build, resource policy
+и отдельное diff review; найденная проверкой неоднозначность отсутствующего
+нулевого skin ID устранена явной type validation. Описание:
+[animation_binding_registry.md](../architecture/animation_binding_registry.md).
+
 ## П. 85 — Полный runtime-профиль анимаций Обеликса
 
 **Выполнено:** 23 июля 2026.

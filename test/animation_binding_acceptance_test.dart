@@ -27,13 +27,14 @@ void main() {
       everyElement(isIn(paths.keys)),
     );
     expect(paths.values, everyElement(isNotEmpty));
-    expect(concretePaths, hasLength(162));
+    expect(concretePaths, hasLength(190));
     expect(
       concretePaths.values.expand((paths) => paths),
       everyElement(
         anyOf(
           startsWith('runtime-profile:asterix-player:'),
           startsWith('runtime-profile:obelix-player:'),
+          startsWith('runtime-profile:idefix-player:'),
         ),
       ),
     );

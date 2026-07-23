@@ -28,6 +28,18 @@
       ]
     },
     {
+      "id": "idefix-locomotion-combat-swim",
+      "originalReference": "task-62 hero dictionary review sheet, Idefix heroAnimDict slots 0, 1, 2, 26 and 75",
+      "result": "match",
+      "steps": [
+        {"actor": "idefix", "action": "locomotion.idle", "clip": "0176.animation.json"},
+        {"actor": "idefix", "action": "locomotion.run", "clip": "0187.animation.json"},
+        {"actor": "idefix", "action": "combat.attack-combo", "clip": "0187.animation.json"},
+        {"actor": "idefix", "action": "damage.death", "clip": "0179.animation.json"},
+        {"actor": "idefix", "action": "traversal.swim-directional", "clip": "0183.animation.json"}
+      ]
+    },
+    {
       "id": "machinegun-fire-recoil",
       "originalReference": "task-62 world dictionary review sheet, dictionary 19",
       "result": "match",
