@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "module": "GameModule.elb",
+  "ownerHandlerVtableSlot": 5,
+  "jumpTables": [
+    {"id": "dispatch.table.0008bcbc", "dispatcherRva": "0x0008bc70", "jumpRva": "0x0008bcbc", "tableRva": "0x0008c7a8", "entryCount": 8, "inputEncoding": "highByteMinus3ViaLookup", "lookupRva": "0x0008c7c8", "lookupEntryCount": 79},
+    {"id": "dispatch.table.000cbac1", "dispatcherRva": "0x000cba50", "jumpRva": "0x000cbac1", "tableRva": "0x000cc490", "entryCount": 18, "inputEncoding": "lowByteWhenHighByteEquals76ViaLookup", "lookupRva": "0x000cc4d8", "lookupEntryCount": 28},
+    {"id": "dispatch.table.000c4070", "dispatcherRva": "0x000c3fc0", "jumpRva": "0x000c4070", "tableRva": "0x000c4200", "entryCount": 9, "inputEncoding": "lowByteWhenHighByteEquals74"},
+    {"id": "dispatch.table.000f7583", "dispatcherRva": "0x000f7560", "jumpRva": "0x000f7583", "tableRva": "0x000f7818", "entryCount": 22, "inputEncoding": "lowByteWhenHighByteEquals73"},
+    {"id": "dispatch.table.00137988", "dispatcherRva": "0x001378b0", "jumpRva": "0x00137988", "tableRva": "0x00137c94", "entryCount": 6, "inputEncoding": "derivedNumericIndex"}
+  ]
+}

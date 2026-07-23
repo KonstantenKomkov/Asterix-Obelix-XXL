@@ -1,5 +1,24 @@
 # Выполненные задачи первой итерации
 
+## П. 91.4 — Numeric state/event dispatch
+
+**Выполнено:** 23 июля 2026.
+
+Для всех 27 animation owners закреплены numeric handlers из доказанных vtable
+prefix. Восстановлены 5 индексированных jump tables, 63 пары
+`numeric index → branch target RVA` и 2 lookup-карты. Exporter проверяет точную
+версию модуля и предшествующих anchors/primitives, opcode и адрес таблицы,
+диапазон lookup и принадлежность каждой ветви executable section.
+
+Semantic labels и runtime registry намеренно не менялись: значения действий
+будут присваиваться только по доказанным input/serialized event/debugger trace
+в следующих gates. Два независимых metadata-only export побайтно совпали;
+SHA-256:
+`82af9fd7a8b7e871036da675cae90736c34e7c18a7f331c94b347f45a3c875a0`.
+Binary bytes, disassembly, pseudocode и локальный export в Git не добавлены.
+Описание:
+[task91_numeric_dispatch.md](../architecture/task91_numeric_dispatch.md).
+
 ## П. 91.3 — Animation dictionary access primitives
 
 **Выполнено:** 23 июля 2026.

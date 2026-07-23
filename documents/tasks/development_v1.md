@@ -26,7 +26,6 @@
 
 | № | Подзадача | Результат / gate |
 |---:|---|---|
-| 91.4 | Восстановить numeric state/event dispatch | Switch/jump tables и доказанные входы без преждевременных semantic labels |
 | 91.5 | Восстановить полный профиль Астерикса | Отдельные статические цепочки и input traces для single/double jump |
 | 91.6 | Восстановить профили Обеликса и Идефикса | Доказаны все hero bindings, включая reused clips |
 | 91.7 | Восстановить enemies и scripted actors | Доказаны enemy, composite leader и 24 scripted owners |
@@ -153,7 +152,7 @@
   - [x] П. 91.1 — binary corpus и воспроизводимый toolchain
   - [x] П. 91.2 — class/function anchors
   - [x] П. 91.3 — animation dictionary access primitives
-  - [ ] П. 91.4 — numeric state/event dispatch
+  - [x] П. 91.4 — numeric state/event dispatch
   - [ ] П. 91.5 — полный профиль Астерикса и отдельные single/double jump chains
   - [ ] П. 91.6 — профили Обеликса и Идефикса
   - [ ] П. 91.7 — enemies и scripted actors
@@ -166,7 +165,9 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 91.3 выполнен: восстановлены start/change, blend, completion и cinematic play/stop primitives, три dictionary slot selector и 49 прямых xrefs; call graph построен от vtable anchors всех 27 owners с явным разделением direct paths и data-owner/indirect dispatch. Два независимых metadata-only export побайтно совпали.
+**Последнее обновление:** 23 июля 2026 — п. 91.4 выполнен: numeric handlers закреплены для всех 27 animation owners; восстановлены 5 индексированных jump tables, 63 branch entries и 2 lookup-карты. Semantic labels не присваивались. Два независимых metadata-only export побайтно совпали.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 91.3 выполнен: восстановлены start/change, blend, completion и cinematic play/stop primitives, три dictionary slot selector и 49 прямых xrefs; call graph построен от vtable anchors всех 27 owners с явным разделением direct paths и data-owner/indirect dispatch. Два независимых metadata-only export побайтно совпали.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 91.2 выполнен: class-registration records, factories, vptr stores, vtables и доказанные virtual-slot prefixes восстановлены для 27 animation owners всех групп; 40 dictionary/index fields связаны с чистым XXL-Editor revision, unresolved отсутствуют. Два независимых metadata-only export побайтно совпали.
 
