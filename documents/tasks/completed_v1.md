@@ -1,5 +1,32 @@
 # Выполненные задачи первой итерации
 
+## П. 83 — Сквозной runtime-аудит всех анимаций игры
+
+**Выполнено:** 23 июля 2026.
+
+Зонтичная приёмка после п. 84–90 подтвердила биективную data-driven привязку
+всех 408 bindings к concrete runtime profile selectors. Финальный gate теперь
+обязательно требует ровно 408 bindings, concrete profile для каждого из них,
+нулевой fallback, дату и метод visual review, а также уникальные representative
+sequences героев, врагов, scripted NPC/существ, world/UI/FX и всех 14
+cinematic timelines. Неполный набор больше нельзя принять по одним
+declarative graph paths.
+
+Повторный fresh gate подтвердил 345 clips / 52 dictionaries / 518 slots,
+408 concrete runtime bindings и 0 declarative-only; unbound, unexplained,
+ambiguous, unreachable и unknown bindings отсутствуют. 22 visual sequences
+разрешаются в exact registry bindings. SHA-256 финального локального отчёта:
+`cc7a4ca9eb1e6a7e910381ba511604973713b0b4faf85c5b592bb3b9b17003bb`.
+
+Полностью свежий ASTPAK содержит 345 animations и 38 skins, имеет размер
+68 714 788 байт и SHA-256
+`f6d4fd699842190fa522c8257a4f4637d1fae8f94a2d7f305585ac1b1b564694`.
+Release-приложение собрано с этим пакетом и сохранило процесс после cold start
+без loader/runtime diagnostics. Прошли resource policy, analyze, все 111
+Flutter tests, 59 native XCTest и отдельное diff review. Локальные отчёты,
+ASTPAK, captures и оригинальные/производные игровые ресурсы в Git не добавлены.
+Описание: [animation_binding_acceptance.md](../gameplay/animation_binding_acceptance.md).
+
 ## П. 90 — Scripted/cinematic timelines
 
 **Выполнено:** 23 июля 2026.

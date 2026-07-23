@@ -3,6 +3,32 @@ import 'dart:convert';
 import 'package:asterix_xxl/runtime/animation_binding_registry.dart';
 import 'package:asterix_xxl/tooling/animation_semantic_catalog.dart';
 
+const _lvl01RuntimeBindingCount = 408;
+const _lvl01RepresentativeSequenceIds = {
+  'asterix-locomotion-combat',
+  'obelix-locomotion-combat-swim',
+  'idefix-locomotion-combat-swim',
+  'basic-roman-combat',
+  'roman-leader-combat',
+  'scripted-npc-and-creature-events',
+  'machinegun-fire-recoil',
+  'world-ui-fx-events',
+  'cinematic-scene-data-0',
+  'cinematic-scene-data-1',
+  'cinematic-scene-data-2',
+  'cinematic-scene-data-3',
+  'cinematic-scene-data-4',
+  'cinematic-scene-data-5',
+  'cinematic-scene-data-6',
+  'cinematic-scene-data-7',
+  'cinematic-scene-data-8',
+  'cinematic-scene-data-9',
+  'cinematic-scene-data-10',
+  'cinematic-scene-data-11',
+  'cinematic-scene-data-12',
+  'cinematic-scene-data-13',
+};
+
 final class AnimationBindingAcceptanceException implements Exception {
   const AnimationBindingAcceptanceException(this.issues);
 
@@ -32,6 +58,7 @@ Map<String, Object?> buildAnimationBindingAcceptanceReport({
     throw AnimationBindingAcceptanceException(issues);
   }
   issues.addAll(_acceptanceManifestIssues(manifest));
+  issues.addAll(_runtimeAcceptanceIssues(manifest, registry.bindings));
   if (issues.isNotEmpty) {
     throw AnimationBindingAcceptanceException(issues);
   }
@@ -415,13 +442,22 @@ List<String> validateAnimationVisualEvidence(
   if (evidence['schemaVersion'] != 1 || evidence['dataset'] != 'XXL1/LVL01') {
     return ['visual evidence must use schemaVersion 1 and XXL1/LVL01'];
   }
+  if (evidence['reviewedAt'] is! String ||
+      (evidence['reviewedAt']! as String).isEmpty ||
+      evidence['method'] is! String ||
+      (evidence['method']! as String).isEmpty) {
+    issues.add('visual evidence must record reviewedAt and method');
+  }
   final sequences = evidence['sequences'];
   if (sequences is! List || sequences.isEmpty) {
     return ['visual evidence must contain representative sequences'];
   }
+  final sequenceIds = <String>{};
   for (var index = 0; index < sequences.length; index++) {
     final sequence = sequences[index];
     if (sequence is! Map<String, Object?> ||
+        sequence['id'] is! String ||
+        !sequenceIds.add(sequence['id']! as String) ||
         sequence['result'] != 'match' ||
         sequence['originalReference'] is! String ||
         (sequence['originalReference']! as String).isEmpty ||
@@ -444,6 +480,15 @@ List<String> validateAnimationVisualEvidence(
       }
     }
   }
+  final missingSequences = _lvl01RepresentativeSequenceIds.difference(
+    sequenceIds,
+  );
+  if (missingSequences.isNotEmpty) {
+    issues.add(
+      'visual evidence is missing representative sequences: '
+      '${missingSequences.toList()..sort()}',
+    );
+  }
   return issues;
 }
 
@@ -458,6 +503,34 @@ String _bindingKey(Map<String, Object?> binding) => jsonEncode([
 
 String bindingAcceptanceKey(Map<String, Object?> binding) =>
     _bindingKey(binding);
+
+List<String> _runtimeAcceptanceIssues(
+  Map<String, Object?> manifest,
+  List<Map<String, Object?>> bindings,
+) {
+  final issues = <String>[];
+  final concretePaths = animationConcreteRuntimePaths(manifest);
+  if (bindings.length != _lvl01RuntimeBindingCount) {
+    issues.add(
+      'runtime binding count must equal $_lvl01RuntimeBindingCount; '
+      'found ${bindings.length}',
+    );
+  }
+  if (concretePaths.length != bindings.length) {
+    issues.add(
+      'all ${bindings.length} bindings must have concrete runtime profiles; '
+      'found ${concretePaths.length}',
+    );
+  }
+  final fallbackBindings = bindings
+      .where((binding) => binding['fallback'] != false)
+      .map(_bindingKey)
+      .toList(growable: false);
+  if (fallbackBindings.isNotEmpty) {
+    issues.add('${fallbackBindings.length} runtime bindings enable fallback');
+  }
+  return issues;
+}
 
 List<String> _acceptanceManifestIssues(Map<String, Object?> manifest) {
   final issues = <String>[];

@@ -18,7 +18,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 83 | **Провести сквозной runtime-аудит и правильно привязать все анимации игры:** сопоставить каждое фактически достижимое действие, состояние, событие и переход с authored clip оригинала, устранить общие состояния, ошибочные semantic aliases и fallback, скрывающие разные анимации | M4 fidelity | P0 | XL | Зонтичная приёмка после п. 84–90. После п. 84 strict gate различает 90 concrete bindings Астерикса и 318 declarative-only bindings оставшихся групп. Для каждого actor/object/profile требуется полный список достижимых runtime-состояний, переходов и событий; обязательны покадровая сверка каждого binding с локальным оригиналом и соответствующим исходным dictionary/slot/event, отдельное data-driven runtime-состояние для каждого визуально различимого действия без clip IDs в renderer, корректные loop/clamp, cadence, blend, root motion и animation events. Итоговая машинная проверка должна подтвердить 345 clips / 518 slots / 408 concrete runtime bindings / 0 declarative-only bindings, а fresh ASTPAK, cold-start representative sequences всех групп и зафиксированная visual acceptance — работу без diagnostic overrides и silent fallback |
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
 
 ---
@@ -128,7 +127,7 @@
 - [x] П. 79 — authored `CFogBoxNodeFx` без static fallback
 - [x] П. 80 — аудит составных render-ресурсов и устранение partial-asset fallback
 - [x] П. 81 — согласованное направление управления, перемещения и ориентации Астерикса
-- [ ] П. 83 — сквозной runtime-аудит и правильная привязка всех анимаций игры
+- [x] П. 83 — сквозной runtime-аудит и правильная привязка всех анимаций игры
 - [x] П. 84 — оставшиеся 82 runtime bindings Астерикса
 - [x] П. 85 — 72 runtime bindings Обеликса
 - [x] П. 86 — 28 runtime bindings Идефикса
@@ -142,7 +141,9 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 90 выполнен: 14 полных cinematic timeline профилей биективно связывают 63 cues с exact dictionary-slot actor/prop selectors. Native lifecycle поддерживает simultaneous tracks, control/presentation cues, complete/skip/interrupt/resume и restore без replay; fresh gate подтвердил 408 concrete и 0 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
+**Последнее обновление:** 23 июля 2026 — п. 83 выполнен: итоговый strict gate требует 345 clips / 518 slots / ровно 408 concrete runtime bindings / 0 declarative-only и полный набор 22 representative visual sequences всех групп. Повторно собран fresh ASTPAK всех 345 animations, release cold start прошёл без loader/runtime diagnostics.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 90 выполнен: 14 полных cinematic timeline профилей биективно связывают 63 cues с exact dictionary-slot actor/prop selectors. Native lifecycle поддерживает simultaneous tracks, control/presentation cues, complete/skip/interrupt/resume и restore без replay; fresh gate подтвердил 408 concrete и 0 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 89 выполнен: 13 полных world object/event профилей биективно связывают 46 bindings механизмов, shop, fauna, checkpoint, UI и lightning FX с exact dictionary-slot selectors. Native lifecycle поддерживает multi-track event, data-driven loop/commit/synchronization и restore без replay, fresh gate подтвердил 345 concrete и 63 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
 

@@ -27,8 +27,8 @@ binding, semantic context без clip join или binding без runtime path о
 конкретные renderer/runtime entry points. `concreteRuntimeBindings` учитывает
 только bindings, которые точный versioned `runtimeProfiles` selector реально
 передаёт исполняемому state machine; `declarativeOnlyBindings` нельзя трактовать
-как завершённую runtime-интеграцию. На текущем этапе конкретно интегрированы
-полные profiles `asterix-player` и `obelix-player`: 90 selectors Астерикса и
+как завершённую runtime-интеграцию. Конкретно интегрированы полные profiles
+`asterix-player` и `obelix-player`: 90 selectors Астерикса и
 72 selectors Обеликса. Пять стабильных entry states Обеликса и 67 точных
 dictionary-slot event entry points охватывают locomotion, idle variants,
 attacks/combo, damage/recovery, interactions, traversal, water и swim.
@@ -63,6 +63,10 @@ normal completion, skip, interrupt, resume и checkpoint restore без replay
 `cc7a4ca9eb1e6a7e910381ba511604973713b0b4faf85c5b592bb3b9b17003bb`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
+Финальная приёмка п. 83 закрепляет эти totals как обязательные: gate отклоняет
+не ровно 408 bindings, любой binding без concrete runtime profile или с
+fallback. Visual evidence обязана содержать дату, метод и уникальные сценарии
+для всех групп, включая каждую из 14 cinematic timelines.
 
 Representative sequences зафиксированы только как versioned metadata в
 `assets/animation_visual_acceptance.v1.json`: locomotion/combat Астерикса,

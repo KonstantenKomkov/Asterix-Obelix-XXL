@@ -96,6 +96,7 @@ void main() {
     final invalid = Map<String, Object?>.from(evidence);
     invalid['sequences'] = [
       {
+        'id': 'invalid-binding',
         'result': 'match',
         'originalReference': 'local reference',
         'steps': [
@@ -109,13 +110,20 @@ void main() {
     ];
     expect(
       validateAnimationVisualEvidence(invalid, registry.bindings),
-      contains(contains('unknown binding')),
+      containsAll([
+        contains('unknown binding'),
+        contains('missing representative sequences'),
+      ]),
     );
   });
 
   test('end-to-end gate rejects an incomplete dataset and graph manifest', () {
-    final incompleteManifest = Map<String, Object?>.from(manifest)
-      ..remove('worldGraphVersion');
+    final incompleteManifest =
+        jsonDecode(jsonEncode(manifest)) as Map<String, Object?>
+          ..remove('worldGraphVersion');
+    final bindings = (incompleteManifest['bindings']! as List<Object?>)
+        .cast<Map<String, Object?>>();
+    bindings.first['fallback'] = true;
     expect(
       () => buildAnimationBindingAcceptanceReport(
         catalog: {
@@ -136,7 +144,7 @@ void main() {
         isA<AnimationBindingAcceptanceException>().having(
           (error) => error.issues.join('\n'),
           'issues',
-          allOf(contains('clipCount'), contains('worldGraphVersion')),
+          allOf(contains('clipCount'), contains('non-fallback binding')),
         ),
       ),
     );
