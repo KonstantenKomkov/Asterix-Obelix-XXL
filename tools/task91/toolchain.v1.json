@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "ghidra": {
+    "version": "12.1.2",
+    "processor": "x86:LE:32:default",
+    "compilerSpec": "windows",
+    "analysisTimeoutSeconds": 1800
+  },
+  "java": {
+    "majorVersion": 21
+  },
+  "inputs": [
+    "Asterix.exe",
+    "GameModule.elb",
+    "**/*.KWN"
+  ],
+  "expectedModules": {
+    "Asterix.exe": "b4e31e3e29015af6637f1fb1f3d326ac053453cbf4f7057bfc46ec3f83f9d1d9",
+    "GameModule.elb": "35e780a40e4ee625430cb37982deebd085960c37091f3a60465c5aa207ab58a0"
+  },
+  "expectedKwnCount": 108,
+  "exports": {
+    "metadataOnly": true,
+    "disassembly": false,
+    "decompilerOutput": false
+  }
+}

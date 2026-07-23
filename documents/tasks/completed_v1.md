@@ -1,5 +1,34 @@
 # Выполненные задачи первой итерации
 
+## П. 91.1 — Binary corpus и воспроизводимый toolchain
+
+**Выполнено:** 23 июля 2026.
+
+Добавлен metadata-only PE/KWN corpus inspector и конфигурация clean headless
+analysis. Точная версия закреплена SHA-256 двух модулей: `Asterix.exe`
+`b4e31e3e29015af6637f1fb1f3d326ac053453cbf4f7057bfc46ec3f83f9d1d9`
+и `GameModule.elb`
+`35e780a40e4ee625430cb37982deebd085960c37091f3a60465c5aa207ab58a0`.
+Оба файла — PE32 x86 с image base `0x00400000`; зафиксированы все sections и
+imports. PE debug directory, CodeView/PDB, соседние PDB/MAP и стандартные MSVC
+RTTI type descriptors отсутствуют.
+
+Локальный corpus содержит также 108 KWN общим размером 227 802 491 байт.
+Две независимые генерации с нуля побайтно совпали, SHA-256 manifest:
+`af4f5a1a0603d91abdde00a669a4fe6da12d78b8c3f706fd6bf4d90d55408a25`.
+Оба чистых headless workspace дали analysis SHA-256
+`287ed9e49d202ac512b309a040d8686984fc52a2d13ae38a73b1be3da30dc66c`.
+Для следующих подзадач закреплены Ghidra 12.1.2, OpenJDK 21, язык
+`x86:LE:32:default`, compiler spec `windows`, запрет reuse существующего
+workspace и metadata-only post-script без листинга/псевдокода. Tooling
+отклоняет другой module hash или число KWN.
+
+Прошли синтетические PE regressions, двукратный local corpus replay, resource
+policy, native FFI build, analyze, все 112 Flutter tests и отдельное diff
+review. Оригинальные binaries, KWN, Ghidra projects и exports в Git не
+добавлены. Описание:
+[task91_binary_corpus.md](../architecture/task91_binary_corpus.md).
+
 ## П. 83 — Сквозной runtime-аудит всех анимаций игры
 
 **Выполнено:** 23 июля 2026.

@@ -26,7 +26,6 @@
 
 | № | Подзадача | Результат / gate |
 |---:|---|---|
-| 91.1 | Зафиксировать binary corpus и воспроизводимый toolchain | Хеши и PE-метаданные точной версии; локальный headless analysis повторяется с нуля |
 | 91.2 | Восстановить class/function anchors по RTTI, vtables и XXL-Editor layouts | Карта owners, методов и полей animation dictionaries |
 | 91.3 | Найти primitives чтения slot и запуска animation | Call graph и xrefs от owners до dictionary access |
 | 91.4 | Восстановить numeric state/event dispatch | Switch/jump tables и доказанные входы без преждевременных semantic labels |
@@ -153,7 +152,7 @@
 - [x] П. 89 — 46 world/UI/FX bindings
 - [x] П. 90 — 63 cinematic bindings
 - [ ] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
-  - [ ] П. 91.1 — binary corpus и воспроизводимый toolchain
+  - [x] П. 91.1 — binary corpus и воспроизводимый toolchain
   - [ ] П. 91.2 — class/function anchors
   - [ ] П. 91.3 — animation dictionary access primitives
   - [ ] П. 91.4 — numeric state/event dispatch
@@ -169,7 +168,9 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 91 декомпозирован на 91.1–91.10: от фиксации точной версии stripped PE32 и восстановления RTTI/vtable/function anchors до provenance gate для всех 408 bindings. Декомпиляция и динамические traces выполняются только локально; в Git разрешены хеши, RVA-идентификаторы, восстановленные числовые связи и собственные валидаторы, но не листинги или псевдокод оригинала.
+**Последнее обновление:** 23 июля 2026 — п. 91.1 выполнен: точная локальная версия зафиксирована как 2 PE32 x86-модуля и 108 KWN с детерминированным manifest; подтверждены sections/imports и отсутствие debug directory, PDB/MAP и стандартных MSVC RTTI descriptors. Два независимых metadata-only запуска дали одинаковый SHA-256; Ghidra 12.1.2 / OpenJDK 21 и clean-project headless export закреплены для последующего анализа.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 91 декомпозирован на 91.1–91.10: от фиксации точной версии stripped PE32 и восстановления RTTI/vtable/function anchors до provenance gate для всех 408 bindings. Декомпиляция и динамические traces выполняются только локально; в Git разрешены хеши, RVA-идентификаторы, восстановленные числовые связи и собственные валидаторы, но не листинги или псевдокод оригинала.
 
 **Предыдущее обновление:** 23 июля 2026 — добавлен исследовательский п. 91: прежние structural/visual gates не доказали семантическую правильность всех привязок. Требуется восстановить точные actor/state/event → dictionary/slot/clip соответствия из доступного исходного кода, символов и управляющих таблиц оригинальной игры; runtime preview оставлен только как отключённый диагностический инструмент и не является источником истины.
 

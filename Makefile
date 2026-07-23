@@ -6,7 +6,7 @@ DART := $(FVM) dart
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get inventory importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
+.PHONY: help setup get inventory task91-corpus task91-headless task91-tooling-test importer-inspect animation-catalog-validate animation-catalog-accept animation-bindings-accept animation-dictionary-validate animation-dictionaries-validate animation-character-annotations animation-character-graph animation-characters-validate animation-world-annotations animation-world-graph animation-world-validate animation-cinematic-annotations animation-cinematic-graph animation-cinematics-validate animation-review package-inspect visual-regression run run-profile run-release format analyze test native-test ffi-generate native-ffi-build policy-check check build clean doctor
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "; printf "Команды:\n"} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -22,6 +22,18 @@ get: ## Установить Flutter-зависимости
 inventory: ## Построить локальный JSON-манифест оригинальных файлов (GAME_DIR=... OUTPUT=...)
 	@test -n "$(GAME_DIR)" || (echo 'Укажите GAME_DIR=/путь/к/AsterixXXL' >&2; exit 2)
 	$(DART) run bin/inventory.dart "$(GAME_DIR)" $(if $(OUTPUT),--output "$(OUTPUT)",)
+
+task91-corpus: ## Зафиксировать PE/KWN corpus задачи 91 (GAME_DIR=... OUTPUT=...)
+	@test -n "$(GAME_DIR)" -a -n "$(OUTPUT)" || (echo 'Укажите GAME_DIR=... OUTPUT=...' >&2; exit 2)
+	python3 scripts/task91_corpus.py "$(GAME_DIR)" "$(OUTPUT)"
+
+task91-headless: ## Чистый headless-анализ задачи 91 (GAME_DIR=... WORKSPACE=...)
+	@test -n "$(GAME_DIR)" -a -n "$(WORKSPACE)" || (echo 'Укажите GAME_DIR=... WORKSPACE=...' >&2; exit 2)
+	./scripts/task91_headless_analysis.sh "$(GAME_DIR)" "$(WORKSPACE)"
+
+task91-tooling-test: ## Проверить metadata-only tooling задачи 91
+	python3 -m unittest test/task91_corpus_test.py
+	bash -n scripts/task91_headless_analysis.sh
 
 importer-inspect: ## Проверить файл каркасом импортёра (INPUT=...)
 	@test -n "$(INPUT)" || (echo 'Укажите INPUT=/путь/к/файлу' >&2; exit 2)
@@ -125,7 +137,7 @@ native-ffi-build: ## Собрать тестовую dylib из того же C+
 policy-check: ## Проверить отсутствие оригинальных игровых данных
 	./scripts/check_resource_policy.sh
 
-check: policy-check native-ffi-build format analyze test ## Выполнить все проверки
+check: policy-check task91-tooling-test native-ffi-build format analyze test ## Выполнить все проверки
 
 build: ## Собрать release-приложение для macOS
 	$(FLUTTER) build macos --release
