@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "overrides": [
+    {
+      "actor": "asterix",
+      "costume": "default",
+      "context": "gameplay",
+      "layers": [
+        {"skin": 4, "role": "body", "required": true},
+        {"skin": 3, "role": "winged-helmet", "required": true}
+      ]
+    },
+    {
+      "actor": "obelix",
+      "costume": "default",
+      "context": "gameplay",
+      "layers": [
+        {"skin": 2, "role": "body", "required": true},
+        {"skin": 1, "role": "costume-overlay", "required": true}
+      ]
+    },
+    {
+      "actor": "basic-enemy-leader:roman",
+      "costume": "roman-default",
+      "context": "gameplay",
+      "layers": [
+        {"skin": 28, "role": "body", "required": true},
+        {"skin": 27, "role": "equipment-overlay", "required": true}
+      ]
+    }
+  ],
+  "representatives": [
+    {"actor": "asterix", "costume": "default", "context": "gameplay"},
+    {"actor": "obelix", "skin": 2},
+    {"actor": "basic-enemy-leader:roman", "skin": 28},
+    {"actor": "animated-character:dictionary-10", "skin": 10},
+    {"actor": "mechanism:component", "skin": 23}
+  ]
+}

@@ -296,6 +296,59 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
     }
     if (!hasStoneTexture) invalidPushBlocks++;
   }
+  final compositionResources = resources
+      .where((item) => item['kind'] == 'render-composition')
+      .toList();
+  Map<String, Object?>? compositionManifest;
+  if (compositionResources.length == 1) {
+    final decoded = jsonDecode(
+      utf8.decode(
+        package.payload(compositionResources.single['id']! as String),
+      ),
+    );
+    if (decoded is Map<String, Object?>) compositionManifest = decoded;
+  }
+  final compositionSkinIds =
+      (compositionManifest?['skinObjectIds'] as List<Object?>? ?? const [])
+          .whereType<int>()
+          .toSet();
+  final packagedSkinIds = <int>{
+    for (final resource in resources.where((item) => item['kind'] == 'skin'))
+      if ((resource['metadata'] as Map<String, Object?>?)?['objectId']
+          case final int id)
+        id,
+  };
+  final compositions =
+      (compositionManifest?['compositions'] as List<Object?>? ?? const [])
+          .whereType<Map<String, Object?>>()
+          .toList();
+  final representativeResults =
+      (compositionManifest?['representatives'] as List<Object?>? ?? const [])
+          .whereType<Map<String, Object?>>()
+          .toList();
+  final asterixGameplay = compositions.where(
+    (item) =>
+        item['actor'] == 'asterix' &&
+        item['costume'] == 'default' &&
+        item['context'] == 'gameplay',
+  );
+  final asterixLayers = asterixGameplay.length == 1
+      ? (asterixGameplay.single['layers'] as List<Object?>? ?? const [])
+            .whereType<Map<String, Object?>>()
+            .toList()
+      : const <Map<String, Object?>>[];
+  final compositionPassed =
+      compositionResources.length == 1 &&
+      compositionManifest?['schemaVersion'] == 1 &&
+      compositionManifest?['kind'] == 'render-composition-manifest' &&
+      compositionSkinIds.length == packagedSkinIds.length &&
+      compositionSkinIds.containsAll(packagedSkinIds) &&
+      (compositionManifest?['unexplainedSkinObjectIds'] as List? ?? const [])
+          .isEmpty &&
+      compositions.isNotEmpty &&
+      asterixGameplay.length == 1 &&
+      {for (final layer in asterixLayers) layer['skin']}.containsAll({3, 4}) &&
+      representativeResults.every((item) => item['passed'] == true);
   final passed =
       collisionAudit.where((entry) => entry['meshCount'] != 0).length == 5 &&
       collisionMeshes > 0 &&
@@ -316,7 +369,8 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
       prelitVertices > 0 &&
       prelitDrawRanges > 0 &&
       invalidPrelightBindings == 0 &&
-      darkestPrelight < brightestPrelight;
+      darkestPrelight < brightestPrelight &&
+      compositionPassed;
   return {
     'format': 'asterix-slice-asset-audit',
     'collisionSectors': collisionAudit,
@@ -357,6 +411,17 @@ Map<String, Object> _auditSliceAssets(AsterixAssetPackage package) {
       'brightestRgb': brightestPrelight,
       'invalidBindings': invalidPrelightBindings,
       'payloads': prelightPayloads,
+    },
+    'renderComposition': {
+      'resourceCount': compositionResources.length,
+      'skinObjectIds': compositionSkinIds.toList()..sort(),
+      'packagedSkinObjectIds': packagedSkinIds.toList()..sort(),
+      'compositionCount': compositions.length,
+      'unexplainedSkinObjectIds':
+          compositionManifest?['unexplainedSkinObjectIds'] ?? const [],
+      'asterixLayers': asterixLayers,
+      'representatives': representativeResults,
+      'passed': compositionPassed,
     },
     'passed': passed,
   };

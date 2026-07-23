@@ -725,6 +725,7 @@ struct AsterixPushMesh {
   std::vector<std::vector<AsterixMeshRange>> meshRanges;
   NSDictionary* playerSkin = nil;
   NSDictionary* playerAccessorySkin = nil;
+  NSDictionary* renderComposition = nil;
   NSDictionary* animationBindings = nil;
   NSMutableDictionary<NSString*, NSDictionary*>* playerAnimations = [NSMutableDictionary dictionary];
   std::vector<asterix::scene::Node> runtimeNodes;
@@ -738,18 +739,69 @@ struct AsterixPushMesh {
   std::unordered_map<std::string, vector_float3> sectionMinimums;
   std::unordered_map<std::string, vector_float3> sectionMaximums;
   for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"render-composition"]) continue;
+    const uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    const uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset<=payloadLength&&length<=payloadLength-offset) {
+      NSData* data=[package subdataWithRange:NSMakeRange(
+          (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+      id decoded=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      if([decoded isKindOfClass:NSDictionary.class])renderComposition=decoded;
+    }
+  }
+  NSArray* playerLayers=nil;
+  if([renderComposition[@"schemaVersion"] integerValue]==1&&
+     [renderComposition[@"kind"] isEqual:@"render-composition-manifest"]) {
+    for(NSDictionary* composition in renderComposition[@"compositions"]) {
+      if(![composition[@"actor"] isEqual:@"asterix"]||
+         ![composition[@"costume"] isEqual:@"default"]||
+         ![composition[@"context"] isEqual:@"gameplay"])continue;
+      if(playerLayers!=nil) {
+        [self reportSceneError:@"Ambiguous render composition for asterix/default/gameplay"];
+        return NO;
+      }
+      playerLayers=composition[@"layers"];
+    }
+  }
+  if(playerLayers.count==0) {
+    [self reportSceneError:@"Missing render composition for asterix/default/gameplay"];
+    return NO;
+  }
+  NSMutableSet<NSNumber*>* playerSkinIds=[NSMutableSet set];
+  for(NSDictionary* layer in playerLayers) {
+    NSNumber* skin=layer[@"skin"];
+    NSString* role=layer[@"role"];
+    if(![skin isKindOfClass:NSNumber.class]||![role isKindOfClass:NSString.class]||
+       ![layer[@"required"] boolValue]||[playerSkinIds containsObject:skin]) {
+      [self reportSceneError:@"Malformed or duplicate asterix render-composition layer"];
+      return NO;
+    }
+    [playerSkinIds addObject:skin];
+  }
+  for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"skin"]) continue;
     const NSInteger objectId=[resource[@"metadata"][@"objectId"] integerValue];
-    if(objectId!=3&&objectId!=4)continue;
+    if(![playerSkinIds containsObject:@(objectId)])continue;
     uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
     uint64_t length=[resource[@"length"] unsignedLongLongValue];
     if(offset<=payloadLength&&length<=payloadLength-offset) {
       NSData* data=[package subdataWithRange:NSMakeRange(
           (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
       NSDictionary* skin=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-      if(objectId==4)playerSkin=skin;
-      else playerAccessorySkin=skin;
+      NSString* role=nil;
+      for(NSDictionary* layer in playerLayers)
+        if([layer[@"skin"] integerValue]==objectId){role=layer[@"role"];break;}
+      if([role isEqual:@"body"])playerSkin=skin;
+      else if(playerAccessorySkin==nil)playerAccessorySkin=skin;
+      else {
+        [self reportSceneError:@"Runtime does not support multiple accessory layers for asterix"];
+        return NO;
+      }
     }
+  }
+  if(playerSkin==nil||(playerLayers.count>1&&playerAccessorySkin==nil)) {
+    [self reportSceneError:@"Required asterix render-composition skin payload is missing"];
+    return NO;
   }
   for (NSDictionary* resource in manifest[@"resources"]) {
     if (![resource[@"kind"] isEqual:@"animation-bindings"]) continue;

@@ -11,7 +11,7 @@ import '../runtime/animation_binding_registry.dart';
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
-const _pipelineCacheVersion = 'slice-assets-v5-environment-fx-audit';
+const _pipelineCacheVersion = 'slice-assets-v6-render-composition';
 
 enum AssetPipelineErrorCode {
   missingInput,
@@ -908,6 +908,10 @@ final class SliceAssetPipeline {
       'skins',
       path: '${animationDir.path}/manifest.json',
     );
+    final compositionOverridesFile = File(
+      '${animationDir.path}/composition_overrides.json',
+    );
+    final compositionOverrides = await _jsonFile(compositionOverridesFile);
     final animationFiles = await _filesWithSuffix(
       animationDir,
       '.animation.json',
@@ -965,9 +969,19 @@ final class SliceAssetPipeline {
         );
       }
     }
+    final skinPayloads = <int, Map<String, Object?>>{};
     for (final file in skinFiles) {
       final data = await _jsonFile(file);
       final objectId = _integer(data, 'objectId');
+      if (skinPayloads[objectId] != null) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.duplicateId,
+          'Skin object IDs must be unique.',
+          path: file.path,
+          details: {'objectId': objectId},
+        );
+      }
+      skinPayloads[objectId] = data;
       payloads.add(
         AssetPayloadInput(
           kind: 'skin',
@@ -988,6 +1002,26 @@ final class SliceAssetPipeline {
         ),
       );
     }
+    final renderComposition = _buildRenderComposition(
+      bindingRegistry.bindings,
+      skinPayloads,
+      compositionOverrides,
+      compositionOverridesFile.path,
+    );
+    payloads.add(
+      AssetPayloadInput(
+        kind: 'render-composition',
+        sourcePath: _levelSource,
+        sourceKey: 'composition:v1',
+        bytes: encodeCanonicalJson(renderComposition),
+        metadata: {
+          'schemaVersion': 1,
+          'compositionCount':
+              (renderComposition['compositions']! as List).length,
+          'skinCount': skinPayloads.length,
+        },
+      ),
+    );
 
     final audioBytes = await _readRequiredBytes(
       File('${proof.path}/audio.wav'),
@@ -1543,6 +1577,244 @@ Future<Uint8List> _readRequiredBytes(File file) async {
       path: file.path,
     );
   }
+}
+
+Map<String, Object?> _buildRenderComposition(
+  List<Map<String, Object?>> bindings,
+  Map<int, Map<String, Object?>> skins,
+  Map<String, Object?> configuration,
+  String path,
+) {
+  if (configuration['schemaVersion'] != 1) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidSchema,
+      'Unsupported render composition override schema.',
+      path: path,
+    );
+  }
+  final overrides = _objectList(configuration, 'overrides', path: path);
+  final representatives = _objectList(
+    configuration,
+    'representatives',
+    path: path,
+  );
+  final compositions = <Map<String, Object?>>[];
+  final coveredSkins = <int>{};
+  final overriddenKeys = <String>{};
+
+  for (var index = 0; index < overrides.length; index++) {
+    final override = overrides[index];
+    final actor = override['actor'];
+    final costume = override['costume'];
+    final context = override['context'];
+    final layers = override['layers'];
+    if (actor is! String ||
+        actor.isEmpty ||
+        costume is! String ||
+        costume.isEmpty ||
+        context is! String ||
+        context.isEmpty ||
+        layers is! List<Object?> ||
+        layers.isEmpty) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        'Render composition override has invalid identity or layers.',
+        path: path,
+        details: {'override': index},
+      );
+    }
+    final key = '$actor\u0000$costume\u0000$context';
+    if (!overriddenKeys.add(key)) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.duplicateId,
+        'Render composition identity is ambiguous.',
+        path: path,
+        details: {'actor': actor, 'costume': costume, 'context': context},
+      );
+    }
+    final outputLayers = <Map<String, Object?>>[];
+    int? paletteBones;
+    final roles = <String>{};
+    final layerSkinIds = <int>{};
+    for (var layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+      final layer = layers[layerIndex];
+      if (layer is! Map<String, Object?> ||
+          layer['skin'] is! int ||
+          layer['role'] is! String ||
+          (layer['role']! as String).isEmpty ||
+          layer['required'] is! bool) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidSchema,
+          'Render composition layer is malformed.',
+          path: path,
+          details: {'override': index, 'layer': layerIndex},
+        );
+      }
+      final skinId = layer['skin']! as int;
+      final role = layer['role']! as String;
+      if (!roles.add(role) || !layerSkinIds.add(skinId)) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.duplicateId,
+          'Render composition layer roles and skins must be unique.',
+          path: path,
+          details: {'override': index, 'role': role, 'skin': skinId},
+        );
+      }
+      final skin = skins[skinId];
+      if (skin == null) {
+        // Overrides are shared by all levels. They become mandatory as soon
+        // as any layer of the composition is present in this proof.
+        continue;
+      }
+      final bones = (skin['skin'] as Map?)?['boneCount'];
+      if (bones is! int || bones <= 0) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidSchema,
+          'A composed skin has no valid skeleton.',
+          path: path,
+          details: {'skin': skinId},
+        );
+      }
+      paletteBones ??= bones;
+      if (paletteBones != bones) {
+        throw AssetPipelineException(
+          AssetPipelineErrorCode.invalidReference,
+          'Render composition layers require incompatible palettes.',
+          path: path,
+          details: {
+            'actor': actor,
+            'expectedBones': paletteBones,
+            'skin': skinId,
+            'actualBones': bones,
+          },
+        );
+      }
+      coveredSkins.add(skinId);
+      outputLayers.add({...layer, 'paletteBones': bones});
+    }
+    final configuredSkinIds = layers
+        .whereType<Map<String, Object?>>()
+        .map((layer) => layer['skin'])
+        .whereType<int>()
+        .toSet();
+    if (configuredSkinIds.any(skins.containsKey) &&
+        outputLayers.length != configuredSkinIds.length) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidReference,
+        'Required render composition layer is missing.',
+        path: path,
+        details: {
+          'actor': actor,
+          'expectedSkins': configuredSkinIds.toList()..sort(),
+          'availableSkins': configuredSkinIds.where(skins.containsKey).toList()
+            ..sort(),
+        },
+      );
+    }
+    if (outputLayers.isNotEmpty) {
+      compositions.add({
+        'id': '$actor/$costume/$context',
+        'actor': actor,
+        'costume': costume,
+        'context': context,
+        'paletteBones': paletteBones,
+        'layers': outputLayers,
+      });
+    }
+  }
+
+  final generatedSkinByIdentity = <String, int>{};
+  for (final binding in bindings) {
+    final actor = binding['actor'];
+    final skinId = binding['skin'];
+    final costume = binding['costume'];
+    final context = binding['context'];
+    if (actor is! String ||
+        skinId is! int ||
+        costume is! String ||
+        context is! String ||
+        !skins.containsKey(skinId)) {
+      continue;
+    }
+    final identity = '$actor\u0000$costume\u0000$context';
+    if (overriddenKeys.contains(identity)) continue;
+    final previousSkin = generatedSkinByIdentity[identity];
+    if (previousSkin != null && previousSkin != skinId) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidReference,
+        'Animation bindings imply an ambiguous render composition.',
+        path: path,
+        details: {
+          'actor': actor,
+          'costume': costume,
+          'context': context,
+          'skinObjectIds': [previousSkin, skinId]..sort(),
+        },
+      );
+    }
+    if (previousSkin != null) continue;
+    generatedSkinByIdentity[identity] = skinId;
+    final bones = (skins[skinId]!['skin'] as Map?)?['boneCount'];
+    compositions.add({
+      'id': '$actor/$costume/$context/skin-$skinId',
+      'actor': actor,
+      'costume': costume,
+      'context': context,
+      'paletteBones': bones is int ? bones : 0,
+      'layers': [
+        {
+          'skin': skinId,
+          'role': 'body',
+          'required': true,
+          'paletteBones': bones is int ? bones : 0,
+        },
+      ],
+    });
+    coveredSkins.add(skinId);
+  }
+
+  final unexplained =
+      skins.keys.where((id) => !coveredSkins.contains(id)).toList()..sort();
+  if (unexplained.isNotEmpty) {
+    throw AssetPipelineException(
+      AssetPipelineErrorCode.invalidReference,
+      'Exported skins have no actor/object render composition.',
+      path: path,
+      details: {'skinObjectIds': unexplained},
+    );
+  }
+  compositions.sort(
+    (left, right) => (left['id']! as String).compareTo(right['id']! as String),
+  );
+  final representativeResults = representatives.map((representative) {
+    final matches = compositions.where((composition) {
+      for (final key in const ['actor', 'skin', 'costume', 'context']) {
+        final expected = representative[key];
+        if (expected == null) continue;
+        if (key == 'skin') {
+          final layers = composition['layers']! as List<Object?>;
+          if (!layers.whereType<Map>().any(
+            (layer) => layer['skin'] == expected,
+          )) {
+            return false;
+          }
+        } else if (composition[key] != expected) {
+          return false;
+        }
+      }
+      return true;
+    }).length;
+    return {...representative, 'matches': matches, 'passed': matches >= 1};
+  }).toList();
+
+  return {
+    'schemaVersion': 1,
+    'kind': 'render-composition-manifest',
+    'skinObjectIds': skins.keys.toList()..sort(),
+    'compositions': compositions,
+    'representatives': representativeResults,
+    'unexplainedSkinObjectIds': const <int>[],
+  };
 }
 
 int? _referenceObjectId(Object? value) {

@@ -53,8 +53,24 @@ void main() {
           'collision',
           'audio',
           'scene-manifest',
+          'render-composition',
         }),
       );
+      final compositionResource = resources.singleWhere(
+        (resource) => resource['kind'] == 'render-composition',
+      );
+      final composition =
+          jsonDecode(
+                utf8.decode(
+                  package.payload(compositionResource['id']! as String),
+                ),
+              )
+              as Map<String, Object?>;
+      expect(composition['unexplainedSkinObjectIds'], isEmpty);
+      expect(composition['skinObjectIds'], [7]);
+      final composed = (composition['compositions']! as List).single as Map;
+      expect(composed['actor'], 'asterix');
+      expect(((composed['layers']! as List).single as Map)['skin'], 7);
       final texture = resources.singleWhere(
         (resource) => resource['kind'] == 'texture',
       );
@@ -70,6 +86,124 @@ void main() {
       expect(header.getUint32(44, Endian.little), 1);
     },
   );
+
+  test('rejects an exported skin without an actor composition', () async {
+    final temporary = await Directory.systemTemp.createTemp(
+      'asset-composition-unbound-',
+    );
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    final bindingsFile = File('${proof.path}/animations/bindings.json');
+    final bindings =
+        jsonDecode(await bindingsFile.readAsString()) as Map<String, Object?>;
+    ((bindings['bindings']! as List).single as Map<String, Object?>)['skin'] =
+        8;
+    await bindingsFile.writeAsString(jsonEncode(bindings));
+
+    await expectLater(
+      const SliceAssetPipeline().buildFromProof(proof),
+      throwsA(
+        isA<AssetPipelineException>()
+            .having(
+              (error) => error.code,
+              'code',
+              AssetPipelineErrorCode.invalidReference,
+            )
+            .having(
+              (error) => error.message,
+              'message',
+              contains('no actor/object render composition'),
+            ),
+      ),
+    );
+  });
+
+  test('rejects ambiguous render composition identities', () async {
+    final temporary = await Directory.systemTemp.createTemp(
+      'asset-composition-ambiguous-',
+    );
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    final overrides = File(
+      '${proof.path}/animations/composition_overrides.json',
+    );
+    final entry = {
+      'actor': 'asterix',
+      'costume': 'default',
+      'context': 'gameplay',
+      'layers': [
+        {'skin': 7, 'role': 'body', 'required': true},
+      ],
+    };
+    await overrides.writeAsString(
+      jsonEncode({
+        'schemaVersion': 1,
+        'overrides': [entry, entry],
+        'representatives': <Object>[],
+      }),
+    );
+
+    await expectLater(
+      const SliceAssetPipeline().buildFromProof(proof),
+      throwsA(
+        isA<AssetPipelineException>()
+            .having(
+              (error) => error.code,
+              'code',
+              AssetPipelineErrorCode.duplicateId,
+            )
+            .having((error) => error.message, 'message', contains('ambiguous')),
+      ),
+    );
+  });
+
+  test('rejects a skin repeated under different layer roles', () async {
+    final temporary = await Directory.systemTemp.createTemp(
+      'asset-composition-duplicate-layer-',
+    );
+    addTearDown(() => temporary.delete(recursive: true));
+    final proof = Directory('${temporary.path}/proof');
+    await _writeProof(proof, reverseOrder: false);
+    final overrides = File(
+      '${proof.path}/animations/composition_overrides.json',
+    );
+    await overrides.writeAsString(
+      jsonEncode({
+        'schemaVersion': 1,
+        'overrides': [
+          {
+            'actor': 'asterix',
+            'costume': 'default',
+            'context': 'gameplay',
+            'layers': [
+              {'skin': 7, 'role': 'body', 'required': true},
+              {'skin': 7, 'role': 'overlay', 'required': true},
+            ],
+          },
+        ],
+        'representatives': <Object>[],
+      }),
+    );
+
+    await expectLater(
+      const SliceAssetPipeline().buildFromProof(proof),
+      throwsA(
+        isA<AssetPipelineException>()
+            .having(
+              (error) => error.code,
+              'code',
+              AssetPipelineErrorCode.duplicateId,
+            )
+            .having(
+              (error) => error.message,
+              'message',
+              contains('roles and skins must be unique'),
+            ),
+      ),
+    );
+  });
 
   test(
     'reuses unchanged cached transforms and rebuilds only changed input',
@@ -740,7 +874,7 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
       'bindings': [
         {
           'actor': 'asterix',
-          'skin': 4,
+          'skin': 7,
           'costume': 'default',
           'action': 'idle',
           'context': 'gameplay',
@@ -770,6 +904,16 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
       'triangles': <Object>[],
       'materials': <Object>[],
       'materialSlots': <Object>[],
+      'skin': {
+        'boneCount': 58,
+        'vertexBoneIndices': <Object>[],
+        'vertexWeights': <Object>[],
+      },
+    },
+    '${root.path}/animations/composition_overrides.json': {
+      'schemaVersion': 1,
+      'overrides': <Object>[],
+      'representatives': <Object>[],
     },
     '${root.path}/audio.wav': Uint8List.fromList(ascii.encode('RIFFtestWAVE')),
     '${root.path}/textures/000_stone.png': Uint8List.fromList(

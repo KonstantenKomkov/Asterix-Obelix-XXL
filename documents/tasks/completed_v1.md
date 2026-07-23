@@ -1,5 +1,29 @@
 # Выполненные задачи первой итерации
 
+## П. 80 — Data-driven composition render-ресурсов
+
+**Выполнено:** 23 июля 2026.
+
+Pipeline строит отдельный canonical `render-composition` ASTPAK resource из
+подтверждённых actor/skin bindings и явных многослойных overrides. Аудит всех 38
+экспортированных skins восстановил три составные chains: Asterix body 4 +
+winged helmet 3, Obelix body 2 + costume overlay 1 и Roman leader body 28 +
+equipment overlay 27. Всего свежий пакет содержит 42 однозначные compositions;
+необъяснённых skins нет.
+
+Metal runtime больше не выбирает жёстко заданные object IDs 3/4: он разрешает
+`asterix/default/gameplay` из manifest, рисует body и шапку с собственными
+материалами и общей 58-joint palette. Missing manifest/layer, повтор skin/role,
+несовместимое число bones или несколько skins для одной semantic identity без
+override дают контролируемую ошибку вместо marker/partial-model fallback.
+
+Post-build gate принял representative Asterix, Obelix, NPC, enemy и mechanism
+compositions. Debug cold start на свежем пакете подтвердил Asterix с крылатой
+шапкой; локальные captures остались вне Git. Fresh/cached ASTPAK побайтно
+совпали, SHA-256:
+`bf8c3b4dddea50101ce913bd50d3539179d5da5dc48c52e355daf7615ea72b1b`.
+Описание: [render_composition.md](../architecture/render_composition.md).
+
 ## П. 79 — Authored `CFogBoxNodeFx` первого уровня
 
 **Выполнено:** 22 июля 2026.

@@ -48,6 +48,7 @@ fvm dart run bin/importer.dart extract-checkpoint "$level" "$module" "$output/ch
 fvm dart run bin/importer.dart extract-level-collision "$level" "$module" "$output/level_collision.json"
 fvm dart run bin/importer.dart extract-water-surfaces "$level" "$module" "$output/water_surfaces.json"
 cp "$repo_root/assets/animation_bindings.v1.json" "$output/animations/bindings.json"
+cp "$repo_root/assets/render_composition_overrides.v1.json" "$output/animations/composition_overrides.json"
 fvm dart run bin/importer.dart decode-rws "$audio" "$output/audio.wav"
 
 printf '%s\n' \
