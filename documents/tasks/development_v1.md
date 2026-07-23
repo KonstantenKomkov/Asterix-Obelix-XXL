@@ -2,7 +2,9 @@
 
 Задачи сформированы из [плана переписывания](../flutter_macos_rewrite_plan.md). Выполненные пункты следует переносить в [completed_v1.md](completed_v1.md).
 
-**Статус:** выполняется. Vertical slice M4 принят; следующий этап — решение о продолжении.
+**Статус:** выполняется. Vertical slice M4 принят; до решения о продолжении
+требуется устранить разрыв между доказанными authored animation bindings и
+фактическим визуальным проигрыванием через эпик 93.
 
 **Цель итерации:** пройти путь от прямого импорта исходных игровых файлов и фиксации эталонного поведения до полностью проходимого вертикального среза одного уровня. Видео не используется как источник моделей, сцен, текстур, анимаций или звука.
 
@@ -18,7 +20,15 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
+| 93.1 | **Восстановить behavioural provenance animation state machine:** извлечь для всех 90 bindings `CKHkAsterix` доказанные trigger/guard, start/change, completion, interrupt, blend, playback-rate, phase/event и root-motion связи | Animation fidelity | P0 | XL | После п. 91–92; два независимых metadata-only export совпадают, каждый переход связан с module/RVA/dictionary/slot/clip evidence, unresolved и visual-only отсутствуют; binary bytes, disassembly, pseudocode и captures не попадают в Git |
+| 93.2 | **Ввести versioned authored animation graph:** описать состояния, переходы, guards, completion, blending, playback, phases/events и root-motion policy отдельной схемой и собрать принятый provenance в детерминированный runtime resource | Animation fidelity | P0 | L | После п. 93.1; schema/parser/validator отклоняют неполные, неоднозначные, недостижимые и cross-profile графы; canonical fresh/cached export совпадает |
+| 93.3 | **Реализовать единый native AnimationController:** отделить gameplay facts/events от animation state, вести binding/clip cursor/phase/completion/transition и детерминированно восстанавливать состояние на fixed tick | Animation fidelity | P0 | L | После п. 93.2; unit-тесты покрывают loop, one-shot, authored completion, interrupt, queued transition, pause/restore и отсутствие replay; controller не выбирает клипы по именам gameplay enum |
+| 93.4 | **Перевести полный runtime-граф Астерикса на AnimationController:** удалить прямой выбор восьми клипов и эвристические animation-переходы из `PlayerRuntime`/Metal, передав renderer готовый pose/transition snapshot | Animation fidelity | P0 | XL | После п. 93.3; все 90 bindings достижимы только через authored graph; single jump сохраняет slot 13 / `0031`, double jump — slot 35 / `0064`; вершина траектории сама по себе не обрывает клип без доказанного authored guard |
+| 93.5 | **Реализовать authored pose playback:** поддержать cross-fade двух поз, playback rate и начальную фазу, completion sampling, in-place/root-motion/phase-synchronized policies и render interpolation без сброса cursor | Animation fidelity | P0 | L | После п. 93.4; pose tests проверяют контрольные joint transforms до/во время/после перехода, физическая capsule и render root не расходятся, low FPS и 30/60/120 Hz дают одинаковые fixed-tick результаты |
+| 93.6 | **Создать автоматическую behavioural/pose-приёмку относительно оригинала:** зафиксировать локальные эталонные traces для прыжка на месте/в движении, удержания, double jump, apex/landing и interrupt-сценариев и сравнивать binding/phase/transition/pose | Animation fidelity | P0 | XL | После п. 93.4–93.5; проверка использует оригинал только локально, в Git хранит собственные metadata/hashes/tolerances; single-jump regression доказывает правильную последовательность и визуальные позы, а не только номер клипа |
+| 93.7 | **Распространить единый AnimationController на остальные actor profiles:** перевести Обеликса, Идефикса, врагов, NPC/scripted, world/UI/FX и cinematics без локальных selector/fallback путей | Animation fidelity | P1 | XL | После п. 93.6; все 408 доказанных selectors исполняются через versioned graph/controller либо явно типизированный timeline adapter; deterministic variants, simultaneous tracks и terminal states покрыты regressions |
+| 93.8 | **Замкнуть animation fidelity на ASTPAK и release gate:** упаковать graph/resources, валидировать provenance/runtime compatibility и выполнять trace/pose/smoke приёмку свежего установленного пакета | Animation fidelity | P0 | L | После п. 93.7; fresh/cached ASTPAK совпадают, package audit подтверждает точный graph/provenance digest и 408 selectors, release cold start и representative runtime traces проходят без heuristic/static/silent fallback |
+| 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42 и п. 93.8; зафиксировано решение continue/re-scope/stop |
 ---
 
 ## Последующие итерации
@@ -136,13 +146,28 @@
 - [x] П. 90 — 63 cinematic bindings
 - [x] П. 91 — точные соответствия анимаций по исходному коду и управляющим таблицам оригинальной игры
 - [x] П. 92 — fresh ASTPAK, post-build audit и release runtime-приёмка доказанных анимаций
+- [ ] П. 93.1 — behavioural provenance animation state machine Астерикса
+- [ ] П. 93.2 — versioned authored animation graph
+- [ ] П. 93.3 — единый native AnimationController
+- [ ] П. 93.4 — полный runtime-граф Астерикса через AnimationController
+- [ ] П. 93.5 — authored pose playback, blending и root-motion policies
+- [ ] П. 93.6 — behavioural/pose-приёмка относительно оригинала
+- [ ] П. 93.7 — перевод остальных 318 bindings на единый controller
+- [ ] П. 93.8 — ASTPAK и release animation-fidelity gate
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 92 выполнен: fresh/cached ASTPAK побайтно совпали, post-build gate подтвердил 345 authored animations и точный registry всех 408 proven selectors, установленный пакет совпал с fresh artifact, а Metal runtime smoke и release cold-start прошли без diagnostics.
+**Последнее обновление:** 23 июля 2026 — добавлен эпик 93 из восьми
+последовательных задач: от behavioural provenance всех переходов Астерикса и
+versioned authored graph до единого native AnimationController,
+trace/pose-приёмки, переноса остальных профилей и release ASTPAK gate. Эпик
+устраняет системную причину визуально неверного проигрывания: доказанный
+slot/clip больше не подменяется эвристическим gameplay-state переходом.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 92 выполнен: fresh/cached ASTPAK побайтно совпали, post-build gate подтвердил 345 authored animations и точный registry всех 408 proven selectors, установленный пакет совпал с fresh artifact, а Metal runtime smoke и release cold-start прошли без diagnostics.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 91.10 и зонтичный п. 91 выполнены: финализатор обновляет локальные catalog и registry доказанными связями всех 408 runtime bindings; итоговая acceptance содержит 408 confirmed и ноль unresolved/ambiguous/visual-only, а single/double jump Астерикса приняты отдельными assertions. Два независимых metadata-only результата побайтно совпали.
 
