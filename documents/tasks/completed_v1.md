@@ -1,5 +1,26 @@
 # Выполненные задачи первой итерации
 
+## П. 93.8 — ASTPAK и release animation-fidelity gate
+
+**Выполнено:** 23 июля 2026.
+
+Добавлен строгий release gate fresh/cached/installed ASTPAK. Он требует
+канонического совпадения embedded registry, Asterix graph и actor controller
+graphs, валидирует точные graph/provenance digests и суммарно 408 selectors.
+Runtime evidence закрывает release cold start и семь representative
+controller/simultaneous-track/timeline сценариев с trace и pose acceptance;
+heuristic/static selections и silent fallback запрещены.
+
+Fresh, полностью cached и установленный ASTPAK побайтно совпали: 69 044 356
+байт, SHA-256
+`69141f020cfd18042f0f0ee8c9fb145036e249cd5b382ba9dd8f13d13db38a0e`.
+Release cold start оставался жив шесть секунд без diagnostics, Runner smoke
+загрузил все доказанные профили и clips `0031`/`0064`, полный native test suite
+принял controller/pose/jump, enemy, scripted, world и cinematic runtime.
+Локальные ASTPAK/evidence/logs и оригинальные/производные игровые ресурсы в Git
+не добавлены. Описание:
+[`task93_animation_fidelity_release_gate.md`](../architecture/task93_animation_fidelity_release_gate.md).
+
 ## П. 93.7 — Единые animation controllers остальных actor profiles
 
 **Выполнено:** 23 июля 2026.

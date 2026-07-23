@@ -2,9 +2,8 @@
 
 Задачи сформированы из [плана переписывания](../flutter_macos_rewrite_plan.md). Выполненные пункты следует переносить в [completed_v1.md](completed_v1.md).
 
-**Статус:** выполняется. Vertical slice M4 принят; до решения о продолжении
-требуется устранить разрыв между доказанными authored animation bindings и
-фактическим визуальным проигрыванием через эпик 93.
+**Статус:** выполняется. Vertical slice M4 и animation fidelity gate приняты;
+следующий пункт — решение о продолжении полного переноса.
 
 **Цель итерации:** пройти путь от прямого импорта исходных игровых файлов и фиксации эталонного поведения до полностью проходимого вертикального среза одного уровня. Видео не используется как источник моделей, сцен, текстур, анимаций или звука.
 
@@ -20,7 +19,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 93.8 | **Замкнуть animation fidelity на ASTPAK и release gate:** упаковать graph/resources, валидировать provenance/runtime compatibility и выполнять trace/pose/smoke приёмку свежего установленного пакета | Animation fidelity | P0 | L | После п. 93.7; fresh/cached ASTPAK совпадают, package audit подтверждает точный graph/provenance digest и 408 selectors, release cold start и representative runtime traces проходят без heuristic/static/silent fallback |
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42 и п. 93.8; зафиксировано решение continue/re-scope/stop |
 ---
 
@@ -146,14 +144,20 @@
 - [x] П. 93.5 — authored pose playback, blending и root-motion policies
 - [x] П. 93.6 — behavioural/pose-приёмка относительно оригинала
 - [x] П. 93.7 — перевод остальных 318 bindings на единый controller
-- [ ] П. 93.8 — ASTPAK и release animation-fidelity gate
+- [x] П. 93.8 — ASTPAK и release animation-fidelity gate
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 93.7 выполнен: канонический
+**Последнее обновление:** 23 июля 2026 — п. 93.8 выполнен: fresh/cached/
+installed ASTPAK побайтно совпадают, package audit принимает точные registry,
+graph и provenance digests и 408 selectors. Release cold start, семь
+representative trace/pose сценариев и smoke проходят без heuristic/static/
+silent fallback.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 93.7 выполнен: канонический
 versioned resource переводит 209 bindings остальных actors на controller,
 46 world/UI/FX bindings на simultaneous-track adapter и 63 cinematic bindings
 на timeline adapter. ASTPAK/runtime требуют точное покрытие 56 профилей и 318
