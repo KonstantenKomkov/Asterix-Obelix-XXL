@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "module": "GameModule.elb",
+  "handlerVtableSlot": 5,
+  "worldProfiles": [
+    {"profile": "world-dictionary-19", "owner": "CKHkMachinegun", "anchorOwner": "CKHkMachinegun", "dictionaryField": "mgunAnimDict"},
+    {"profile": "world-dictionary-20", "owner": "CKHkAsterixShop", "anchorOwner": "CKHkAsterixShop", "dictionaryField": "shopAnimDict1"},
+    {"profile": "world-dictionary-21", "owner": "CKHkAsterixShop", "anchorOwner": "CKHkAsterixShop", "dictionaryField": "shopAnimDict2"},
+    {"profile": "world-dictionary-22", "owner": "CKHkActivator", "anchorOwner": "CKHkActivator", "dictionaryField": "actAnimDict"},
+    {"profile": "world-dictionary-23", "owner": "CKGrpMecaCpntAsterix", "dictionaryField": "cpmecOtherRefs", "referenceKind": "generic-field"},
+    {"profile": "world-dictionary-24", "owner": "CKHkSquareTurtle", "anchorOwner": "CKHkSquareTurtle", "anchorField": "ckhtUnk17", "dictionaryField": "animationDictionary"},
+    {"profile": "world-dictionary-25", "owner": "CKHkSquareTurtle", "anchorOwner": "CKHkSquareTurtle", "anchorField": "ckhtUnk18", "dictionaryField": "animationDictionary"},
+    {"profile": "world-dictionary-26", "owner": "CKHkSquareTurtle", "anchorOwner": "CKHkSquareTurtle", "anchorField": "ckhtUnk19", "dictionaryField": "animationDictionary"},
+    {"profile": "world-dictionary-29", "owner": "CKHkAsterixCheckpoint", "anchorOwner": "CKHkAsterixCheckpoint", "dictionaryField": "acpAnimDict"},
+    {"profile": "world-dictionary-30", "owner": "CKHkWildBoar", "anchorOwner": "CKHkWildBoar", "dictionaryField": "animationDictionary"},
+    {"profile": "world-dictionary-49", "owner": "CKLightningObjectNodeFx", "anchorOwner": "CKLightningObjectNodeFx", "dictionaryField": "animDict"},
+    {"profile": "world-dictionary-50", "owner": "CKHkInterfaceInGame", "dictionaryField": "generic CKObject field", "referenceKind": "generic-field"},
+    {"profile": "world-dictionary-51", "owner": "CKHkInterfaceInGame", "dictionaryField": "generic CKObject field", "referenceKind": "generic-field"}
+  ],
+  "cinematicOwner": "CKCinematicSceneData",
+  "cinematicDictionaryField": "animDict",
+  "cinematicSelectorOwner": "CKPlayAnimCinematicBloc",
+  "cinematicSelectorField": "paAnimIndex",
+  "cinematicProfilePrefix": "cinematic-scene-data-",
+  "expectedWorldProfileCount": 13,
+  "expectedWorldBindingCount": 46,
+  "expectedCinematicTimelineCount": 14,
+  "expectedCinematicCueCount": 63
+}

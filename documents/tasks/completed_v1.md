@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 91.8 — Authored animation profiles world/UI/FX и cinematics
+
+**Выполнено:** 23 июля 2026.
+
+Все 46 bindings 13 world/UI/FX profiles соединены с numeric runtime
+state/event, точным dictionary, slot и authored clip. Двухдорожечный shop
+transaction отдельно подтверждает одновременный выбор slots 1 и 4.
+
+Все 63 cues 14 `CKCinematicSceneData` timelines соединены с уникальным script
+event, `CKCinematicSceneData.animDict`, индексом
+`CKPlayAnimCinematicBloc.paAnimIndex` и точным authored clip. Exporter
+проверяет каждый slot read каждой timeline, а не только первый cue. Generic
+field owners механизма и UI сохраняют этот тип evidence и не выдаются за typed
+fields; visual preview и semantic action labels доказательством не служат.
+
+Два независимых metadata-only export побайтно совпали; SHA-256:
+`9148607fa49b16f0bb138216d20b5c8657c2759a816918c30bf9c0f9a8a2e20f`.
+Прошли tooling regressions, resource policy и отдельное diff review. Binary
+bytes, disassembly, pseudocode и локальные traces в Git не добавлены.
+Описание:
+[task91_world_cinematics_profile.md](../architecture/task91_world_cinematics_profile.md).
+
 ## П. 91.7 — Authored animation profiles enemies и scripted actors
 
 **Выполнено:** 23 июля 2026.
