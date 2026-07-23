@@ -4,22 +4,23 @@
 
 **Выполнено:** 23 июля 2026.
 
-Несовпадение локализовано не во вводе или capsule: keyboard/gamepad уже давали
-правильный world-space vector `(+X вправо, +Z вперёд)`. Ошибка находилась в
-Metal-преобразовании authored `-Z` forward: формула `facing + π` случайно
-совпадала для `+Z`, но зеркалила боковые и диагональные направления из-за
-column-vector convention. Единственное преобразование теперь равно
-`π - facing`; компенсирующих инверсий по отдельным слоям нет.
+Keyboard/gamepad actions используют положительное логическое значение forward,
+но Gaul map-space идёт вперёд по `-Z`. Первичная реализация ошибочно пропустила
+это преобразование и самосогласованно проверяла внутренний `+Z`, поэтому модель
+смотрела верно, а capsule двигалась назад. Action vector теперь ровно один раз
+преобразуется в map displacement `(x, 0, -z)`.
 
-Player runtime явно формирует canonical movement vector, вычисляет facing из
-фактического горизонтального capsule displacement и предоставляет его render и
-combat. Hitbox больше не переинтерпретирует сырой input, поэтому сохраняет
-последнее направление в idle/attack. Camera follow остаётся world-space
-consumer, а restore/respawn не меняют basis.
+Player runtime вычисляет facing из фактического горизонтального capsule
+displacement как `atan2(dx, -dz)` и предоставляет его render и combat. Поэтому
+уже правильная ориентация модели и направления `←/→` не изменились, а `↑`
+теперь перемещает capsule по `-Z`, `↓` — по `+Z`. Hitbox не переинтерпретирует
+сырой input и сохраняет последнее направление в idle/attack. Camera follow
+остаётся world-space consumer, а restore/respawn не меняют basis.
 
 Fixed-tick regression принял четыре cardinal и четыре diagonal направления:
-dot products input → displacement, gameplay facing → displacement и authored
-model forward → displacement больше `0,9999`. Отдельные проверки покрывают
+dot products map input `(x, -z)` → displacement, gameplay facing → displacement
+и authored model forward → displacement больше `0,9999`; отдельные независимые
+assertions требуют `↑ → -Z` и `↓ → +Z`. Дополнительные проверки покрывают
 restore/respawn и одинаковые actions стрелок, WASD и gamepad. Release build и
 cold start на свежем ASTPAK SHA-256
 `bf8c3b4dddea50101ce913bd50d3539179d5da5dc48c52e355daf7615ea72b1b`

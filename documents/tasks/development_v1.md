@@ -133,7 +133,7 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 81 выполнен: установлен единый world-space basis `+X вправо / +Z вперёд`; gameplay facing вычисляется из фактического capsule displacement и совместно используется render/combat. Исправлена знаковая ошибка authored `-Z` transform (`yaw = π - facing`); восемь fixed-tick направлений, WASD/gamepad, restore/respawn, release build и cold-start последовательность стрелок на свежем ASTPAK приняты.
+**Последнее обновление:** 23 июля 2026 — п. 81 исправлен после фактической приёмки: логическое forward action теперь один раз преобразуется в Gaul map-space `-Z`, backward — в `+Z`; facing вычисляется как `atan2(dx, -dz)`, поэтому уже правильная ориентация модели и `←/→` сохранены. Независимые fixed-tick assertions больше не могут принять самосогласованную, но перевёрнутую продольную ось.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 80 выполнен: ASTPAK содержит data-driven manifest 42 render compositions для всех 38 экспортированных skins; явно восстановлены Asterix body 4 + helmet 3, Obelix body 2 + overlay 1 и Roman leader body 28 + overlay 27. Pipeline и runtime отклоняют missing, incompatible, duplicate и ambiguous layers без partial fallback; fresh/cached package совпали, post-build audit и cold-start Asterix с крылатой шапкой приняты.
 

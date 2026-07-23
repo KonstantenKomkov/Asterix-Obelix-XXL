@@ -54,11 +54,13 @@ struct Input {
 };
 
 inline collision::Vec3 canonicalMovementVector(const Input& input) {
-  return {input.move_x, 0, input.move_z};
+  // Gaul map space advances towards -Z. Keep the action convention
+  // (forward is positive) at the input boundary and convert it exactly once.
+  return {input.move_x, 0, -input.move_z};
 }
 
 inline collision::Vec3 facingVector(float facing_radians) {
-  return {std::sin(facing_radians), 0, std::cos(facing_radians)};
+  return {std::sin(facing_radians), 0, -std::cos(facing_radians)};
 }
 
 inline float authoredNegativeZYaw(float facing_radians) {
@@ -68,7 +70,7 @@ inline float authoredNegativeZYaw(float facing_radians) {
 
 inline collision::Vec3 authoredNegativeZForward(float facing_radians) {
   const float yaw = authoredNegativeZYaw(facing_radians);
-  return {std::sin(yaw), 0, -std::cos(yaw)};
+  return {std::sin(yaw), 0, std::cos(yaw)};
 }
 
 struct Snapshot {
@@ -255,7 +257,7 @@ class Runtime {
     const float movedZ = snapshot_.body.position.z - previousPosition.z;
     snapshot_.horizontal_speed = std::sqrt(movedX * movedX + movedZ * movedZ) / dt;
     if (snapshot_.horizontal_speed > .01f) {
-      snapshot_.facing_radians = std::atan2(movedX, movedZ);
+      snapshot_.facing_radians = std::atan2(movedX, -movedZ);
       snapshot_.locomotion_seconds +=
           dt * snapshot_.horizontal_speed / config_.run_speed *
           config_.run_animation_rate;

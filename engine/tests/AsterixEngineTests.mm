@@ -729,13 +729,13 @@
   for(int tick=0;tick<30;++tick)player.update(1.0f/60.0f,input);
   const auto moving=player.snapshot().body.position;
   XCTAssertLessThan(moving.x,-.5f);
-  XCTAssertGreaterThan(moving.z,.5f);
+  XCTAssertLessThan(moving.z,-.5f);
 
   input.move_x=0; input.move_z=0;
   for(int tick=0;tick<30;++tick)player.update(1.0f/60.0f,input);
   const auto stopped=player.snapshot().body.position;
   XCTAssertLessThan(stopped.x,moving.x);
-  XCTAssertGreaterThan(stopped.z,moving.z);
+  XCTAssertLessThan(stopped.z,moving.z);
   for(int tick=0;tick<30;++tick)player.update(1.0f/60.0f,input);
   XCTAssertEqualWithAccuracy(player.snapshot().body.position.x,stopped.x,.0001);
   XCTAssertEqualWithAccuracy(player.snapshot().body.position.z,stopped.z,.0001);
@@ -764,18 +764,26 @@
     const auto before=runtime.snapshot().body.position;
     runtime.update(dt,input);
     const auto displacement=runtime.snapshot().body.position-before;
-    const auto canonical=collision::normalized(
-        player::canonicalMovementVector(input));
+    const auto expectedMapDirection=collision::normalized(
+        collision::Vec3{input.move_x,0,-input.move_z});
     const auto actual=collision::normalized(
         collision::Vec3{displacement.x,0,displacement.z});
     const auto gameplayForward=
         player::facingVector(runtime.snapshot().facing_radians);
     const auto modelForward=
         player::authoredNegativeZForward(runtime.snapshot().facing_radians);
-    XCTAssertGreaterThan(collision::dot(canonical,actual),.9999f);
+    XCTAssertGreaterThan(collision::dot(expectedMapDirection,actual),.9999f);
     XCTAssertGreaterThan(collision::dot(gameplayForward,actual),.9999f);
     XCTAssertGreaterThan(collision::dot(modelForward,actual),.9999f);
   }
+
+  player::Runtime cardinalRuntime(controller,body);
+  const auto origin=cardinalRuntime.snapshot().body.position;
+  cardinalRuntime.update(dt,{0,1,false,false});
+  XCTAssertLessThan(cardinalRuntime.snapshot().body.position.z,origin.z);
+  cardinalRuntime.respawn(body.position);
+  cardinalRuntime.update(dt,{0,-1,false,false});
+  XCTAssertGreaterThan(cardinalRuntime.snapshot().body.position.z,origin.z);
 }
 
 - (void)testRestoreAndRespawnKeepCanonicalMovementBasis {
