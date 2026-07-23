@@ -1,5 +1,27 @@
 # Выполненные задачи первой итерации
 
+## П. 91.6 — Authored animation profiles Обеликса и Идефикса
+
+**Выполнено:** 23 июля 2026.
+
+Все 72 gameplay bindings `CKHkObelix` и 28 bindings `CKHkIdefix` соединены
+с numeric runtime state/event, `CKHkHero.heroAnimDict`, dictionary 0, точным
+slot и authored clip. Exporter отклоняет другой module/anchors/dispatch corpus,
+неполный профиль, неизвестный named binding и изменение ожидаемых reused-clip
+групп.
+
+Пять reused-clip групп сохраняют отдельные runtime bindings: `clip-0151`
+Обеликса и `clip-0176`, `clip-0184`, `clip-0187`, `clip-0190` Идефикса.
+Locomotion, combat, interaction, damage/death и water/swim входят в закрытые
+профили; visual preview доказательством не служит.
+
+Два независимых metadata-only export побайтно совпали; SHA-256:
+`46f811f47fe8ff6a4168d28b4ebf44929c1cbc2d08a67b8694a64aba993a392a`.
+Прошли tooling regressions, resource policy и отдельное diff review. Binary
+bytes, disassembly, pseudocode и локальные traces в Git не добавлены.
+Описание:
+[task91_controlled_heroes_profile.md](../architecture/task91_controlled_heroes_profile.md).
+
 ## П. 91.5 — Полный authored animation profile Астерикса
 
 **Выполнено:** 23 июля 2026.

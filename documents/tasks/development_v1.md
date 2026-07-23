@@ -26,7 +26,6 @@
 
 | № | Подзадача | Результат / gate |
 |---:|---|---|
-| 91.6 | Восстановить профили Обеликса и Идефикса | Доказаны все hero bindings, включая reused clips |
 | 91.7 | Восстановить enemies и scripted actors | Доказаны enemy, composite leader и 24 scripted owners |
 | 91.8 | Восстановить world/UI/FX и cinematics | Доказаны 13 world profiles и все cues 14 timelines |
 | 91.9 | Добавить versioned provenance schema и strict gate | Каждый binding биективно связан с binary/function/state/dictionary/slot/clip evidence |
@@ -153,7 +152,7 @@
   - [x] П. 91.3 — animation dictionary access primitives
   - [x] П. 91.4 — numeric state/event dispatch
   - [x] П. 91.5 — полный профиль Астерикса и отдельные single/double jump chains
-  - [ ] П. 91.6 — профили Обеликса и Идефикса
+  - [x] П. 91.6 — профили Обеликса и Идефикса
   - [ ] П. 91.7 — enemies и scripted actors
   - [ ] П. 91.8 — world/UI/FX и cinematics
   - [ ] П. 91.9 — versioned provenance gate
@@ -164,7 +163,9 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 91.5 выполнен: все 90 bindings Астерикса соединены с numeric runtime state, dictionary 0, slot и authored clip; single jump доказан отдельной цепочкой до slot 13 / `clip-0031`, double jump — до slot 35 / `clip-0064`. Два независимых metadata-only export побайтно совпали.
+**Последнее обновление:** 23 июля 2026 — п. 91.6 выполнен: все 72 bindings Обеликса и 28 bindings Идефикса соединены с numeric runtime state/event, dictionary 0, slot и authored clip; пять reused-clip групп сохраняют отдельные runtime bindings. Два независимых metadata-only export побайтно совпали.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 91.5 выполнен: все 90 bindings Астерикса соединены с numeric runtime state, dictionary 0, slot и authored clip; single jump доказан отдельной цепочкой до slot 13 / `clip-0031`, double jump — до slot 35 / `clip-0064`. Два независимых metadata-only export побайтно совпали.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 91.4 выполнен: numeric handlers закреплены для всех 27 animation owners; восстановлены 5 индексированных jump tables, 63 branch entries и 2 lookup-карты. Semantic labels не присваивались. Два независимых metadata-only export побайтно совпали.
 

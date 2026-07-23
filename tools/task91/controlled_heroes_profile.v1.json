@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "module": "GameModule.elb",
+  "dictionary": 0,
+  "dictionaryField": "CKHkHero.heroAnimDict",
+  "profiles": [
+    {
+      "owner": "CKHkObelix",
+      "profile": "obelix-player",
+      "expectedBindingCount": 72,
+      "namedStateSlots": {
+        "idle": 0,
+        "run": 2,
+        "attack": 18,
+        "hurt": 58,
+        "death": 61
+      },
+      "reusedClips": {
+        "clip-0151": [18, 94]
+      }
+    },
+    {
+      "owner": "CKHkIdefix",
+      "profile": "idefix-player",
+      "expectedBindingCount": 28,
+      "namedStateSlots": {
+        "idle": 0,
+        "run": 2,
+        "death": 61
+      },
+      "reusedClips": {
+        "clip-0176": [0, 12, 89],
+        "clip-0184": [8, 9],
+        "clip-0187": [2, 5, 26],
+        "clip-0190": [14, 91]
+      }
+    }
+  ]
+}
