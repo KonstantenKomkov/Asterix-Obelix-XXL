@@ -53,6 +53,24 @@ struct Input {
   bool attack = false;
 };
 
+inline collision::Vec3 canonicalMovementVector(const Input& input) {
+  return {input.move_x, 0, input.move_z};
+}
+
+inline collision::Vec3 facingVector(float facing_radians) {
+  return {std::sin(facing_radians), 0, std::cos(facing_radians)};
+}
+
+inline float authoredNegativeZYaw(float facing_radians) {
+  constexpr float pi = 3.14159265358979323846f;
+  return pi - facing_radians;
+}
+
+inline collision::Vec3 authoredNegativeZForward(float facing_radians) {
+  const float yaw = authoredNegativeZYaw(facing_radians);
+  return {std::sin(yaw), 0, -std::cos(yaw)};
+}
+
 struct Snapshot {
   State state = State::idle;
   Gait gait = Gait::idle;
@@ -166,16 +184,15 @@ class Runtime {
 
     if (snapshot_.state == State::death) return snapshot_;
 
-    const float magnitude = std::sqrt(input.move_x * input.move_x +
-                                      input.move_z * input.move_z);
+    const collision::Vec3 canonicalMovement = canonicalMovementVector(input);
+    const float magnitude = collision::length(canonicalMovement);
     const float scale = magnitude > 1 ? 1 / magnitude : 1;
     const bool gameplay =
         snapshot_.locomotion_mode == LocomotionMode::gameplay;
     const float movementSpeed = gameplay ? config_.run_speed
                                          : config_.scripted_walk_speed;
-    const collision::Vec3 target = {
-        input.move_x * scale * movementSpeed, 0,
-        input.move_z * scale * movementSpeed};
+    const collision::Vec3 target =
+        canonicalMovement * (scale * movementSpeed);
     if (gameplay && magnitude > .01f) {
       // The original enters gameplay locomotion at its authored run speed.
       // Acceleration-based gait inference made every launch look like a walk.

@@ -1731,9 +1731,11 @@ struct AsterixPushMesh {
             const bool playerAlive=
                 _playerRuntime->snapshot().state!=asterix::player::State::death;
             if(attackEdge&&playerAlive)_combatRuntime->pressAttack(1);
-            const auto body=_playerRuntime->snapshot().body;
-            asterix::collision::Vec3 facing={_playerInput.move_x,0,_playerInput.move_z};
-            _combatRuntime->setTransform(1,body.position,facing);
+            const auto playerSnapshot=_playerRuntime->snapshot();
+            const auto body=playerSnapshot.body;
+            _combatRuntime->setTransform(
+                1,body.position,
+                asterix::player::facingVector(playerSnapshot.facing_radians));
             if(_enemyRuntime) {
               const auto enemy=_enemyRuntime->snapshot();
               _combatRuntime->setTransform(2,enemy.body.position,enemy.facing);
@@ -1931,8 +1933,10 @@ struct AsterixPushMesh {
                 : asterix::animation::skinningPalette(
                     _playerClips[state],_playerJoints,snapshot.state_seconds);
             playerBones.clear(); playerBones.reserve(palette.size());
-            // The authored bind pose faces -Z, while gameplay facing uses +Z.
-            const float yaw=snapshot.facing_radians+3.14159265358979323846f;
+            // Convert the authored -Z forward axis from its column-vector
+            // rotation convention to the canonical gameplay facing.
+            const float yaw=
+                asterix::player::authoredNegativeZYaw(snapshot.facing_radians);
             const matrix_float4x4 facing=(matrix_float4x4){{
                 {cosf(yaw),0,-sinf(yaw),0},{0,1,0,0},
                 {sinf(yaw),0,cosf(yaw),0},{0,0,0,1}}};

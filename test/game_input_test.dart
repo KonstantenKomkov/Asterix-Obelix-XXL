@@ -121,6 +121,60 @@ void main() {
     }
   });
 
+  test('WASD and gamepad axes resolve to the same movement actions', () {
+    const cases =
+        <(LogicalKeyboardKey, PhysicalKeyboardKey, String, double, GameAction)>[
+          (
+            LogicalKeyboardKey.keyA,
+            PhysicalKeyboardKey.keyA,
+            'leftX',
+            -1,
+            GameAction.moveLeft,
+          ),
+          (
+            LogicalKeyboardKey.keyD,
+            PhysicalKeyboardKey.keyD,
+            'leftX',
+            1,
+            GameAction.moveRight,
+          ),
+          (
+            LogicalKeyboardKey.keyW,
+            PhysicalKeyboardKey.keyW,
+            'leftY',
+            1,
+            GameAction.moveForward,
+          ),
+          (
+            LogicalKeyboardKey.keyS,
+            PhysicalKeyboardKey.keyS,
+            'leftY',
+            -1,
+            GameAction.moveBackward,
+          ),
+        ];
+
+    for (final (logical, physical, control, value, action) in cases) {
+      final keyboard = GameInputRouter().handleKey(
+        KeyDownEvent(
+          logicalKey: logical,
+          physicalKey: physical,
+          timeStamp: Duration.zero,
+        ),
+      );
+      final gamepad = GameInputRouter().handleController({
+        'type': 'control',
+        'control': control,
+        'value': value,
+      });
+      expect(
+        keyboard.value(action),
+        gamepad.value(action),
+        reason: action.name,
+      );
+    }
+  });
+
   test(
     'releasing an arrow preserves a remapped key held for the same action',
     () {

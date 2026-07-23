@@ -742,6 +742,73 @@
   XCTAssertEqual(player.snapshot().state,player::State::idle);
 }
 
+- (void)testCanonicalMovementFacingAndAuthoredForwardAgreeInEveryDirection {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime runtime(controller,body);
+  constexpr float dt=1.0f/60.0f;
+  const std::array<player::Input,8> directions = {{
+      {0,1,false,false}, {0,-1,false,false},
+      {-1,0,false,false}, {1,0,false,false},
+      {-1,1,false,false}, {1,1,false,false},
+      {-1,-1,false,false}, {1,-1,false,false},
+  }};
+
+  for(const auto& input:directions) {
+    const auto before=runtime.snapshot().body.position;
+    runtime.update(dt,input);
+    const auto displacement=runtime.snapshot().body.position-before;
+    const auto canonical=collision::normalized(
+        player::canonicalMovementVector(input));
+    const auto actual=collision::normalized(
+        collision::Vec3{displacement.x,0,displacement.z});
+    const auto gameplayForward=
+        player::facingVector(runtime.snapshot().facing_radians);
+    const auto modelForward=
+        player::authoredNegativeZForward(runtime.snapshot().facing_radians);
+    XCTAssertGreaterThan(collision::dot(canonical,actual),.9999f);
+    XCTAssertGreaterThan(collision::dot(gameplayForward,actual),.9999f);
+    XCTAssertGreaterThan(collision::dot(modelForward,actual),.9999f);
+  }
+}
+
+- (void)testRestoreAndRespawnKeepCanonicalMovementBasis {
+  using namespace asterix;
+  collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
+                          {{20,0,-20},{20,0,20},{-20,0,20},1}});
+  collision::CapsuleConfig capsuleConfig;
+  collision::CapsuleController controller(world,capsuleConfig);
+  collision::CapsuleState body;
+  body.position={0,capsuleConfig.half_height+capsuleConfig.radius,0};
+  body.checkpoint=body.position; body.grounded=true; body.ground_object_id=1;
+  player::Runtime runtime(controller,body);
+  constexpr float dt=1.0f/60.0f;
+
+  runtime.update(dt,{-1,1,false,false});
+  XCTAssertTrue(runtime.restore(body.position,body.checkpoint,3));
+  auto before=runtime.snapshot().body.position;
+  runtime.update(dt,{1,-1,false,false});
+  auto displacement=runtime.snapshot().body.position-before;
+  XCTAssertGreaterThan(collision::dot(
+      collision::normalized(displacement),
+      player::facingVector(runtime.snapshot().facing_radians)),.9999f);
+
+  runtime.respawn(body.position);
+  before=runtime.snapshot().body.position;
+  runtime.update(dt,{-1,-1,false,false});
+  displacement=runtime.snapshot().body.position-before;
+  XCTAssertGreaterThan(collision::dot(
+      collision::normalized(displacement),
+      player::authoredNegativeZForward(runtime.snapshot().facing_radians)),
+      .9999f);
+}
+
 - (void)testLocomotionPlaybackTracksCapsuleSpeedDirectionAndBlendsToIdle {
   using namespace asterix;
   collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},

@@ -19,7 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
-| 81 | **Восстановить согласованное направление управления, перемещения и ориентации Астерикса:** локализовать несовместимые знаки/basis между keyboard/gamepad actions, camera-relative или world-space movement, capsule displacement, gameplay/combat facing и authored `-Z` forward skin | Gameplay regression после M4 | P0 | M | Сверить с оригиналом семантику направлений относительно карты и камеры; определить единственный canonical movement vector без компенсирующих инверсий в разных слоях; при `↑` фактическое перемещение идёт вперёд по карте, при `↓` назад, `←/→` сохраняют правильные направления, а forward-вектор модели во всех четырёх cardinal и диагональных случаях сонаправлен фактическому горизонтальному displacement, поэтому персонаж нигде не движется спиной; те же результаты дают WASD и gamepad; camera follow, combat facing/hitbox и save/respawn не меняют basis; fixed-tick regressions проверяют dot products input → displacement и model forward → displacement, а cold-start visual acceptance фиксирует последовательность `↑ → ← → ↓ → →` на свежем ASTPAK |
 
 ---
 
@@ -127,14 +126,16 @@
 - [x] П. 78 — реальная ASTPAK-интеграция воды и повторная post-build приёмка артефактов п. 74
 - [x] П. 79 — authored `CFogBoxNodeFx` без static fallback
 - [x] П. 80 — аудит составных render-ресурсов и устранение partial-asset fallback
-- [ ] П. 81 — согласованное направление управления, перемещения и ориентации Астерикса
+- [x] П. 81 — согласованное направление управления, перемещения и ориентации Астерикса
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
 - [x] П. 52 — fidelity материалов и геометрии Gaul
 - [x] П. 53 — visual regression запуска Gaul
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 80 выполнен: ASTPAK содержит data-driven manifest 42 render compositions для всех 38 экспортированных skins; явно восстановлены Asterix body 4 + helmet 3, Obelix body 2 + overlay 1 и Roman leader body 28 + overlay 27. Pipeline и runtime отклоняют missing, incompatible, duplicate и ambiguous layers без partial fallback; fresh/cached package совпали, post-build audit и cold-start Asterix с крылатой шапкой приняты.
+**Последнее обновление:** 23 июля 2026 — п. 81 выполнен: установлен единый world-space basis `+X вправо / +Z вперёд`; gameplay facing вычисляется из фактического capsule displacement и совместно используется render/combat. Исправлена знаковая ошибка authored `-Z` transform (`yaw = π - facing`); восемь fixed-tick направлений, WASD/gamepad, restore/respawn, release build и cold-start последовательность стрелок на свежем ASTPAK приняты.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 80 выполнен: ASTPAK содержит data-driven manifest 42 render compositions для всех 38 экспортированных skins; явно восстановлены Asterix body 4 + helmet 3, Obelix body 2 + overlay 1 и Roman leader body 28 + overlay 27. Pipeline и runtime отклоняют missing, incompatible, duplicate и ambiguous layers без partial fallback; fresh/cached package совпали, post-build audit и cold-start Asterix с крылатой шапкой приняты.
 
 **Предыдущее обновление:** 22 июля 2026 — п. 82 удалён как преждевременный: красный `enemyMarker` object ID `900002` представляет синтетического proof-противника, которого runtime сам размещает относительно текущего spawn вместе с тестовыми trigger/lever/destructible/reward, а не actor реального уровня. Перенос настоящих spawn/actor bindings относится к content cycle п. 44, а полнота составной модели уже контролируется общим аудитом п. 80.
 

@@ -1,5 +1,33 @@
 # Выполненные задачи первой итерации
 
+## П. 81 — Согласованное направление движения и ориентации Астерикса
+
+**Выполнено:** 23 июля 2026.
+
+Несовпадение локализовано не во вводе или capsule: keyboard/gamepad уже давали
+правильный world-space vector `(+X вправо, +Z вперёд)`. Ошибка находилась в
+Metal-преобразовании authored `-Z` forward: формула `facing + π` случайно
+совпадала для `+Z`, но зеркалила боковые и диагональные направления из-за
+column-vector convention. Единственное преобразование теперь равно
+`π - facing`; компенсирующих инверсий по отдельным слоям нет.
+
+Player runtime явно формирует canonical movement vector, вычисляет facing из
+фактического горизонтального capsule displacement и предоставляет его render и
+combat. Hitbox больше не переинтерпретирует сырой input, поэтому сохраняет
+последнее направление в idle/attack. Camera follow остаётся world-space
+consumer, а restore/respawn не меняют basis.
+
+Fixed-tick regression принял четыре cardinal и четыре diagonal направления:
+dot products input → displacement, gameplay facing → displacement и authored
+model forward → displacement больше `0,9999`. Отдельные проверки покрывают
+restore/respawn и одинаковые actions стрелок, WASD и gamepad. Release build и
+cold start на свежем ASTPAK SHA-256
+`bf8c3b4dddea50101ce913bd50d3539179d5da5dc48c52e355daf7615ea72b1b`
+приняли последовательность `↑ → ← → ↓ → →`; локальные PNG и производные
+игровые данные в Git не добавлены. Прошли native XCTest, `make check`, release
+build, resource policy и отдельное diff review. Описание:
+[game_input.md](../architecture/game_input.md).
+
 ## П. 80 — Data-driven composition render-ресурсов
 
 **Выполнено:** 23 июля 2026.
