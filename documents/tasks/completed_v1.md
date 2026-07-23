@@ -1,5 +1,36 @@
 # Выполненные задачи первой итерации
 
+## П. 88 — Scripted-анимации NPC и существ
+
+**Выполнено:** 23 июля 2026.
+
+Добавлены 24 полных `scripted-dictionary-N` actor-instance профиля для всех
+animated-character и cinematic-scene dictionaries. Каждый owner имеет
+уникальные instance и `script.character.dictionary-N` event, а
+`script_event` биективно разрешает exact authored dictionary-slot selector без
+fallback. Два cinematic-scene owner остаются самостоятельными и не дублируют
+контексты четырнадцати scene-data timelines.
+
+Новый native coordinator реализует entry, normal complete, interrupt и
+checkpoint restore. Монотонный event sequence исключает повтор одноразового
+события, complete/interrupt возвращают сохранённую позу, restore меняет
+playing/interrupted/complete snapshot без эмиссии. Registry и Metal отклоняют
+missing, duplicate, ambiguous, fallback, неверные owner/skin/instance/event и
+неполные профили. Scenario regression проверяет два разных owner, stale event,
+complete, interrupt и restore активного состояния без replay.
+
+Fresh gate подтвердил 345 clips / 518 slots / 408 bindings, из которых 299
+concrete и 109 относятся к п. 89–90; все error counters равны нулю. SHA-256
+отчёта: `af93bbf64bdb7207f474fa97f750cfa2b72c886bdf5a4c1396cbcc142bb553a7`.
+Fresh/cached ASTPAK размером 68 690 068 байт совпал и имеет SHA-256
+`92d823ec76e899f509959d02c6d0105844119df9960e3a437c73c618a05087ab`;
+release-приложение сохранило процесс после cold start. Visual metadata
+фиксирует representative animated NPC, creature и отдельный cinematic-scene
+owner по task-62 character review; оригинальные и производные игровые данные в
+Git не добавлены. Прошли scoped и полный Flutter test, analyze, 58 native
+XCTest, release build, resource policy и отдельное diff review. Описание:
+[animation_binding_registry.md](../architecture/animation_binding_registry.md).
+
 ## П. 87 — Runtime-анимации basic Roman и Roman leader
 
 **Выполнено:** 23 июля 2026.

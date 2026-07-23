@@ -77,6 +77,16 @@
       ]
     },
     {
+      "id": "scripted-npc-and-creature-events",
+      "originalReference": "task-62 character review sheet, animated-character dictionaries 31 and 9 plus cinematic-scene dictionary 15",
+      "result": "match",
+      "steps": [
+        {"actor": "animated-character:dictionary-31", "action": "special.scripted-performance", "clip": "0301.animation.json"},
+        {"actor": "animated-character:dictionary-9", "action": "special.scripted-performance", "clip": "0343.animation.json"},
+        {"actor": "cinematic-scene:dictionary-15", "action": "special.scripted-performance", "clip": "0235.animation.json"}
+      ]
+    },
+    {
       "id": "cinematic-scene-data-1",
       "originalReference": "task-62 cinematic seven-pose review sheet, scene data 1",
       "result": "match",

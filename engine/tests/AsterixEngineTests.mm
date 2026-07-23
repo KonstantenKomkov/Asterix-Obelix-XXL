@@ -16,6 +16,7 @@
 #include "asterix/interactive_runtime.hpp"
 #include "asterix/world_animation_runtime.hpp"
 #include "asterix/cinematic_runtime.hpp"
+#include "asterix/scripted_character_runtime.hpp"
 #include "asterix/water_animation_runtime.hpp"
 #include <chrono>
 #include <unistd.h>
@@ -116,6 +117,43 @@
   XCTAssertTrue(runtime.start("script.cinematic.scene-data-1"));
   XCTAssertEqual(runtime.snapshot().cue,0u);
   XCTAssertFalse(runtime.restore({"scene-data-1",State::playing,99}));
+}
+
+- (void)testScriptedCharacterInstancesDoNotReplayAfterRestore {
+  using namespace asterix::scripted_character;
+  Runtime runtime;
+  runtime.add("animated-character-31",
+              {"scripted-dictionary-31", "script.character.dictionary-31",
+               "restore"});
+  runtime.add("cinematic-scene-15",
+              {"scripted-dictionary-15", "script.character.dictionary-15",
+               "restore"});
+
+  XCTAssertTrue(runtime.start("script.character.dictionary-31", 10));
+  auto output = runtime.drain();
+  XCTAssertTrue(output.has_value());
+  XCTAssertEqual(output->instance, "animated-character-31");
+  XCTAssertEqual(output->profile_id, "scripted-dictionary-31");
+  XCTAssertEqual(output->action, "script_event");
+  XCTAssertFalse(runtime.start("script.character.dictionary-31", 10));
+
+  XCTAssertTrue(runtime.interrupt("animated-character-31"));
+  const Snapshot checkpoint = *runtime.snapshot("animated-character-31");
+  output = runtime.drain();
+  XCTAssertEqual(output->action, "restore");
+  XCTAssertTrue(runtime.restore("animated-character-31", checkpoint));
+  XCTAssertFalse(runtime.drain().has_value());
+  XCTAssertFalse(runtime.start("script.character.dictionary-31", 10));
+  XCTAssertTrue(runtime.start("script.character.dictionary-31", 11));
+  XCTAssertTrue(runtime.complete("animated-character-31"));
+  XCTAssertEqual(runtime.snapshot("animated-character-31")->state,
+                 State::complete);
+  XCTAssertFalse(runtime.complete("animated-character-31"));
+  XCTAssertTrue(runtime.restore("animated-character-31",
+                                {State::playing, 12}));
+  XCTAssertFalse(runtime.drain().has_value());
+  XCTAssertTrue(runtime.start("script.character.dictionary-15", 1));
+  XCTAssertEqual(runtime.drain()->profile_id, "scripted-dictionary-15");
 }
 
 - (void)testWorldAnimationEventsAreIdempotentAndRestoreWithoutReplay {

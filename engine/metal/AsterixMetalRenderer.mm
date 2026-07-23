@@ -824,6 +824,7 @@ struct AsterixPushMesh {
   NSDictionary* basicRomanProfile=nil;
   NSDictionary* romanLeaderEquipmentProfile=nil;
   NSDictionary* romanLeaderBodyProfile=nil;
+  NSMutableArray<NSDictionary*>* scriptedCharacterProfiles=[NSMutableArray array];
   if ([animationBindings[@"schemaVersion"] integerValue]==1) {
     if ([animationBindings[@"runtimeProfileVersion"] integerValue]==1) {
       for (NSDictionary* profile in animationBindings[@"runtimeProfiles"]) {
@@ -864,6 +865,8 @@ struct AsterixPushMesh {
             return NO;
           }
           romanLeaderBodyProfile=profile;
+        } else if ([profile[@"context"] isEqual:@"scripted"]) {
+          [scriptedCharacterProfiles addObject:profile];
         }
       }
     }
@@ -1089,6 +1092,71 @@ struct AsterixPushMesh {
               @"Ambiguous runtime selector for %@/%@",profileId,state]; }
           return NO;
         }
+      }
+    }
+    if (scriptedCharacterProfiles.count!=24) {
+      @synchronized(self) { _sceneError=@"Incomplete scripted character runtime profiles"; }
+      return NO;
+    }
+    NSMutableSet<NSNumber*>* scriptedSkins=[NSMutableSet set];
+    NSMutableSet<NSString*>* scriptedInstances=[NSMutableSet set];
+    NSMutableSet<NSString*>* scriptedEvents=[NSMutableSet set];
+    for (NSDictionary* profile in scriptedCharacterProfiles) {
+      NSNumber* skin=profile[@"skin"];
+      NSString* expectedId=[skin isKindOfClass:NSNumber.class]
+          ? [NSString stringWithFormat:@"scripted-dictionary-%@",skin] : nil;
+      NSString* actor=profile[@"actor"];
+      NSString* expectedInstance=nil;
+      if ([actor isKindOfClass:NSString.class] &&
+          [actor isEqual:[NSString stringWithFormat:@"animated-character:dictionary-%@",skin]])
+        expectedInstance=[NSString stringWithFormat:@"animated-character-%@",skin];
+      else if ([actor isKindOfClass:NSString.class] &&
+               [actor isEqual:[NSString stringWithFormat:@"cinematic-scene:dictionary-%@",skin]])
+        expectedInstance=[NSString stringWithFormat:@"cinematic-scene-%@",skin];
+      NSString* expectedEvent=[skin isKindOfClass:NSNumber.class]
+          ? [NSString stringWithFormat:@"script.character.dictionary-%@",skin] : nil;
+      NSDictionary* scriptedSelectors=profile[@"states"];
+      NSDictionary* selector=[scriptedSelectors isKindOfClass:NSDictionary.class]
+          ? scriptedSelectors[@"script_event"] : nil;
+      if (expectedId==nil || expectedInstance==nil ||
+          ![profile[@"id"] isEqual:expectedId] ||
+          ![profile[@"instance"] isEqual:expectedInstance] ||
+          ![profile[@"scriptEvent"] isEqual:expectedEvent] ||
+          ![profile[@"restorePolicy"] isEqual:@"snapshot-without-replay"] ||
+          ![profile[@"costume"] isEqual:@"scene-default"] ||
+          ![profile[@"complete"] isKindOfClass:NSNumber.class] ||
+          ![profile[@"complete"] boolValue] ||
+          ![scriptedSelectors isKindOfClass:NSDictionary.class] ||
+          scriptedSelectors.count!=1 ||
+          ![selector isKindOfClass:NSDictionary.class] ||
+          [scriptedSkins containsObject:skin] ||
+          [scriptedInstances containsObject:expectedInstance] ||
+          [scriptedEvents containsObject:expectedEvent]) {
+        @synchronized(self) { _sceneError=@"Invalid scripted character runtime profile"; }
+        return NO;
+      }
+      [scriptedSkins addObject:skin];
+      [scriptedInstances addObject:expectedInstance];
+      [scriptedEvents addObject:expectedEvent];
+      NSUInteger matches=0;
+      for (NSDictionary* binding in animationBindings[@"bindings"]) {
+        if (![binding isKindOfClass:NSDictionary.class] ||
+            ![binding[@"actor"] isEqual:actor] ||
+            [binding[@"skin"] integerValue]!=skin.integerValue ||
+            ![binding[@"costume"] isEqual:profile[@"costume"]] ||
+            ![binding[@"context"] isEqual:@"scripted"] ||
+            ![binding[@"action"] isEqual:selector[@"action"]] ||
+            ![binding[@"variant"] isEqual:selector[@"variant"]]) continue;
+        if ([binding[@"fallback"] boolValue] ||
+            [binding[@"skeletonNodes"] integerValue]<=0) {
+          @synchronized(self) { _sceneError=@"Invalid scripted character runtime binding"; }
+          return NO;
+        }
+        matches++;
+      }
+      if (matches!=1) {
+        @synchronized(self) { _sceneError=@"Ambiguous scripted character runtime selector"; }
+        return NO;
       }
     }
   }

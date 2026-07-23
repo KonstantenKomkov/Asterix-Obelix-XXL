@@ -40,21 +40,26 @@ interactions, death и swim.
 skin 28. Составной лидер требует оба 30-node профиля, а basic Roman — отдельный
 28-node профиль; seed entity и номер перехода детерминированно выбирают вариант
 для runtime state/event.
+Двадцать четыре scripted actor-instance профиля связывают каждый
+animated-character/cinematic-scene dictionary owner с отдельными instance,
+script event и exact selector. Complete/interrupt возвращают прежнюю позу, а
+checkpoint restore сохраняет sequence/state без повторной доставки one-shot;
+два cinematic-scene owner не объединяются с scene-data timelines.
 Остальные profiles требуют последующего подключения и cold-start/scenario
 приёмки.
 
-Проверенный после п. 87 fresh gate содержит 345 bound clips, 408
-декларативных bindings и 275 concrete runtime bindings; `unboundClips`,
+Проверенный после п. 88 fresh gate содержит 345 bound clips, 408
+декларативных bindings и 299 concrete runtime bindings; `unboundClips`,
 `unexplainedClips`,
 `clipsWithoutRuntimePath` и `unknownBindingClips` равны нулю. SHA-256 отчёта:
-`1a8aba62a3e594310d411fce000dac1f82274087e2e74deb824b4b1b6013754c`.
+`af93bbf64bdb7207f474fa97f750cfa2b72c886bdf5a4c1396cbcc142bb553a7`.
 Входной подтверждённый каталог сохранил прежний SHA-256
 `3f42b0ee77fe59609c93a28adcf42d1f4e17a5f9814b383d0c1528c2afa4fbbc`.
 
 Representative sequences зафиксированы только как versioned metadata в
 `assets/animation_visual_acceptance.v1.json`: locomotion/combat Астерикса,
 locomotion/combat/swim Обеликса и Идефикса, combat обычного Roman и лидера,
-machinegun fire/recoil и cinematic
+scripted NPC/creature events, machinegun fire/recoil и cinematic
 scene-data-1. Они сверены side-by-side с локально установленным оригиналом и
 разрешаются в точные registry bindings.
 Кадры, извлечённые clips и остальные оригинальные/производные игровые ресурсы

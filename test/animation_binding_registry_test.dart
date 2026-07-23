@@ -210,6 +210,18 @@ void main() {
     expect(basicRomanProfile['states'], hasLength(41));
     expect(leaderEquipmentProfile['states'], hasLength(41));
     expect(leaderBodyProfile['states'], hasLength(3));
+    final scriptedProfiles = profiles
+        .where((profile) => profile['context'] == 'scripted')
+        .toList(growable: false);
+    expect(scriptedProfiles, hasLength(24));
+    expect(
+      scriptedProfiles.map((profile) => profile['instance']).toSet(),
+      hasLength(24),
+    );
+    expect(
+      scriptedProfiles.map((profile) => profile['scriptEvent']).toSet(),
+      hasLength(24),
+    );
     expect(
       idefixStates.keys,
       containsAll({
@@ -307,6 +319,18 @@ void main() {
         );
       }
     }
+    for (final scriptedProfile in scriptedProfiles) {
+      expect(scriptedProfile['complete'], isTrue);
+      expect(scriptedProfile['restorePolicy'], 'snapshot-without-replay');
+      expect(scriptedProfile['states'], hasLength(1));
+      expect(
+        registry.resolveRuntimeState(
+          profileId: scriptedProfile['id']! as String,
+          state: 'script_event',
+        )['fallback'],
+        isFalse,
+      );
+    }
 
     final invalid = jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
     final invalidProfile = (invalid['runtimeProfiles']! as List<Object?>)
@@ -402,6 +426,26 @@ void main() {
           (error) => error.message,
           'message',
           contains('complete profile must select every exact binding once'),
+        ),
+      ),
+    );
+
+    final incompleteScripted =
+        jsonDecode(jsonEncode(decoded)) as Map<String, Object?>;
+    final incompleteScriptedProfile =
+        (incompleteScripted['runtimeProfiles']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .singleWhere(
+              (profile) => profile['id'] == 'scripted-dictionary-31',
+            );
+    (incompleteScriptedProfile['states']! as Map<String, Object?>).clear();
+    expect(
+      () => AnimationBindingRegistry.parse(incompleteScripted),
+      throwsA(
+        isA<AnimationBindingException>().having(
+          (error) => error.message,
+          'message',
+          contains('runtimeProfiles'),
         ),
       ),
     );

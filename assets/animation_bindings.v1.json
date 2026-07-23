@@ -1380,6 +1380,414 @@
         }
       },
       "complete": true
+    },
+    {
+      "id": "scripted-dictionary-4",
+      "actor": "animated-character:dictionary-4",
+      "skin": 4,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-4",
+      "scriptEvent": "script.character.dictionary-4",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-4-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-15",
+      "actor": "cinematic-scene:dictionary-15",
+      "skin": 15,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "cinematic-scene-15",
+      "scriptEvent": "script.character.dictionary-15",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-15-slot-1"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-16",
+      "actor": "cinematic-scene:dictionary-16",
+      "skin": 16,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "cinematic-scene-16",
+      "scriptEvent": "script.character.dictionary-16",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-16-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-17",
+      "actor": "animated-character:dictionary-17",
+      "skin": 17,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-17",
+      "scriptEvent": "script.character.dictionary-17",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-17-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-31",
+      "actor": "animated-character:dictionary-31",
+      "skin": 31,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-31",
+      "scriptEvent": "script.character.dictionary-31",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-31-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-7",
+      "actor": "animated-character:dictionary-7",
+      "skin": 7,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-7",
+      "scriptEvent": "script.character.dictionary-7",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-7-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-39",
+      "actor": "animated-character:dictionary-39",
+      "skin": 39,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-39",
+      "scriptEvent": "script.character.dictionary-39",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-39-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-47",
+      "actor": "animated-character:dictionary-47",
+      "skin": 47,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-47",
+      "scriptEvent": "script.character.dictionary-47",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-47-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-46",
+      "actor": "animated-character:dictionary-46",
+      "skin": 46,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-46",
+      "scriptEvent": "script.character.dictionary-46",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-46-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-45",
+      "actor": "animated-character:dictionary-45",
+      "skin": 45,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-45",
+      "scriptEvent": "script.character.dictionary-45",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-45-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-44",
+      "actor": "animated-character:dictionary-44",
+      "skin": 44,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-44",
+      "scriptEvent": "script.character.dictionary-44",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-44-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-43",
+      "actor": "animated-character:dictionary-43",
+      "skin": 43,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-43",
+      "scriptEvent": "script.character.dictionary-43",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-43-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-42",
+      "actor": "animated-character:dictionary-42",
+      "skin": 42,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-42",
+      "scriptEvent": "script.character.dictionary-42",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-42-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-41",
+      "actor": "animated-character:dictionary-41",
+      "skin": 41,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-41",
+      "scriptEvent": "script.character.dictionary-41",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-41-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-33",
+      "actor": "animated-character:dictionary-33",
+      "skin": 33,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-33",
+      "scriptEvent": "script.character.dictionary-33",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-33-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-38",
+      "actor": "animated-character:dictionary-38",
+      "skin": 38,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-38",
+      "scriptEvent": "script.character.dictionary-38",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-38-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-40",
+      "actor": "animated-character:dictionary-40",
+      "skin": 40,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-40",
+      "scriptEvent": "script.character.dictionary-40",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-40-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-37",
+      "actor": "animated-character:dictionary-37",
+      "skin": 37,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-37",
+      "scriptEvent": "script.character.dictionary-37",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-37-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-32",
+      "actor": "animated-character:dictionary-32",
+      "skin": 32,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-32",
+      "scriptEvent": "script.character.dictionary-32",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-32-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-36",
+      "actor": "animated-character:dictionary-36",
+      "skin": 36,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-36",
+      "scriptEvent": "script.character.dictionary-36",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-36-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-35",
+      "actor": "animated-character:dictionary-35",
+      "skin": 35,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-35",
+      "scriptEvent": "script.character.dictionary-35",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-35-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-34",
+      "actor": "animated-character:dictionary-34",
+      "skin": 34,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-34",
+      "scriptEvent": "script.character.dictionary-34",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-34-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-9",
+      "actor": "animated-character:dictionary-9",
+      "skin": 9,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-9",
+      "scriptEvent": "script.character.dictionary-9",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-9-slot-0"
+        }
+      }
+    },
+    {
+      "id": "scripted-dictionary-10",
+      "actor": "animated-character:dictionary-10",
+      "skin": 10,
+      "costume": "scene-default",
+      "context": "scripted",
+      "instance": "animated-character-10",
+      "scriptEvent": "script.character.dictionary-10",
+      "restorePolicy": "snapshot-without-replay",
+      "complete": true,
+      "states": {
+        "script_event": {
+          "action": "special.scripted-performance",
+          "variant": "dictionary-10-slot-0"
+        }
+      }
     }
   ],
   "bindings": [

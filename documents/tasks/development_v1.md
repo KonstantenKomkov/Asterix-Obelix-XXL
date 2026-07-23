@@ -19,7 +19,6 @@
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
 | 83 | **Провести сквозной runtime-аудит и правильно привязать все анимации игры:** сопоставить каждое фактически достижимое действие, состояние, событие и переход с authored clip оригинала, устранить общие состояния, ошибочные semantic aliases и fallback, скрывающие разные анимации | M4 fidelity | P0 | XL | Зонтичная приёмка после п. 84–90. После п. 84 strict gate различает 90 concrete bindings Астерикса и 318 declarative-only bindings оставшихся групп. Для каждого actor/object/profile требуется полный список достижимых runtime-состояний, переходов и событий; обязательны покадровая сверка каждого binding с локальным оригиналом и соответствующим исходным dictionary/slot/event, отдельное data-driven runtime-состояние для каждого визуально различимого действия без clip IDs в renderer, корректные loop/clamp, cadence, blend, root motion и animation events. Итоговая машинная проверка должна подтвердить 345 clips / 518 slots / 408 concrete runtime bindings / 0 declarative-only bindings, а fresh ASTPAK, cold-start representative sequences всех групп и зафиксированная visual acceptance — работу без diagnostic overrides и silent fallback |
-| 88 | **Подключить scripted-анимации NPC и существ:** перевести 24 scripted bindings animated-character/cinematic-scene dictionaries из declarative-only в реальные script event profiles | M4 fidelity | P0 | L | После общей инфраструктуры п. 84 и scripted orchestration; каждый dictionary owner получает конкретный instance, entry/complete/interrupt/restore paths и точный selector. Исключить дублирование cinematic contexts и replay одноразовых событий после restore; нужны scenario tests, fresh ASTPAK и representative scripted visual acceptance |
 | 89 | **Подключить анимации объектов, механизмов, fauna, UI и world FX:** перевести 46 world bindings из declarative-only в реальные object/event profiles | M4 fidelity | P0 | XL | После общей инфраструктуры п. 84 и authored object bindings; охватить machinegun, mechanism component, activator, checkpoint, shop, wild boar, три square-turtle profile, обе in-game interface группы и lightning FX. Persist/restore не повторяет one-shot события; loop/clamp, material/particle synchronization и object-state commits берутся из данных. Нужны event/restore regressions, fresh ASTPAK и cold-start world/UI/FX acceptance |
 | 90 | **Подключить scripted/cinematic timelines:** перевести 63 cinematic bindings четырнадцати scene-data timelines из declarative-only в реальные cue-driven actor/prop selectors | M4 fidelity | P0 | XL | После п. 84–89 и восстановления фактических scene/script entry points; каждый cue выбирает ровно один compatible binding, поддерживает simultaneous tracks, control lock/return, camera/audio/subtitle cues, normal completion, skip, interrupt, resume и checkpoint restore без replay. Обязательны сценарии всех 14 timelines, fresh ASTPAK и покадровая visual acceptance против локального оригинала |
 | 43 | **Сформировать решение о продолжении:** обновить оценку полного переноса по фактической стоимости исследования, импорта, рендера и gameplay | Gate после M4 | P0 | M | После п. 42; зафиксировано решение continue/re-scope/stop |
@@ -136,7 +135,7 @@
 - [x] П. 85 — 72 runtime bindings Обеликса
 - [x] П. 86 — 28 runtime bindings Идефикса
 - [x] П. 87 — 85 runtime bindings врагов и лидеров
-- [ ] П. 88 — 24 scripted bindings NPC и существ
+- [x] П. 88 — 24 scripted bindings NPC и существ
 - [ ] П. 89 — 46 world/UI/FX bindings
 - [ ] П. 90 — 63 cinematic bindings
 - [x] П. 51 — реальные skeletal clips и полная 58-bone palette Астерикса
@@ -145,7 +144,9 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 87 выполнен: три enemy actor-instance профиля биективно связывают 85 gameplay bindings basic Roman и Roman leader с exact dictionary-slot selectors. Fresh gate подтвердил 275 concrete и 133 declarative-only bindings; Metal отклоняет неполные, повторные, fallback и cross-profile skeleton selectors, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
+**Последнее обновление:** 23 июля 2026 — п. 88 выполнен: 24 scripted actor-instance профиля биективно связывают animated-character/cinematic-scene dictionary owners с уникальными script events и exact selectors. Native lifecycle поддерживает complete/interrupt/restore без replay, fresh gate подтвердил 299 concrete и 109 declarative-only bindings, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 87 выполнен: три enemy actor-instance профиля биективно связывают 85 gameplay bindings basic Roman и Roman leader с exact dictionary-slot selectors. Fresh gate подтвердил 275 concrete и 133 declarative-only bindings; Metal отклоняет неполные, повторные, fallback и cross-profile skeleton selectors, release-приложение прошло cold start со свежим ASTPAK всех 345 animations.
 
 **Предыдущее обновление:** 23 июля 2026 — п. 86 выполнен: полный `idefix-player` профиль биективно связывает все 28 gameplay bindings с тремя стабильными и 25 exact dictionary-slot state/event selectors. Fresh gate подтвердил 190 concrete и 218 declarative-only bindings при нулевых error-счётчиках; Metal отклоняет неполный, повторный, fallback или несовместимый с skin 0 / 31-node skeleton профиль, release-приложение загрузило свежий ASTPAK всех 345 animations.
 

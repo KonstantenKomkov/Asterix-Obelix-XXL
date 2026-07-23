@@ -32,6 +32,15 @@ profiles. Entity seed and animation transition produce a deterministic variant
 index for idle, perception/pursuit/return, attack, hit/stun/knockback, special
 and death/despawn events.
 
+Twenty-four `scripted-dictionary-N` profiles bind every animated-character and
+cinematic-scene dictionary owner to one concrete scene instance, unique
+`script.character.dictionary-N` event and exact authored selector. The native
+scripted-character coordinator records a monotonically increasing event
+sequence and explicit playing/interrupted/complete state. Completion and
+interrupt restore the prior actor pose; checkpoint restore changes the state
+without emitting the one-shot again. The two cinematic-scene dictionary owners
+remain independent instances and are not folded into scene-data timelines.
+
 Every state selects one exact semantic binding by actor, skin, costume, context,
 action and variant. Reused authored clips remain separate selectors when the
 source slots have different semantic actions; notably Obelix clip 0151 resolves
