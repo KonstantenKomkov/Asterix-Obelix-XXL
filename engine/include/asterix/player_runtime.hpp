@@ -39,7 +39,6 @@ struct Config {
   float scripted_walk_speed = 1.8f;
   float acceleration = 18.0f;
   float deceleration = 43.2f;
-  float run_animation_rate = 1.65f;
   float jump_velocity = 8.4f;
   float jump_control_seconds = 0.2f;
   float jump_release_deceleration = 28.0f;
@@ -85,9 +84,6 @@ struct Snapshot {
   float state_seconds = 0;
   float invulnerability_seconds = 0;
   float horizontal_speed = 0;
-  float idle_animation_seconds = 0;
-  float locomotion_seconds = 0;
-  float locomotion_blend = 0;
   float facing_radians = 0;
 };
 
@@ -101,7 +97,6 @@ class Runtime {
         config.scripted_walk_speed >= config.run_speed ||
         config.acceleration <= 0 ||
         config.deceleration <= 0 || config.jump_velocity <= 0 ||
-        config.run_animation_rate <= 0 ||
         config.jump_control_seconds <= 0 ||
         config.jump_release_deceleration <= 0 ||
         config.attack_seconds <= 0 || config.hurt_seconds <= 0 ||
@@ -133,9 +128,7 @@ class Runtime {
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
     air_jump_available_=false; jump_control_active_=false;
     jump_cut_active_=false; jump_control_elapsed_=0;
-    snapshot_.horizontal_speed=0; snapshot_.idle_animation_seconds=0;
-    snapshot_.locomotion_seconds=0;
-    snapshot_.locomotion_blend=0;
+    snapshot_.horizontal_speed=0;
     snapshot_.gait=Gait::idle;
     snapshot_.locomotion_mode=LocomotionMode::gameplay;
     enter(State::idle);
@@ -149,9 +142,7 @@ class Runtime {
     horizontal_velocity_={}; jump_was_pressed_=false; attack_was_pressed_=false;
     air_jump_available_=false; jump_control_active_=false;
     jump_cut_active_=false; jump_control_elapsed_=0;
-    snapshot_.horizontal_speed=0; snapshot_.idle_animation_seconds=0;
-    snapshot_.locomotion_seconds=0;
-    snapshot_.locomotion_blend=0;
+    snapshot_.horizontal_speed=0;
     snapshot_.gait=Gait::idle;
     snapshot_.locomotion_mode=LocomotionMode::gameplay;
     enter(health==0?State::death:State::idle); return true;
@@ -177,7 +168,6 @@ class Runtime {
       throw std::invalid_argument("player dt is invalid");
     }
     snapshot_.state_seconds += dt;
-    snapshot_.idle_animation_seconds += dt;
     snapshot_.invulnerability_seconds =
         std::max(0.0f, snapshot_.invulnerability_seconds - dt);
 
@@ -262,20 +252,12 @@ class Runtime {
     snapshot_.horizontal_speed = std::sqrt(movedX * movedX + movedZ * movedZ) / dt;
     if (snapshot_.horizontal_speed > .01f) {
       snapshot_.facing_radians = std::atan2(movedX, -movedZ);
-      snapshot_.locomotion_seconds +=
-          dt * snapshot_.horizontal_speed / config_.run_speed *
-          config_.run_animation_rate;
     }
     if (!snapshot_.body.grounded || snapshot_.horizontal_speed <= .05f) {
       snapshot_.gait = Gait::idle;
     } else {
       snapshot_.gait = gameplay ? Gait::run : Gait::walk;
     }
-    const float locomotionTarget = snapshot_.body.grounded &&
-            snapshot_.horizontal_speed > .05f
-        ? 1.0f : 0.0f;
-    snapshot_.locomotion_blend = approach(
-        snapshot_.locomotion_blend, locomotionTarget, dt / .12f);
     if (snapshot_.body.grounded) {
       air_jump_available_ = true;
       jump_control_active_ = false;

@@ -20,7 +20,6 @@
 
 | № | Задача | Этап / веха | Приоритет | Сложность | Зависимости / критерий готовности |
 |---:|---|---|---|---|---|
-| 93.4 | **Перевести полный runtime-граф Астерикса на AnimationController:** удалить прямой выбор восьми клипов и эвристические animation-переходы из `PlayerRuntime`/Metal, передав renderer готовый pose/transition snapshot | Animation fidelity | P0 | XL | После п. 93.3; все 90 bindings достижимы только через authored graph; single jump сохраняет slot 13 / `0031`, double jump — slot 35 / `0064`; вершина траектории сама по себе не обрывает клип без доказанного authored guard |
 | 93.5 | **Реализовать authored pose playback:** поддержать cross-fade двух поз, playback rate и начальную фазу, completion sampling, in-place/root-motion/phase-synchronized policies и render interpolation без сброса cursor | Animation fidelity | P0 | L | После п. 93.4; pose tests проверяют контрольные joint transforms до/во время/после перехода, физическая capsule и render root не расходятся, low FPS и 30/60/120 Hz дают одинаковые fixed-tick результаты |
 | 93.6 | **Создать автоматическую behavioural/pose-приёмку относительно оригинала:** зафиксировать локальные эталонные traces для прыжка на месте/в движении, удержания, double jump, apex/landing и interrupt-сценариев и сравнивать binding/phase/transition/pose | Animation fidelity | P0 | XL | После п. 93.4–93.5; проверка использует оригинал только локально, в Git хранит собственные metadata/hashes/tolerances; single-jump regression доказывает правильную последовательность и визуальные позы, а не только номер клипа |
 | 93.7 | **Распространить единый AnimationController на остальные actor profiles:** перевести Обеликса, Идефикса, врагов, NPC/scripted, world/UI/FX и cinematics без локальных selector/fallback путей | Animation fidelity | P1 | XL | После п. 93.6; все 408 доказанных selectors исполняются через versioned graph/controller либо явно типизированный timeline adapter; deterministic variants, simultaneous tracks и terminal states покрыты regressions |
@@ -146,7 +145,7 @@
 - [x] П. 93.1 — behavioural provenance animation state machine Астерикса
 - [x] П. 93.2 — versioned authored animation graph
 - [x] П. 93.3 — единый native AnimationController
-- [ ] П. 93.4 — полный runtime-граф Астерикса через AnimationController
+- [x] П. 93.4 — полный runtime-граф Астерикса через AnimationController
 - [ ] П. 93.5 — authored pose playback, blending и root-motion policies
 - [ ] П. 93.6 — behavioural/pose-приёмка относительно оригинала
 - [ ] П. 93.7 — перевод остальных 318 bindings на единый controller
@@ -157,7 +156,13 @@
 
 ---
 
-**Последнее обновление:** 23 июля 2026 — п. 93.3 выполнен: единый native
+**Последнее обновление:** 23 июля 2026 — п. 93.4 выполнен: Metal загружает
+полный authored graph и 90 клипов Астерикса, fixed-tick orchestration передаёт
+в renderer controller snapshot вместо gameplay enum и локальных animation
+timers. Single jump сохраняет slot 13 / `0031` через apex, double jump выбирает
+slot 35 / `0064`.
+
+**Предыдущее обновление:** 23 июля 2026 — п. 93.3 выполнен: единый native
 `AnimationController` ведёт authored binding/transition, clip cursor, phase,
 completion, blend и очередь на fixed tick. Gameplay facts остаются вне
 контроллера; pause/restore не меняют состояние и не повторяют activation.

@@ -11,6 +11,7 @@
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
 #include "asterix/player_runtime.hpp"
+#include "asterix/player_animation_runtime.hpp"
 #include "asterix/camera_runtime.hpp"
 #include "asterix/combat_runtime.hpp"
 #include "asterix/enemy_runtime.hpp"
@@ -127,6 +128,69 @@
   auto invalid=checkpoint;
   invalid.profile="actor:other";
   XCTAssertFalse(controller.restore(invalid));
+}
+
+- (void)testPlayerAnimationRuntimeKeepsAuthoredJumpAcrossPhysicsApex {
+  using namespace asterix;
+  using namespace asterix::animation_controller;
+  Graph graph{"actor:CKHkAsterix","binding:idle",
+    {{"binding:idle",{0,0,"clip-0058"},1,1,0},
+     {"binding:run",{0,2,"clip-0035"},1,1,0},
+     {"binding:jump",{0,13,"clip-0031"},.2,1,0},
+     {"binding:double_jump",{0,35,"clip-0064"},.5,1,0},
+     {"binding:fall",{0,36,"clip-0039"},1,1,0},
+     {"binding:attack",{0,18,"clip-0000"},.5,1,0},
+     {"binding:hurt",{0,58,"clip-0009"},.4,1,0},
+     {"binding:death",{0,61,"clip-0033"},1,1,0}},
+    {{"select:idle","*","binding:idle",Completion::loop,Operation::start,0},
+     {"select:run","*","binding:run",Completion::loop,Operation::start,0},
+     {"select:jump","*","binding:jump",Completion::authored_clip_end,Operation::change,.1},
+     {"select:double_jump","*","binding:double_jump",Completion::authored_clip_end,Operation::change,.1},
+     {"select:fall","*","binding:fall",Completion::landing,Operation::change,.1},
+     {"select:attack","*","binding:attack",Completion::authored_clip_end,Operation::change,.1},
+     {"select:hurt","*","binding:hurt",Completion::authored_clip_end,Operation::change,.1},
+     {"select:death","*","binding:death",Completion::terminal,Operation::change,.1}}};
+  player_animation::Runtime runtime(graph);
+  player::Snapshot gameplay;
+  gameplay.state=player::State::jump;
+  gameplay.body.grounded=false;
+  gameplay.body.velocity.y=4;
+  runtime.advance(1.0/60.0,gameplay);
+  XCTAssertEqual(runtime.snapshot().binding.slot,13);
+  XCTAssertEqual(runtime.snapshot().binding.asset,"clip-0031");
+
+  gameplay.state=player::State::fall;
+  gameplay.body.velocity.y=-1;
+  for(int tick=0;tick<30;++tick)runtime.advance(1.0/60.0,gameplay);
+  XCTAssertEqual(runtime.snapshot().binding.slot,13);
+  XCTAssertTrue(runtime.snapshot().completed);
+
+  gameplay.state=player::State::double_jump;
+  gameplay.body.velocity.y=4;
+  runtime.advance(1.0/60.0,gameplay);
+  XCTAssertEqual(runtime.snapshot().binding.slot,35);
+  XCTAssertEqual(runtime.snapshot().binding.asset,"clip-0064");
+}
+
+- (void)testPlayerAnimationRuntimeExposesEveryAuthoredSelector {
+  using namespace asterix::animation_controller;
+  Graph graph;
+  graph.profile="actor:CKHkAsterix";
+  graph.entry_state="binding:slot_0";
+  for(int slot=0;slot<90;++slot) {
+    const std::string binding="slot_"+std::to_string(slot);
+    graph.states.push_back(
+        {"binding:"+binding,{0,slot,"clip-"+std::to_string(slot)},1,1,0});
+    graph.transitions.push_back(
+        {"select:"+binding,"*","binding:"+binding,Completion::loop,
+         Operation::change,0});
+  }
+  asterix::player_animation::Runtime runtime(graph);
+  for(int slot=1;slot<90;++slot) {
+    const std::string binding="slot_"+std::to_string(slot);
+    XCTAssertTrue(runtime.select(binding));
+    XCTAssertEqual(runtime.snapshot().binding.slot,slot);
+  }
 }
 
 - (void)testWaterUvVisualRegressionMovesAndSurvivesPauseRestoreAndStreaming {
@@ -1028,7 +1092,7 @@
       .9999f);
 }
 
-- (void)testLocomotionPlaybackTracksCapsuleSpeedDirectionAndBlendsToIdle {
+- (void)testLocomotionGameplayTracksCapsuleSpeedAndDirection {
   using namespace asterix;
   collision::World world({{{-20,0,-20},{20,0,-20},{-20,0,20},1},
                           {{20,0,-20},{20,0,20},{-20,0,20},1}});
@@ -1044,10 +1108,6 @@
   const auto started=player.snapshot();
   XCTAssertEqual(started.state,player::State::run);
   XCTAssertGreaterThan(started.horizontal_speed,0);
-  XCTAssertGreaterThan(started.locomotion_seconds,0);
-  XCTAssertEqualWithAccuracy(started.idle_animation_seconds,dt,.0001f);
-  XCTAssertGreaterThan(started.locomotion_blend,0);
-  XCTAssertLessThan(started.locomotion_blend,1);
   XCTAssertEqualWithAccuracy(started.facing_radians,
                              3.14159265358979323846f/2,.0001f);
 
@@ -1055,16 +1115,11 @@
   const auto running=player.snapshot();
   XCTAssertEqualWithAccuracy(running.horizontal_speed,player.config().run_speed,
                              .0001f);
-  XCTAssertEqualWithAccuracy(running.locomotion_blend,1,.0001f);
-  const float phaseBeforeRelease=running.locomotion_seconds;
 
   for(int tick=0;tick<20;++tick)player.update(dt,{});
   const auto idle=player.snapshot();
   XCTAssertEqual(idle.state,player::State::idle);
   XCTAssertEqualWithAccuracy(idle.horizontal_speed,0,.0001f);
-  XCTAssertEqualWithAccuracy(idle.locomotion_blend,0,.0001f);
-  XCTAssertGreaterThan(idle.locomotion_seconds,phaseBeforeRelease);
-  XCTAssertEqualWithAccuracy(idle.idle_animation_seconds,41*dt,.0001f);
   XCTAssertEqualWithAccuracy(idle.facing_radians,running.facing_radians,.0001f);
 }
 
@@ -1096,7 +1151,7 @@
   XCTAssertLessThan(std::abs(runningPose[0]-leavingPose[0]),.3f);
 }
 
-- (void)testLocomotionPlaybackUsesCollisionLimitedCapsuleDisplacement {
+- (void)testLocomotionUsesCollisionLimitedCapsuleDisplacement {
   using namespace asterix;
   collision::World world({{{-5,0,-5},{5,0,-5},{-5,0,5},1},
                           {{5,0,-5},{5,0,5},{-5,0,5},1},
@@ -1110,14 +1165,9 @@
   player::Runtime player(controller,body);
   constexpr float dt=1.0f/60.0f;
   for(int tick=0;tick<29;++tick)player.update(dt,{1,0,false,false});
-  const float previousPhase=player.snapshot().locomotion_seconds;
   player.update(dt,{1,0,false,false});
   XCTAssertLessThan(player.snapshot().body.position.x,1);
   XCTAssertTrue(std::isfinite(player.snapshot().horizontal_speed));
-  XCTAssertEqualWithAccuracy(
-      player.snapshot().locomotion_seconds-previousPhase,
-      dt*player.snapshot().horizontal_speed/player.config().run_speed*
-          player.config().run_animation_rate,.0001f);
 }
 
 - (void)testCalibratedRunUsesHeightScaleImmediateGaitAndReferenceCadence {
@@ -1151,12 +1201,6 @@
                              player.config().run_speed,.0001f);
   XCTAssertGreaterThanOrEqual(routeSeconds,2.49f);
   XCTAssertLessThanOrEqual(routeSeconds,2.52f);
-  // Confirmed clip 0035 lasts 0.56 s. Distance-driven playback must produce
-  // the same cadence as the original steady run within one fixed tick.
-  const float expectedCycles=routeDistance/player.config().run_speed/.56f*
-      player.config().run_animation_rate;
-  const float actualCycles=player.snapshot().locomotion_seconds/.56f;
-  XCTAssertEqualWithAccuracy(actualCycles,expectedCycles,.04f);
 }
 
 - (void)testGameplayRunAndScriptedWalkAreExplicitAndLevelIndependent {

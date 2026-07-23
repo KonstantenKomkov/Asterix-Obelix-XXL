@@ -888,6 +888,22 @@ Future<void> _writeProof(Directory root, {required bool reverseOrder}) async {
         },
       ],
     },
+    '${root.path}/animations/asterix.authored-graph.v1.json': {
+      'schemaVersion': 1,
+      'resourceType': 'asterix.authored-animation-graph',
+      'profile': {'id': 'actor:CKHkAsterix'},
+      'entryState': 'binding:idle',
+      'states': [
+        {
+          'id': 'binding:idle',
+          'binding': 'idle',
+          'clip': {'dictionary': 0, 'slot': 0, 'asset': 'clip-0000'},
+        },
+      ],
+      'transitions': [
+        {'id': 'select:idle', 'fromState': '*', 'toState': 'binding:idle'},
+      ],
+    },
     '${root.path}/animations/0000.animation.json': {
       'schemaVersion': 1,
       'duration': 1.0,

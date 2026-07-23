@@ -11,7 +11,7 @@ import '../runtime/animation_binding_registry.dart';
 const _sectorSource = 'LVL001/STR01_00.KWN';
 const _levelSource = 'LVL001/LVL01.KWN';
 const _audioSource = 'LVL001/WINAS/WINAS8.rws';
-const _pipelineCacheVersion = 'slice-assets-v6-render-composition';
+const _pipelineCacheVersion = 'slice-assets-v7-authored-animation-graph';
 
 enum AssetPipelineErrorCode {
   missingInput,
@@ -893,6 +893,31 @@ final class SliceAssetPipeline {
         sourceKey: 'registry:v1',
         bytes: encodeCanonicalJson(bindingManifest),
         metadata: {'schemaVersion': 1},
+      ),
+    );
+    final authoredGraphFile = File(
+      '${animationDir.path}/asterix.authored-graph.v1.json',
+    );
+    final authoredGraph = await _jsonFile(authoredGraphFile);
+    if (authoredGraph['schemaVersion'] != 1 ||
+        authoredGraph['resourceType'] != 'asterix.authored-animation-graph' ||
+        (authoredGraph['profile'] as Map<String, Object?>?)?['id'] !=
+            'actor:CKHkAsterix' ||
+        (authoredGraph['states'] as List<Object?>?)?.isEmpty != false ||
+        (authoredGraph['transitions'] as List<Object?>?)?.isEmpty != false) {
+      throw AssetPipelineException(
+        AssetPipelineErrorCode.invalidSchema,
+        'Asterix authored animation graph is invalid.',
+        path: authoredGraphFile.path,
+      );
+    }
+    payloads.add(
+      AssetPayloadInput(
+        kind: 'authored-animation-graph',
+        sourcePath: _levelSource,
+        sourceKey: 'asterix:v1',
+        bytes: encodeCanonicalJson(authoredGraph),
+        metadata: {'schemaVersion': 1, 'profile': 'actor:CKHkAsterix'},
       ),
     );
     final animationManifest = await _jsonFile(

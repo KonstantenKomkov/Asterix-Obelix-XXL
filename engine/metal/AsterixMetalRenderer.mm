@@ -10,6 +10,7 @@
 #include "asterix/scene_runtime.hpp"
 #include "asterix/simulation_runtime.hpp"
 #include "asterix/player_runtime.hpp"
+#include "asterix/player_animation_runtime.hpp"
 #include "asterix/camera_runtime.hpp"
 #include "asterix/combat_runtime.hpp"
 #include "asterix/enemy_runtime.hpp"
@@ -164,6 +165,84 @@ static BOOL AsterixReadClip(NSDictionary* json, BOOL looping,
   return result.duration > 0;
 }
 
+static std::optional<asterix::animation_controller::Graph>
+AsterixReadAuthoredGraph(NSDictionary* json,
+                         NSDictionary<NSString*, NSDictionary*>* animations,
+                         NSDictionary<NSString*, NSDictionary*>* bindings) {
+  using namespace asterix::animation_controller;
+  if (![json[@"resourceType"] isEqual:@"asterix.authored-animation-graph"] ||
+      [json[@"schemaVersion"] integerValue] != 1 ||
+      ![json[@"entryState"] isKindOfClass:NSString.class] ||
+      [json[@"states"] count] != 90 || [json[@"transitions"] count] != 90)
+    return std::nullopt;
+  NSDictionary* profile = json[@"profile"];
+  if (![profile[@"id"] isEqual:@"actor:CKHkAsterix"]) return std::nullopt;
+  Graph graph;
+  graph.profile = [profile[@"id"] UTF8String];
+  graph.entry_state = [json[@"entryState"] UTF8String];
+  for (NSDictionary* value in json[@"states"]) {
+    NSString* identifier = value[@"id"];
+    NSString* binding = value[@"binding"];
+    NSDictionary* clip = value[@"clip"];
+    NSString* asset = clip[@"asset"];
+    NSDictionary* animation = animations[binding];
+    NSString* expectedSource =
+        [asset hasPrefix:@"clip-"]
+            ? [[asset substringFromIndex:@"clip-".length]
+                  stringByAppendingPathExtension:@"animation.json"]
+            : nil;
+    if (![identifier isKindOfClass:NSString.class] ||
+        ![binding isKindOfClass:NSString.class] ||
+        ![asset isKindOfClass:NSString.class] ||
+        ![clip[@"dictionary"] isKindOfClass:NSNumber.class] ||
+        ![clip[@"slot"] isKindOfClass:NSNumber.class] ||
+        ![value[@"playback"][@"rate"] isKindOfClass:NSNumber.class] ||
+        ![value[@"phaseEvents"][@"initialPhase"] isKindOfClass:NSNumber.class] ||
+        ![identifier isEqual:[@"binding:" stringByAppendingString:binding]] ||
+        ![bindings[binding][@"clip"] isEqual:expectedSource] ||
+        animation == nil)
+      return std::nullopt;
+    const double duration = [animation[@"duration"] doubleValue];
+    const double rate = [value[@"playback"][@"rate"] doubleValue];
+    const double phase = [value[@"phaseEvents"][@"initialPhase"] doubleValue];
+    graph.states.push_back({
+        [identifier UTF8String],
+        {[clip[@"dictionary"] intValue], [clip[@"slot"] intValue],
+         [asset UTF8String]},
+        duration, rate, phase});
+  }
+  for (NSDictionary* value in json[@"transitions"]) {
+    NSString* identifier = value[@"id"];
+    NSString* from = value[@"fromState"];
+    NSString* to = value[@"toState"];
+    NSString* completion = value[@"completion"][@"kind"];
+    NSString* operation = value[@"operation"];
+    if (![identifier isKindOfClass:NSString.class] ||
+        ![from isKindOfClass:NSString.class] ||
+        ![to isKindOfClass:NSString.class] ||
+        ![completion isKindOfClass:NSString.class] ||
+        ![operation isKindOfClass:NSString.class])
+      return std::nullopt;
+    Completion completionValue;
+    if ([completion isEqual:@"loop"]) completionValue = Completion::loop;
+    else if ([completion isEqual:@"authoredClipEnd"])
+      completionValue = Completion::authored_clip_end;
+    else if ([completion isEqual:@"landing"])
+      completionValue = Completion::landing;
+    else if ([completion isEqual:@"terminal"])
+      completionValue = Completion::terminal;
+    else return std::nullopt;
+    Operation operationValue;
+    if ([operation isEqual:@"start"]) operationValue = Operation::start;
+    else if ([operation isEqual:@"change"]) operationValue = Operation::change;
+    else return std::nullopt;
+    graph.transitions.push_back({
+        [identifier UTF8String], [from UTF8String], [to UTF8String],
+        completionValue, operationValue, [value[@"blend"][@"seconds"] doubleValue]});
+  }
+  return graph;
+}
+
 static matrix_float4x4 AsterixMetalMatrix(const asterix::scene::Matrix4& value) {
   matrix_float4x4 result;
   for (NSUInteger i = 0; i < 16; ++i) result.columns[i / 4][i % 4] = value.value[i];
@@ -222,8 +301,7 @@ struct AsterixPushMesh {
   NSUInteger _playerMeshVertexCount;
   std::vector<AsterixMeshRange> _playerMeshRanges;
   std::vector<asterix::animation::Joint> _playerJoints;
-  std::array<asterix::animation::Clip, 8> _playerClips;
-  std::array<bool, 8> _playerClipAvailable;
+  std::unordered_map<std::string, asterix::animation::Clip> _playerClips;
   std::vector<asterix::animation::Clip> _animationReviewClips;
   NSArray<NSDictionary*>* _animationReviewCandidates;
   NSString* _animationReviewClip;
@@ -254,6 +332,7 @@ struct AsterixPushMesh {
   std::unique_ptr<asterix::collision::World> _collisionWorld;
   std::unique_ptr<asterix::collision::CapsuleController> _capsuleController;
   std::unique_ptr<asterix::player::Runtime> _playerRuntime;
+  std::unique_ptr<asterix::player_animation::Runtime> _playerAnimationRuntime;
   std::unique_ptr<asterix::collision::CapsuleController> _enemyCapsuleController;
   std::unique_ptr<asterix::enemy::Runtime> _enemyRuntime;
   std::unique_ptr<asterix::interactive::Runtime> _interactiveRuntime;
@@ -759,6 +838,7 @@ struct AsterixPushMesh {
   NSDictionary* playerAccessorySkin = nil;
   NSDictionary* renderComposition = nil;
   NSDictionary* animationBindings = nil;
+  NSDictionary* authoredAnimationGraph = nil;
   NSMutableDictionary<NSString*, NSDictionary*>* playerAnimations = [NSMutableDictionary dictionary];
   NSMutableDictionary<NSString*, NSDictionary*>* reviewAnimations = [NSMutableDictionary dictionary];
   NSMutableArray<NSDictionary*>* reviewSelectors = [NSMutableArray array];
@@ -847,6 +927,23 @@ struct AsterixPushMesh {
       if([decoded isKindOfClass:NSDictionary.class]) animationBindings=decoded;
     }
     break;
+  }
+  for (NSDictionary* resource in manifest[@"resources"]) {
+    if (![resource[@"kind"] isEqual:@"authored-animation-graph"]) continue;
+    uint64_t offset=[resource[@"offset"] unsignedLongLongValue];
+    uint64_t length=[resource[@"length"] unsignedLongLongValue];
+    if(offset<=payloadLength&&length<=payloadLength-offset) {
+      NSData* data=[package subdataWithRange:NSMakeRange(
+          (NSUInteger)(payloadOffset+offset),(NSUInteger)length)];
+      id decoded=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      if([decoded isKindOfClass:NSDictionary.class])
+        authoredAnimationGraph=decoded;
+    }
+    break;
+  }
+  if (authoredAnimationGraph == nil) {
+    [self reportSceneError:@"Asterix authored animation graph is missing"];
+    return NO;
   }
   NSArray<NSString*>* requiredStates=@[
       @"idle",@"run",@"jump",@"double_jump",@"fall",@"attack",@"hurt",@"death"];
@@ -1779,6 +1876,7 @@ struct AsterixPushMesh {
   std::unique_ptr<asterix::collision::World> collisionWorld;
   std::unique_ptr<asterix::collision::CapsuleController> capsuleController;
   std::unique_ptr<asterix::player::Runtime> playerRuntime;
+  std::unique_ptr<asterix::player_animation::Runtime> playerAnimationRuntime;
   std::unique_ptr<asterix::collision::CapsuleController> enemyCapsuleController;
   std::unique_ptr<asterix::enemy::Runtime> enemyRuntime;
   std::unique_ptr<asterix::interactive::Runtime> interactiveRuntime;
@@ -1788,8 +1886,7 @@ struct AsterixPushMesh {
   NSUInteger playerMeshVertexStart=NSNotFound,playerMeshVertexCount=0;
   std::vector<AsterixMeshRange> playerMeshRanges;
   std::vector<asterix::animation::Joint> playerJoints;
-  std::array<asterix::animation::Clip,8> playerClips;
-  std::array<bool,8> playerClipAvailable{};
+  std::unordered_map<std::string, asterix::animation::Clip> playerClips;
   std::vector<asterix::animation::Clip> animationReviewClips;
   NSMutableArray<NSDictionary*>* validReviewSelectors=[NSMutableArray array];
   if (!collisionTriangles.empty()) {
@@ -1905,9 +2002,25 @@ struct AsterixPushMesh {
         playerJoints.push_back(joint);
       }
     }
-    NSArray<NSString*>* stateNames=requiredStates;
-    if(playerJoints.size()==58)for(NSUInteger i=0;i<stateNames.count;++i)
-      playerClipAvailable[i]=AsterixReadClip(playerAnimations[stateNames[i]],[stateBindings[stateNames[i]][@"loop"] boolValue],playerClips[i]);
+    if(playerJoints.size()==58)for(NSString* state in stateBindings) {
+      asterix::animation::Clip clip;
+      if(AsterixReadClip(playerAnimations[state],
+                         [stateBindings[state][@"loop"] boolValue],clip))
+        playerClips.emplace([state UTF8String],std::move(clip));
+    }
+    const auto graph=AsterixReadAuthoredGraph(
+        authoredAnimationGraph,playerAnimations,stateBindings);
+    if(!graph||playerClips.size()!=90) {
+      [self reportSceneError:@"Asterix authored animation runtime is incomplete"];
+      return NO;
+    }
+    try {
+      playerAnimationRuntime=
+          std::make_unique<asterix::player_animation::Runtime>(*graph);
+    } catch(const std::exception&) {
+      [self reportSceneError:@"Asterix authored animation graph is invalid"];
+      return NO;
+    }
     if(playerJoints.size()==58)for(NSDictionary* selector in reviewSelectors) {
       NSString* source=[selector[@"clip"] stringByAppendingPathExtension:@"animation.json"];
       asterix::animation::Clip clip;
@@ -1916,10 +2029,12 @@ struct AsterixPushMesh {
         [validReviewSelectors addObject:selector];
       }
     }
-    const std::size_t runState=(std::size_t)asterix::player::State::run;
-    if(playerClipAvailable[runState]&&
-       asterix::animation::animatedTrackCount(playerClips[runState])<20)
-      playerClipAvailable[runState]=false;
+    const auto runClip=playerClips.find("run");
+    if(runClip==playerClips.end()||
+       asterix::animation::animatedTrackCount(runClip->second)<20) {
+      [self reportSceneError:@"Asterix authored run clip is invalid"];
+      return NO;
+    }
     bool bindingsValid=boneIndices.count==skinPositions.count&&
         boneWeights.count==skinPositions.count;
     if(bindingsValid)for(NSUInteger vertex=0;vertex<boneIndices.count;++vertex) {
@@ -1935,7 +2050,7 @@ struct AsterixPushMesh {
       if(!bindingsValid||total<=0){bindingsValid=false;break;}
     }
     const bool animationReady=playerJoints.size()==58&&
-        std::all_of(playerClipAvailable.begin(),playerClipAvailable.end(),[](bool value){return value;});
+        playerClips.size()==90&&playerAnimationRuntime!=nullptr;
     if(skinPositions.count>0&&skinTriangles.count>0&&animationReady&&
        bindingsValid) {
       playerMeshVertexStart=vertexData.length/sizeof(AsterixVertex);
@@ -2074,7 +2189,6 @@ struct AsterixPushMesh {
     _playerMeshRanges=std::move(playerMeshRanges);
     _playerJoints=std::move(playerJoints);
     _playerClips=std::move(playerClips);
-    _playerClipAvailable=playerClipAvailable;
     _animationReviewClips=std::move(animationReviewClips);
     _animationReviewCandidates=[validReviewSelectors copy];
     _animationReviewClip=nil;
@@ -2085,6 +2199,7 @@ struct AsterixPushMesh {
     _collisionWorld = std::move(collisionWorld);
     _capsuleController = std::move(capsuleController);
     _playerRuntime = std::move(playerRuntime);
+    _playerAnimationRuntime = std::move(playerAnimationRuntime);
     _enemyCapsuleController = std::move(enemyCapsuleController);
     _enemyRuntime = std::move(enemyRuntime);
     _interactiveRuntime = std::move(interactiveRuntime);
@@ -2192,6 +2307,7 @@ struct AsterixPushMesh {
     _sceneMeshRanges.clear();
     _sceneRuntime.reset();
     _playerRuntime.reset();
+    _playerAnimationRuntime.reset();
     _enemyRuntime.reset();
     _interactiveRuntime.reset();
     _cameraRuntime.reset();
@@ -2367,6 +2483,9 @@ struct AsterixPushMesh {
               _enemyRuntime->applyDamage(event.damage,knockback);
             }
           }
+          if (_playerAnimationRuntime && _playerRuntime)
+            _playerAnimationRuntime->advance(
+                step, _playerRuntime->snapshot());
           if (_cameraRuntime && _playerRuntime && _collisionWorld) {
             _cameraRuntime->update(_playerRuntime->snapshot().body.position,
                                    *_collisionWorld,(float)step);
@@ -2515,7 +2634,6 @@ struct AsterixPushMesh {
                                       {0, 0, 1, 0}, {0, 0, 0, 1}}});
       } else if(_playerRuntime&&!_playerJoints.empty()) {
         const auto snapshot=_playerRuntime->snapshot();
-        const std::size_t state=(std::size_t)snapshot.state;
         NSString* reviewClip=nil;
         CFTimeInterval reviewStartedAt=0;
         NSUInteger reviewIndex=NSNotFound;
@@ -2545,19 +2663,18 @@ struct AsterixPushMesh {
               playerBones.push_back(metal);
             }
           } catch(const std::exception&) {}
-        } else if(state<_playerClips.size()&&_playerClipAvailable[state]) {
+        } else if(_playerAnimationRuntime) {
           try {
-            const bool locomotion = snapshot.state==asterix::player::State::idle||
-                snapshot.state==asterix::player::State::run;
-            const auto palette=locomotion
-                ? asterix::animation::blendedSkinningPalette(
-                    _playerClips[(std::size_t)asterix::player::State::idle],
-                    snapshot.idle_animation_seconds,
-                    _playerClips[(std::size_t)asterix::player::State::run],
-                    snapshot.locomotion_seconds,_playerJoints,
-                    snapshot.locomotion_blend)
-                : asterix::animation::skinningPalette(
-                    _playerClips[state],_playerJoints,snapshot.state_seconds);
+            const auto pose=_playerAnimationRuntime->snapshot();
+            constexpr std::string_view prefix="binding:";
+            const std::string binding=
+                pose.state.rfind(prefix,0)==0
+                    ?pose.state.substr(prefix.size()):pose.state;
+            const auto clip=_playerClips.find(binding);
+            if(clip==_playerClips.end())
+              throw std::runtime_error("authored animation clip is missing");
+            const auto palette=asterix::animation::skinningPalette(
+                clip->second,_playerJoints,pose.cursor_seconds);
             playerBones.clear(); playerBones.reserve(palette.size());
             // Convert the authored -Z forward axis from its column-vector
             // rotation convention to the canonical gameplay facing.

@@ -1,5 +1,30 @@
 # Выполненные задачи первой итерации
 
+## П. 93.4 — Полный runtime-граф Астерикса через AnimationController
+
+**Выполнено:** 23 июля 2026.
+
+Из `PlayerRuntime` удалены прямые animation timers, locomotion blend и
+подготовка выбора восьми клипов. Новый graph-facing runtime преобразует только
+gameplay-факты в `select:*`, а binding, dictionary/slot/asset, transition,
+cursor, phase и completion принадлежат единому `AnimationController`. Через
+graph-only API достижимы все 90 authored bindings без выбора clip в обход
+controller.
+
+Slice pipeline упаковывает канонический authored graph отдельным ASTPAK
+resource. Metal строго загружает 90 states/transitions и все 90 совместимых
+58-joint clips; renderer получает controller snapshot и sampling выполняет по
+его binding/cursor, а не по gameplay enum или `state_seconds`. Single jump
+сохраняет dictionary 0 / slot 13 / `clip-0031` после physics apex; double jump
+явно выбирает dictionary 0 / slot 35 / `clip-0064`.
+
+Полный `make check`, native `xcodebuild test`, Metal Objective-C++ syntax
+check, resource policy и отдельный diff-review прошли. Debug-сборка Runner
+дошла до известной внешней зависимости CocoaPods и остановилась на отсутствии
+модуля `shared_preferences_foundation`; изменённый Metal translation unit
+проверен отдельно. Оригинальные binary/assets в Git не добавлены. Описание:
+[`task93_asterix_runtime_graph.md`](../architecture/task93_asterix_runtime_graph.md).
+
 ## П. 93.3 — Единый native AnimationController
 
 **Выполнено:** 23 июля 2026.
